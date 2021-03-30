@@ -181,9 +181,11 @@ class WSpsSpecial extends SpecialPage {
 
 					//echo "<HR><HR><HR><HR>";
 					//var_dump( $query );
+					echo $render->loadResources();
 					if ( $query === false ) {
 						$error = $this->makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
 					} else {
+
 						$listOfPages = $this->doAsk( $query );
 						echo '<div class="uk-container"><div style="height:450px;">';
 						//$title, $subTitle, $content, $footer, $width='-1-1', $type="default"
@@ -225,6 +227,7 @@ class WSpsSpecial extends SpecialPage {
 					$query = $this->getPost( 'wsps-query' );
 					//echo "<HR><HR><HR><HR>";
 					//var_dump( $query );
+					echo $render->loadResources();
 					if ( $query === false ) {
 						$error = $this->makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
 					} else {
@@ -297,12 +300,13 @@ class WSpsSpecial extends SpecialPage {
 			if ( $error !== '' ) {
 				echo $error;
 			}
-			echo '<div class="uk-container"><div style="height:450px;">';
+			$out->addHTML( $render->loadResources() );
+			$out->addHTML( '<div class="uk-container"><div style="height:450px;">' );
 
 			//$title, $subTitle, $content, $footer, $width='-1-1', $type="default"
 			$content = '<form method="POST" class="uk-form-horizontal uk-margin-large"><div class="uk-margin">';
 			$content .= '<input type="hidden" name="wsps-action" value="doQuery">';
-			$content .= '<label class="uk-form-label uk-text-large" for="wsps-query">';
+			$content .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
 			$content .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
 			$content .= '</label>';
 			$content .= '<div class="uk-form-controls">';
@@ -320,9 +324,9 @@ class WSpsSpecial extends SpecialPage {
 				$footer
 			);
 			//$out->addHTML( $card );
-			echo $card;
+			$out->addHTML( $card );
 			//$out->addHTML( '</div></div>' );
-			echo '</div></div>';
+			$out->addHTML( '</div></div>' );
 
 			return;
 		}
@@ -415,123 +419,7 @@ class WSpsSpecial extends SpecialPage {
 			return;
 		}
 
-		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "importmanaged" ) ) {
-			echo $render->loadResources();
-			//error_reporting( E_ALL );
-			//ini_set( 'display_errors', 1 );
-			//$out->addHTML( $render->renderMenu($url, $logo, $version, 2) );
-			// $out->addHTML( '<div style="height:450px;">' );
-			echo '<div class="uk-container"><div style="height:450px;">';
-			//$title, $subTitle, $content, $footer, $width='-1-1', $type="default"
-			$listOfPages = $this->doAsk();
-			$nr          = count( $listOfPages );
-			$content     = wfMessage( 'wsps-special_managed_card_current', $nr )->text();
-			$footer      = '<a href="' . $url . 'index.php/Special:WSps?action=importmanaged2">';
-			$footer      .= wfMessage( 'wsps-special_managed_card_click_to_start' )->text();
-			$footer      .= '</a>';
-			$card        = $render->renderCard(
-				wfMessage( 'wsps-special_managed_query_card_header' )->text(),
-				wfMessage( 'wsps-special_managed_query_card_subheader' )->text(),
-				$content,
-				$footer );
-			//$out->addHTML( $card );
-			echo $card;
-			//$out->addHTML( '</div></div>' );
-			echo '</div></div>';
 
-			return;
-		}
-		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "importmanaged2" ) ) {
-			echo $render->loadResources();
-			//error_reporting( E_ALL );
-			//ini_set( 'display_errors', 1 );
-			//$out->addHTML( $render->renderMenu($url, $logo, $version, 2) );
-			// $out->addHTML( '<div style="height:450px;">' );
-			echo '<div class="uk-container"><div style="height:450px;">';
-			//$title, $subTitle, $content, $footer, $width='-1-1', $type="default"
-			$listOfPages = $this->doAsk();
-			$nr          = count( $listOfPages );
-			$content     = $render->drawProgress( $nr );
-			$footer      = wfMessage( 'wsps-special_managed_query_card_footer' )->text();
-			$card        = $render->renderCard(
-				wfMessage( 'wsps-special_managed_query_card_header' )->text(),
-				wfMessage( 'wsps-special_managed_query_card_subheader' )->text(),
-				$content,
-				$footer
-			);
-			$status      = $render->renderStatusCard( wfMessage( 'wsps-special_status_card' )->text(), '' );
-			//$out->addHTML( $card );
-			echo $status;
-			echo $card;
-
-			//$out->addHTML( '</div></div>' );
-			echo '</div></div>';
-			$count = 0;
-			foreach ( $listOfPages as $page ) {
-				$pageId = WSpsHooks::getPageIdFromTitle( $page );
-				if ( $pageId === false ) {
-					$render->statusUpdate( $page . wfMessage( 'wsps-special_delete_failed' )->text(), true, 'warning' );
-				} else {
-					$result = WSpsHooks::addFileForExport( $pageId, $usr );
-					if ( $result['status'] === false ) {
-						$render->statusUpdate( $page . ': ' . $result['info'], true, 'warning' );
-					}
-				}
-				$render->progress( $count, $count, $nr, $extraInfo = $page );
-				$count ++;
-			}
-			$render->progress( $count, $count, $nr, wfMessage( 'wsps-special_status_card_done' )->text() );
-
-			return;
-		}
-		//$out->addHTML('<img src="'.$logo.'"><br>Version ' . $version . '<br><br>');
-
-
-		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "listmanaged" ) ) {
-			$out->addHTML( $render->loadResources() );
-			$out->addHTML( $render->renderMenu( $url, $logo, $version, 1 ) );
-
-			$style       .= "<style>";
-			$style       .= '.wsps-td {
-	        font-size:12px;
-	        padding:5px;
-	    }';
-			$style       .= '</style>';
-			$listOfPages = $this->doAsk();
-			$nr          = count( $listOfPages );
-			$html        = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr><th>#</th>';
-			$html        .= '<th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
-			$html        .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
-			$row         = 1;
-			$active      = 0;
-			foreach ( $listOfPages as $page ) {
-				$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
-				$html   .= '<td class="wsps-td"><a href="/' . $page . '">' . $page . '</a></td>';
-				$pageId = WSpsHooks::isTitleInIndex( $page );
-				if ( $pageId !== false ) {
-					$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $pageId . '"></a>';
-					$active ++;
-				} else {
-					$pageId = WSpsHooks::getPageIdFromTitle( $page );
-					$button = '<a class="wsps-toggle-special" data-id="' . $pageId . '"></a>';
-				}
-				//echo "<HR>".$pageId;
-				$html .= '<td class="wsps-td">' . $button . '</td>';
-				$html .= '</tr>';
-				$row ++;
-			}
-			$html .= '</table>';
-
-			$html = wfMessage( 'wsps-special_managed_card_current_which', $nr, $active )->text() . $html;
-			$html .= '</div>';
-
-			$out->addHTML( $style );
-			$out->addHTML( $html );
-			//echo "<pre>";
-			//print_r($data);
-			//echo "</pre>";
-			return;
-		}
 		$out->addHTML( $render->loadResources() );
 		$out->addHTML( $render->renderMenu( $url, $logo, $version, 0 ) );
 		$data = WSpsHooks::getAllPageInfo();
@@ -558,7 +446,7 @@ class WSpsSpecial extends SpecialPage {
 		$out->addHTML( $style );
 		$out->addHTML( $html );
 
-		return;
+		return true;
 
 	}
 }

@@ -145,16 +145,7 @@ class render {
 
 	function renderMenu( $baseUrl, $logo, $version, $active ) {
 //exportcustom
-    	if( $active === 1 ) {
-		    $item1 = '<li class="uk-active" ><a href="' . $baseUrl . 'index.php/Special:WSps?action=listmanaged">' . wfMessage( 'wsps-special_menu_list_managed_pages' )->text() . '</a></li>';
-	    } else {
-		    $item1 = '<li><a href="' . $baseUrl . 'index.php/Special:WSps?action=listmanaged">' . wfMessage( 'wsps-special_menu_list_managed_pages' )->text() . '</a></li>';
-	    }
-		if( $active === 2 ) {
-			$item2 = '<li class="uk-active"><a href="' . $baseUrl . 'index.php/Special:WSps?action=importmanaged">' . wfMessage( 'wsps-special_menu_sync_all_managed_pages' )->text() . '</a></li>';
-		} else {
-			$item2 = '<li><a href="' . $baseUrl . 'index.php/Special:WSps?action=importmanaged">' . wfMessage( 'wsps-special_menu_sync_all_managed_pages' )->text() . '</a></li>';
-		}
+
 		if( $active === 3 ) {
 			$item3 = '<li class="uk-active"><a href="' . $baseUrl . 'index.php/Special:WSps?action=exportcustom">' . wfMessage( 'wsps-special_menu_sync_custom_query' )->text() . '</a></li>';
 		} else {
