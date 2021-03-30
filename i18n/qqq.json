@@ -1,0 +1,11 @@
+{
+	"@metadata": {
+		"authors": [
+			"Sen-Sai"
+		]
+	},
+	"wsps-desc": "Description",
+	"wsps-i18n-welcome": "Used to greet the user when reading the i18n/??.json file.",
+	"wsps-title": "Page title of the HelloWorld special page.\n{{Identical|Hello World}}",
+	"wsps-intro": "Text displayed on the HelloWorld SpecialPage."
+}

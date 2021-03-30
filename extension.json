@@ -1,0 +1,66 @@
+{
+	"name": "WSPageSync",
+	"version": "0.9.9",
+	"author": [
+		"Sen-Sai"
+	],
+	"url": "https://bitbucket.org/wikibasesolutions/mw-wspagesync",
+	"descriptionmsg": "wsps-desc",
+	"license-name": "GPL v2",
+	"type": "other",
+	"AutoloadClasses": {
+		"ApiWSps": "WSps.api.php",
+		"WSpsHooks": "WSps.php",
+		"WSpsSpecial": "specials/WSps_special.php"
+	},
+	"ExtensionMessagesFiles": {
+		"WSpsAlias": "WSps.i18n.alias.php",
+		"WSpsMagic": "WSps.i18n.magic.php"
+	},
+	"APIModules": {
+		"wsps": "ApiWSps"
+	},
+	"Hooks": {
+		"ParserFirstCallInit": [
+			"WSpsHooks::onParserFirstCallInit"
+		],
+		"AdminLinks": [
+			"WSpsHooks::addToAdminLinks"
+		],
+		"PageContentSaveComplete": [
+			"WSpsHooks::pageSaved"
+		],
+		"SkinTemplateNavigation": [
+			"WSpsHooks::nav"
+		]
+	},
+	"MessagesDirs": {
+		"WSPageSync": [
+			"i18n"
+		]
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "WSPageSync"
+	},
+	"SpecialPages": {
+		"WSps": "WSpsSpecial"
+	},
+	"config": {
+		"WSPageSync": {
+			"filePath" : "",
+			"fileNameSpaces" : [
+				6
+			]
+		}
+	},
+	"ResourceModules": {
+		"ext.WSPageSync.scripts": {
+			"scripts": "wsps.js",
+			"styles": "assets/images/style.css",
+			"position": "top"
+		}
+	},
+	
+	"manifest_version": 1
+}
