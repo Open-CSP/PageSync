@@ -1,6 +1,6 @@
 {
 	"name": "WSPageSync",
-	"version": "0.9.9",
+	"version": "0.9.9.1",
 	"author": [
 		"Sen-Sai"
 	],
@@ -58,7 +58,11 @@
 		"ext.WSPageSync.scripts": {
 			"scripts": "wsps.js",
 			"styles": "assets/images/style.css",
-			"position": "top"
+			"position": "top",
+			"messages": [
+				"wsps-page-added",
+				"wsps-page-removed"
+			]
 		}
 	},
 	

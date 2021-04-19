@@ -1,5 +1,4 @@
 # WSPageSync
-
 Export and import wiki pages
 
 ## Installation
@@ -11,12 +10,14 @@ This can be set in the localsettings as  :
 ```php
 $wgWSPageSync['filePath'] =  $IP . '/wspsFiles';
 ```
+Make sure the map has the correct right for WSPageSync to store files
+
 
 Files from the File namespace will also be synced.
 
 
 ## Special page usage
-By default the special page shows a list of all Wiki pages set for synching.
+By default the special page shows a list of all Wiki pages set for syncing.
 
 Further actions can be found in the menu on the Special Page.
 
@@ -37,4 +38,5 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+v 0.9.9.1 Clean-up
 v 0.9.9 Initial Community release

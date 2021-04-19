@@ -10,6 +10,8 @@
 	"wsps-title": "WS PageSync",
 	"wsps-intro": "Intro",
 	"wsps-content": "Current list of synced Wiki pages",
+	"wsps-page-added" : "Page added for sync",
+	"wsps-page-removed": "Page removed from sync",
 	"wsps-api-error-no-config-title" : "WSPageSync ERROR",
 	"wsps-api-error-no-config-body" : "No configuration found. Please set configuration first!",
 	"wsps-error_page_not_found": "Page not found",

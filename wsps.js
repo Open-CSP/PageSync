@@ -1,5 +1,7 @@
-//alert('ola');
 $(function() {
+	/**
+	 * When sysop clicks slider on top of a page
+	 */
 	$('.wsps-toggle').click(function (e) {
 		e.stopPropagation();
 		var button = $(this);
@@ -13,6 +15,9 @@ $(function() {
 			wspsPost(id, user, 'add');
 		}
 	});
+	/**
+	 * When sysop clicks slider on the Special Page
+	 */
 	$('.wsps-toggle-special').click(function (e) {
 		e.stopPropagation();
 		var button = $(this);
@@ -28,6 +33,11 @@ $(function() {
 	});
 });
 
+/**
+ * @param {int} id (page id)
+ * @param {string} un (username)
+ * @param {string} type (what action to perform)
+ */
 function wspsPost( id, un, type ) {
 	new mw.Api().postWithToken( 'csrf', {
 		action: 'wsps',
@@ -38,12 +48,11 @@ function wspsPost( id, un, type ) {
 	} ).done( function( data ) {
 		if( data.wsps.result.status === 'ok' ) {
 			if( type === 'remove' ) {
-				mw.notify('Page removed from sync');
+				mw.notify( mw.msg( 'wsps-page-removed' ) );
 			}
 			if( type === 'add' ) {
-				mw.notify('Page added for sync');
+				mw.notify( mw.msg( 'wsps-page-added' ) );
 			}
-			//console.log( "successfully save " + data.wsps.result.page.fname );
 		} else {
 			mw.notify( $( '<span style="color:red;">' + data.wsps.result.message + '</span>' ), { title: 'ERROR' } );
 		}

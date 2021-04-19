@@ -121,7 +121,7 @@ class WSpsSpecial extends SpecialPage {
 		if ( ! in_array( 'sysop', $groups ) ) {
 			$out->addHTML( '<p>Nothing to see here, only interesting stuff for Admins</p>' );
 
-			return;
+			return true;
 
 		}
 		WSpsHooks::setConfig();
@@ -129,7 +129,7 @@ class WSpsSpecial extends SpecialPage {
 		if ( WSpsHooks::$config === false ) {
 			$out->addHTML( '<p>' . wfMessage( 'wsps-api-error-no-config-body' )->text() . '</p>' );
 
-			return;
+			return true;
 		}
 
 		$url           = rtrim( $wgScript, 'index.php' );
@@ -160,9 +160,7 @@ class WSpsSpecial extends SpecialPage {
         background-image:url(' . $assets . 'on.png);   
         }';
 		$style    .= '</style>';
-
 		$this->setHeaders();
-		//$out->setPageTitle( $this->msg( 'wsps-title' ) );
 		$out->setPageTitle( '' );
 		include( $IP . '/extensions/WSPageSync/assets/classes/render.class.php' );
 		$render = new render();
@@ -179,8 +177,6 @@ class WSpsSpecial extends SpecialPage {
 				case "wsps-import-query" :
 					$query = $this->getPost( 'wsps-query' );
 
-					//echo "<HR><HR><HR><HR>";
-					//var_dump( $query );
 					echo $render->loadResources();
 					if ( $query === false ) {
 						$error = $this->makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
@@ -198,11 +194,8 @@ class WSpsSpecial extends SpecialPage {
 							$content,
 							$footer );
 						$status  = $render->renderStatusCard( wfMessage( 'wsps-special_status_card' )->text(), '' );
-						//$out->addHTML( $card );
 						echo $status;
 						echo $card;
-
-						//$out->addHTML( '</div></div>' );
 						echo '</div></div>';
 						$count = 1;
 						foreach ( $listOfPages as $page ) {
@@ -225,8 +218,6 @@ class WSpsSpecial extends SpecialPage {
 					break;
 				case "doQuery" :
 					$query = $this->getPost( 'wsps-query' );
-					//echo "<HR><HR><HR><HR>";
-					//var_dump( $query );
 					echo $render->loadResources();
 					if ( $query === false ) {
 						$error = $this->makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
@@ -279,12 +270,7 @@ class WSpsSpecial extends SpecialPage {
 						$out->addHTML( $style );
 						$out->addHTML( $html );
 
-						return;
-
-
-						//echo "<pre>";
-						//print_r($result);
-						//echo "</pre>";
+						return true;
 					}
 
 					break;
@@ -293,17 +279,12 @@ class WSpsSpecial extends SpecialPage {
 
 			}
 
-			//error_reporting( E_ALL );
-			//ini_set( 'display_errors', 1 );
-			//$out->addHTML( $render->renderMenu($url, $logo, $version, 2) );
-			// $out->addHTML( '<div style="height:450px;">' );
 			if ( $error !== '' ) {
 				echo $error;
 			}
 			$out->addHTML( $render->loadResources() );
 			$out->addHTML( '<div class="uk-container"><div style="height:450px;">' );
 
-			//$title, $subTitle, $content, $footer, $width='-1-1', $type="default"
 			$content = '<form method="POST" class="uk-form-horizontal uk-margin-large"><div class="uk-margin">';
 			$content .= '<input type="hidden" name="wsps-action" value="doQuery">';
 			$content .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
@@ -323,12 +304,10 @@ class WSpsSpecial extends SpecialPage {
 				$content,
 				$footer
 			);
-			//$out->addHTML( $card );
 			$out->addHTML( $card );
-			//$out->addHTML( '</div></div>' );
 			$out->addHTML( '</div></div>' );
 
-			return;
+			return true;
 		}
 
 		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "delete" ) ) {
@@ -349,11 +328,9 @@ class WSpsSpecial extends SpecialPage {
 					$footer
 				);
 				$status  = $render->renderStatusCard( wfMessage( 'wsps-special_status_card' )->text(), '' );
-				//$out->addHTML( $card );
 				echo $status;
 				echo $card;
 
-				//$out->addHTML( '</div></div>' );
 				echo '</div></div>';
 				$count   = 0;
 				$success = 0;
@@ -388,14 +365,13 @@ class WSpsSpecial extends SpecialPage {
 				);
 				WSpsHooks::getFileIndex();
 
-				return;
+				return true;
 
 			}
 
 			$data = WSpsHooks::getAllPageInfo();
 			$nr   = count( $data );
 			echo '<div class="uk-container"><div style="height:450px;">';
-			//$title, $subTitle, $content, $footer, $width='-1-1', $type="default"
 			$content = wfMessage( 'wsps-special_delete_card_header', $nr )->text();
 			$form    = '<form method="post">';
 			$form    .= '<input type="hidden" name="wsps-action" value="wsps-delete">';
@@ -411,14 +387,13 @@ class WSpsSpecial extends SpecialPage {
 				$content,
 				$footer
 			);
-			//$out->addHTML( $card );
 			echo $card;
-			//$out->addHTML( '</div></div>' );
 			echo '</div></div>';
 
-			return;
+			return true;
 		}
 
+		global $wgScript;
 
 		$out->addHTML( $render->loadResources() );
 		$out->addHTML( $render->renderMenu( $url, $logo, $version, 0 ) );
@@ -433,7 +408,7 @@ class WSpsSpecial extends SpecialPage {
 		$row  = 1;
 		foreach ( $data as $page ) {
 			$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
-			$html   .= '<td class="wsps-td"><a href="/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
+			$html   .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
 			$html   .= '<td class="wsps-td">' . $page['username'] . '</td>';
 			$html   .= '<td class="wsps-td">' . $page['changed'] . '</td>';
 			$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $page['pageid'] . '"></a>';

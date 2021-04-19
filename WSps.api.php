@@ -43,29 +43,12 @@ class ApiWSps extends ApiBase {
 
 		switch ( $action ) {
 			case "add" :
-				//$output = WSpsHooks::getPageTitle( $pageId );
-
 				$result = WSpsHooks::addFileForExport( $pageId, $userName );
-				$output = array();
-				if ( $result['status'] === true ) {
-					$output['status'] = "ok";
-					$output['page']   = $result['info'];
-				} else {
-					$output['status']  = "error";
-					$output['message'] = $result['info'];
-				}
-
+				$output = $this->setOutput( $result );
 				break;
 			case "remove" :
 				$result = WSpsHooks::removeFileForExport( $pageId, $userName );
-				$output = array();
-				if ( $result['status'] === true ) {
-					$output['status'] = "ok";
-					$output['page']   = $result['info'];
-				} else {
-					$output['status']  = "error";
-					$output['message'] = $result['info'];
-				}
+				$output = $this->setOutput( $result );
 				break;
 			default :
 				$this->dieUsageMsg( 'No recognized action' );
@@ -78,6 +61,18 @@ class ApiWSps extends ApiBase {
 		);
 
 		return true;
+	}
+
+	private function setOutput( $result ){
+		$output = array();
+		if ( $result['status'] === true ) {
+			$output['status'] = "ok";
+			$output['page']   = $result['info'];
+		} else {
+			$output['status']  = "error";
+			$output['message'] = $result['info'];
+		}
+		return $output;
 	}
 
 	public function needsToken() {

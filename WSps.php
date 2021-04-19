@@ -5,8 +5,7 @@
  * @file
  * @ingroup Extensions
  */
-//error_reporting( -1 );
-//ini_set( 'display_errors', 1 );
+
 
 
 use MediaWiki\MediaWikiServices;
@@ -91,21 +90,14 @@ class WSpsHooks {
 	 * @return [type]         [description]
 	 */
 	public static function wsps( Parser &$parser ) {
-		// Called in MW text like this: {{#something: }}
-
-
-		// For named parameters like {{#something: foo=bar | apple=orange | banana }}
-		// See: https://www.mediawiki.org/wiki/Manual:Parser_functions#Named_parameters
 		$options = WSgetContentHooks::extractOptions( array_slice( func_get_args(), 1 ) );
 		global $wgOut;
 		if ( isset( $options['id'] ) && $options['id'] != '' ) {
 			$artikel = Article::newFromId( $options['id'] );
 			if ( $artikel !== false || $artikel !== null ) {
 				$content = $artikel->fetchContent();
-				//$wgOut->addHTML($content);
 				$getridoff = array( '{{', '}}' );
 				$content   = str_replace( $getridoff, '', $content );
-				//$content = self::db_real_escape($content);
 				$details = explode( "|", $content );
 				unset( $details[0] );
 				$back = "";
@@ -126,7 +118,6 @@ class WSpsHooks {
 	 * @return array|false|mixed
 	 */
 	public static function getFileIndex() {
-		global $IP;
 		if( self::$config === false ) {
 			echo wfMessage('wsps-api-error-no-config-body')->text();
 			return false;
@@ -135,15 +126,9 @@ class WSpsHooks {
 		$indexFile = self::$config['filePath'] . 'export.index';
 		if ( ! file_exists( $indexFile ) ) {
 			file_put_contents( $indexFile, '' );
-			$data = array();
-
-			return $data;
+			return array();
 		}
-		$data = json_decode( file_get_contents( $indexFile ), true );
-
-		return $data;
-
-
+		return json_decode( file_get_contents( $indexFile ), true );
 	}
 
 
@@ -163,26 +148,23 @@ class WSpsHooks {
 	 * @return array|false all pages and their detailed info
 	 */
 	public static function getAllPageInfo() {
-		global $IP;
 		if( self::$config === false ) {
 			echo wfMessage('wsps-api-error-no-config-body')->text();
 			return false;
 		}
-
-
-			$filesPath = self::$config['exportPath'];
-			$fList     = WSpsHooks::getFileIndex();
-			$data      = array();
-			if( !empty( $fList ) ) {
-				foreach ( $fList as $k => $v ) {
-					$infoFile = $filesPath . $k . '.info';
-					if ( file_exists( $infoFile ) ) {
-						$data[] = json_decode( file_get_contents( $infoFile ), true );
-					}
+		$filesPath = self::$config['exportPath'];
+		$fList     = WSpsHooks::getFileIndex();
+		$data      = array();
+		if( !empty( $fList ) ) {
+			foreach ( $fList as $k => $v ) {
+				$infoFile = $filesPath . $k . '.info';
+				if ( file_exists( $infoFile ) ) {
+					$data[] = json_decode( file_get_contents( $infoFile ), true );
 				}
 			}
+		}
 
-			return $data;
+		return $data;
 
 	}
 
@@ -194,8 +176,6 @@ class WSpsHooks {
 	 * @return bool|false|string false when not found, otherwise the content of the file.
 	 */
 	public static function getFileContent( string $fname) {
-		global $IP;
-
 		$filesPath = self::$config['exportPath'];
 
 		if ( file_exists( $filesPath . $fname . '.wiki' ) ) {
@@ -255,8 +235,6 @@ class WSpsHooks {
 	 * @throws Exception
 	 */
 	public static function putFileIndex( string $fname, string $title, string $content, string $uname, int $id, $isFile ): array {
-		global $IP;
-
 
 		// get current indexfile
 		$index = WSpsHooks::getFileIndex();
@@ -476,8 +454,7 @@ class WSpsHooks {
 		$username = $user->getName();
 		$index    = WSpsHooks::getFileIndex();
 		if ( isset( $index[ $fname ] ) && $index[ $fname ] === $title ) {
-			//$fname, $title, $content, $uname, $id, $isFile, $module = false )
-			$result = WSpsHooks::putFileIndex( $fname, $title, $content, $username, $id, false, false );
+			$result = WSpsHooks::putFileIndex( $fname, $title, $content, $username, $id, false );
 		}
 
 		return true;
@@ -519,6 +496,11 @@ class WSpsHooks {
 		}
 	}
 
+	/**
+	 * @param $id
+	 *
+	 * @return false
+	 */
 	public static function getPageContent( $id ) {
 		$id      = (int) ( $id );
 		$artikel = WikiPage::newFromId( $id );
@@ -534,6 +516,12 @@ class WSpsHooks {
 
 	}
 
+	/**
+	 * @param SkinTemplate $sktemplate
+	 * @param array $links
+	 *
+	 * @return bool|void
+	 */
 	public static function nav( SkinTemplate &$sktemplate, array &$links ) {
 
 		global $wgUser, $wgScript;
@@ -585,7 +573,7 @@ class WSpsHooks {
 	 *
 	 * @return array $results
 	 */
-	public static function extractOptions( array $options ) {
+	public static function extractOptions( array $options ): array {
 		$results = array();
 		foreach ( $options as $option ) {
 			$pair = explode( '=', $option, 2 );
@@ -599,10 +587,6 @@ class WSpsHooks {
 				$results[ $name ] = true;
 			}
 		}
-		//Now you've got an array that looks like this:
-		//  [foo] => "bar"
-		//	[apple] => "orange"
-		//	[banana] => true
 		return $results;
 	}
 
