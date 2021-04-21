@@ -38,5 +38,6 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+v 0.9.9.2 More messy code clean-up
 v 0.9.9.1 Clean-up
 v 0.9.9 Initial Community release

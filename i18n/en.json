@@ -42,6 +42,7 @@
 	"wsps-special_managed_card_click_to_start": "Click to start exporting all Managed Pages",
 	"wsps-special_managed_card_current_which": "<p>We currently have <strong>$1</strong> managed {{PLURAL:$1|page|pages}} in the wiki of which <strong>$2</strong> {{PLURAL:$2|is|are}} synced.</p>",
 	"wsps-special_custom_query_result": "<h3>Result custom query</h3>",
+	"wsps-special_custom_query_not_found" : "Custom query not set",
 	"wsps-special_custom_query": "Query : ",
 	"wsps-special_custom_query_result_text1": "<p>We currently have <strong>$1</strong> queried {{PLURAL:$1|page|pages}} in the wiki",
 	"wsps-special_custom_query_result_text2": " of which <strong>$1</strong> {{PLURAL:$1|is|are}} synced.</p>",

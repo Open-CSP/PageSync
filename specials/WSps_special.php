@@ -6,12 +6,26 @@
  * @ingroup Extensions
  */
 
+
+/**
+ * Class WSpsSpecial
+ */
 class WSpsSpecial extends SpecialPage {
+
+	public $url, $version, $logo, $assets;
+
+	/**
+	 * WSpsSpecial constructor.
+	 */
 	public function __construct() {
 		parent::__construct( 'WSps' );
 	}
 
 
+	/**
+	 * Special page group
+	 * @return string
+	 */
 	function getGroupName() {
 		return 'Wikibase';
 	}
@@ -36,20 +50,20 @@ class WSpsSpecial extends SpecialPage {
 	 *
 	 * @return false|mixed
 	 */
-	public function getPost( $name, $checkIfEmpty = true ) {
+	public function getPost( string $name, $checkIfEmpty = true ) {
 		if ( $checkIfEmpty ) {
 			if ( isset( $_POST[ $name ] ) && ! empty( $_POST[ $name ] ) ) {
 				return $_POST[ $name ];
 			} else {
 				return false;
 			}
-		} else {
-			if ( isset( $_POST[ $name ] ) ) {
-				return $_POST[ $name ];
-			} else {
-				return false;
-			}
 		}
+		if ( isset( $_POST[ $name ] ) ) {
+			return $_POST[ $name ];
+		} else {
+			return false;
+		}
+
 	}
 
 	/**
@@ -59,40 +73,27 @@ class WSpsSpecial extends SpecialPage {
 	 * @return array|false|mixed
 	 */
 	public function doAsk( $query = false, $returnUnFiltered = false ) {
-		if ( $query === false ) {
-			$api = new ApiMain(
-				new DerivativeRequest(
-					$this->getRequest(), // Fallback upon $wgRequest if you can't access context
-					array(
-						'action' => 'ask',
-						'query'  => '[[Class::Managed item]] [[Status of managed item::Live]] |link=none |sep=<br> |limit=9999'
-					),
-					true // treat this as a POST
-				),
-				false // not write.
-			);
-		} else {
-			$api = new ApiMain(
-				new DerivativeRequest(
-					$this->getRequest(), // Fallback upon $wgRequest if you can't access context
-					array(
-						'action' => 'ask',
-						'query'  => $query
-					),
-					true // treat this as a POST
-				),
-				false // not write.
-			);
+		if( $query === false ) {
+			$query = '[[Class::Managed item]] [[Status of managed item::Live]] |link=none |sep=<br> |limit=9999';
 		}
-
+		$api = new ApiMain(
+			new DerivativeRequest(
+				$this->getRequest(), // Fallback upon $wgRequest if you can't access context
+				array(
+					'action' => 'ask',
+					'query'  => $query
+				),
+				true // treat this as a POST
+			),
+			false // not write.
+		);
 		$api->execute();
 		$data = $api->getResult()->getResultData();
-
-		if ( isset( $data['query']['results'] ) ) {
-			$data = $data['query']['results'];
-		} else {
+		if ( ! isset( $data['query']['results'] ) ) {
 			return false;
 		}
+
+		$data = $data['query']['results'];
 
 		if ( ! $returnUnFiltered ) {
 			$listOfPages = array();
@@ -100,7 +101,6 @@ class WSpsSpecial extends SpecialPage {
 				$listOfPages[] = $page['fulltext'];
 			}
 			sort( $listOfPages );
-
 			return $listOfPages;
 		} else {
 			return $data;
@@ -113,57 +113,34 @@ class WSpsSpecial extends SpecialPage {
 	 * @param string|null $sub The subpage string argument (if any).
 	 */
 	public function execute( $sub ) {
-		global $IP;
-		global $wgScript, $wgUser;
+		global $IP, $wgScript, $wgUser;
 		$out    = $this->getOutput();
 		$usr    = $wgUser->getName();
 		$groups = $wgUser->getGroups();
 		if ( ! in_array( 'sysop', $groups ) ) {
 			$out->addHTML( '<p>Nothing to see here, only interesting stuff for Admins</p>' );
-
 			return true;
-
 		}
 		WSpsHooks::setConfig();
 
 		if ( WSpsHooks::$config === false ) {
 			$out->addHTML( '<p>' . wfMessage( 'wsps-api-error-no-config-body' )->text() . '</p>' );
-
 			return true;
 		}
 
-		$url           = rtrim( $wgScript, 'index.php' );
-		$extensionFile = $IP . '/extensions/WSPageSync/extension.json';
-		if ( file_exists( $extensionFile ) ) {
-			$extension = json_decode( file_get_contents( $extensionFile ), true );
-			$version   = $extension['version'];
-		} else {
-			$version = 'N/A';
-		}
-		$logo     = '/extensions/WSPageSync/assets/images/wspagesync.png';
-		$assets   = '/extensions/WSPageSync/assets/images/';
-		$filePath = $IP . '/extensions/WSPageSync/files/';
-		$style    = "<style>";
-		$style    .= '.wsps-td {
-	        font-size:10px;
-	        padding:5px;
-	    }';
-		$style    .= '.wsps-toggle-special {
-            width : 22px;
-            height: 12px;
-            display:inline-block;
-            vertical-align:middle;
-            background-image:url(' . $assets . 'off.png);
-            background-size:cover;
-        }';
-		$style    .= '.wsps-active {
-        background-image:url(' . $assets . 'on.png);   
-        }';
-		$style    .= '</style>';
-		$this->setHeaders();
-		$out->setPageTitle( '' );
 		include( $IP . '/extensions/WSPageSync/assets/classes/render.class.php' );
+
 		$render = new render();
+
+		$this->url      = rtrim( $wgScript, 'index.php' );
+		$this->version  = \ExtensionRegistry::getInstance()->getAllThings()["WSPageSync"]["version"];
+		$this->logo     = '/extensions/WSPageSync/assets/images/wspagesync.png';
+		$this->assets   = '/extensions/WSPageSync/assets/images/';
+		$style          = $render->getStyle( $this->assets );
+
+		$this->setHeaders();
+		$out->setPageTitle('');
+
 
 
 		// SMW Custom query
@@ -181,8 +158,9 @@ class WSpsSpecial extends SpecialPage {
 					if ( $query === false ) {
 						$error = $this->makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
 					} else {
-
+						$query       = base64_decode( $query );
 						$listOfPages = $this->doAsk( $query );
+						echo '<style>.container { display:ruby; }</style>';
 						echo '<div class="uk-container"><div style="height:450px;">';
 						//$title, $subTitle, $content, $footer, $width='-1-1', $type="default"
 						$nr      = count( $listOfPages );
@@ -225,54 +203,22 @@ class WSpsSpecial extends SpecialPage {
 						$result = $this->doAsk( $query );
 
 						$nr = count( $result );
-						$out->addHTML( $render->renderMenu( $url, $logo, $version, 3 ) );
-						$form = '<form method="post">';
-						$form .= '<input type="hidden" name="wsps-action" value="wsps-import-query">';
-						$form .= '<input type="hidden" name="wsps-query" value="' . $query . '">';
-						$form .= '<input type="submit" class="uk-button uk-button-primary uk-width-1-1 uk-margin-small-bottom uk-text-large" value="' . wfMessage( 'wsps-special_custom_query_add_results' )->text() . '">';
+						$out->addHTML( $render->renderMenu( $this->url, $this->logo, $this->version, 3 ) );
+						$form  = $render->renderDoQueryForm( $query );
+						$html = $form;
+						$bodyResult  = $render->renderDoQueryBody( $result );
+						$html .= $bodyResult['html'];
 
-						$form   .= '</form>';
-						$html   = $form;
-						$html   .= '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover">';
-						$html   .= '<thead><tr><th>#</th>';
-						$html   .= '<th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
-						$html   .= '<th class="uk-table-shrink">' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th>';
-						$html   .= '</tr></thead><tbody>';
-						$row    = 1;
-						$active = 0;
-						foreach ( $result as $page ) {
-							$html   .= '<tr><td>' . $row . '</td>';
-							$html   .= '<td><a href="/' . $page . '">' . $page . '</a></td>';
-							$pageId = WSpsHooks::isTitleInIndex( $page );
-							if ( $pageId !== false ) {
-								$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $pageId . '"></a>';
-								$active ++;
-							} else {
-								$pageId = WSpsHooks::getPageIdFromTitle( $page );
-								if ( $pageId === false || $pageId === 0 ) {
-									$button = '<span class="uk-badge" style="color:white; background-color:#666;"><strong>N/A</strong></span>';
-								} else {
-									$button = '<a class="wsps-toggle-special" data-id="' . $pageId . '"></a>';
-								}
-							}
-							//echo "<HR>".$pageId;
-							$html .= '<td>' . $button . '</td>';
-							$html .= '</tr>';
-							$row ++;
-						}
-						$html   .= '</tbody></table>';
 						$header = wfMessage( 'wsps-special_custom_query_result' )->text();
 						$header .= '<p>' . wfMessage( 'wsps-special_custom_query' )->text() . '<span class="uk-text-warning">' . $query . '</span></p>';
 						$header .= wfMessage( 'wsps-special_custom_query_result_text1', $nr )->text();
-						$header .= wfMessage( 'wsps-special_custom_query_result_text2', $active )->text();
+						$header .= wfMessage( 'wsps-special_custom_query_result_text2', $bodyResult['active'] )->text();
 						$html   = $header . $html;
 						$html   .= $form . '</div>';
 						$out->addHTML( $style );
 						$out->addHTML( $html );
-
 						return true;
 					}
-
 					break;
 				case false :
 					break;
@@ -284,27 +230,7 @@ class WSpsSpecial extends SpecialPage {
 			}
 			$out->addHTML( $render->loadResources() );
 			$out->addHTML( '<div class="uk-container"><div style="height:450px;">' );
-
-			$content = '<form method="POST" class="uk-form-horizontal uk-margin-large"><div class="uk-margin">';
-			$content .= '<input type="hidden" name="wsps-action" value="doQuery">';
-			$content .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
-			$content .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
-			$content .= '</label>';
-			$content .= '<div class="uk-form-controls">';
-			$content .= '<input class="uk-input" name="wsps-query" type="text" placeholder="';
-			$content .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
-			$content .= '">';
-			$content .= '</div>';
-			$footer  = '<input type="submit" class="uk-button uk-button-default" value="';
-			$footer  .= wfMessage( 'wsps-special_custom_query_card_submit' )->text();
-			$footer  .= '"></form>';
-			$card    = $render->renderCard(
-				wfMessage( 'wsps-special_custom_query_card_header' )->text(),
-				wfMessage( 'wsps-special_custom_query_card_subheader' )->text(),
-				$content,
-				$footer
-			);
-			$out->addHTML( $card );
+			$out->addHTML( $render->renderCustomQuery() );
 			$out->addHTML( '</div></div>' );
 
 			return true;
@@ -317,7 +243,8 @@ class WSpsSpecial extends SpecialPage {
 
 			if ( $pAction === "wsps-delete" ) {
 				$files = WSpsHooks::getFileIndex();
-				echo '<div class="uk-container"><div style="height:450px;">';
+				echo '<style>.container { display:ruby; }</style>';
+				echo '<div class="uk-container"><div>';
 				$nr      = count( $files );
 				$content = $render->drawProgress( $nr );
 				$footer  = 'Deleting..';
@@ -336,8 +263,8 @@ class WSpsSpecial extends SpecialPage {
 				$success = 0;
 				$fail    = 0;
 				foreach ( $files as $file => $title ) {
-					$f      = $filePath . '/export/' . $file . '.wiki';
-					$f2     = $filePath . '/export/' . $file . '.info';
+					$f      = WSpsHooks::$config['exportPath'] . $file . '.wiki';
+					$f2     = WSpsHooks::$config['exportPath'] . $file . '.info';
 					$status = unlink( $f );
 					if ( $status === false ) {
 						$render->statusUpdate( $f . wfMessage( 'wsps-special_delete_failed' )->text(), true, 'warning' );
@@ -355,7 +282,7 @@ class WSpsSpecial extends SpecialPage {
 					$render->progress( $count, $count, $nr, wfMessage( 'wsps-special_delete_card_deleting' )->text() . $title );
 					$count ++;
 				}
-				unlink( $filePath . 'export.index' );
+				unlink( WSpsHooks::$config['filePath'] . 'export.index' );
 
 				$render->progress(
 					$count,
@@ -372,7 +299,7 @@ class WSpsSpecial extends SpecialPage {
 			$data = WSpsHooks::getAllPageInfo();
 			$nr   = count( $data );
 			echo '<div class="uk-container"><div style="height:450px;">';
-			$content = wfMessage( 'wsps-special_delete_card_header', $nr )->text();
+			$content = wfMessage( 'wsps-special_delete_card_current', $nr )->text();
 			$form    = '<form method="post">';
 			$form    .= '<input type="hidden" name="wsps-action" value="wsps-delete">';
 			$form    .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-large" value="';
@@ -396,27 +323,11 @@ class WSpsSpecial extends SpecialPage {
 		global $wgScript;
 
 		$out->addHTML( $render->loadResources() );
-		$out->addHTML( $render->renderMenu( $url, $logo, $version, 0 ) );
+		$out->addHTML( $render->renderMenu( $this->url, $this->logo, $this->version, 0 ) );
 		$data = WSpsHooks::getAllPageInfo();
 		$nr   = count( $data );
 		$html = wfMessage( 'wsps-special_count', $nr )->text();
-		$html .= '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
-		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
-		$html .= '<th>' . wfMessage( 'wsps-special_table_header_user' )->text() . '</th>';
-		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
-		$html .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
-		$row  = 1;
-		foreach ( $data as $page ) {
-			$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
-			$html   .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
-			$html   .= '<td class="wsps-td">' . $page['username'] . '</td>';
-			$html   .= '<td class="wsps-td">' . $page['changed'] . '</td>';
-			$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $page['pageid'] . '"></a>';
-			$html   .= '<td class="wsps-td">' . $button . '</td>';
-			$html   .= '</tr>';
-			$row ++;
-		}
-		$html .= '</table>';
+		$html .= $render->renderIndexPage( $data, $wgScript );
 		$out->addHTML( '<h3>' . $this->msg( 'wsps-content' ) . '</h3>' );
 		$out->addHTML( $style );
 		$out->addHTML( $html );
