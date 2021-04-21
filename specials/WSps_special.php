@@ -327,7 +327,9 @@ class WSpsSpecial extends SpecialPage {
 		$data = WSpsHooks::getAllPageInfo();
 		$nr   = count( $data );
 		$html = wfMessage( 'wsps-special_count', $nr )->text();
-		$html .= $render->renderIndexPage( $data, $wgScript );
+		if( $nr >=1 ) {
+			$html .= $render->renderIndexPage( $data, $wgScript );
+		}
 		$out->addHTML( '<h3>' . $this->msg( 'wsps-content' ) . '</h3>' );
 		$out->addHTML( $style );
 		$out->addHTML( $html );
