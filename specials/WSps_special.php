@@ -155,8 +155,6 @@ class WSpsSpecial extends SpecialPage {
 				case "wsps-import-query" :
 					$query = $this->getPost( 'wsps-query' );
 
-
-					$out->addHTML( $render->renderMenu( $this->url, $this->logo, $this->version, 3 ) );
 					if ( $query === false ) {
 						$error = $this->makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
 					} else {
@@ -176,7 +174,6 @@ class WSpsSpecial extends SpecialPage {
 							}
 							$count ++;
 						}
-						$render->progress( $count, $count, $nr, wfMessage( 'wsps-special_status_card_done' )->text() );
 						$content = '<h2>' . wfMessage( 'wsps-special_status_card_done' )->text() . '</h2>';
 						$content .= '<p>Added ' . ( $count - 1 ) . '/' . $nr . ' pages.</p>';
 						$out->addHTML( $content );
@@ -219,9 +216,8 @@ class WSpsSpecial extends SpecialPage {
 				echo $error;
 			}
 
-			$out->addHTML( '<div class="uk-container"><div style="height:450px;">' );
 			$out->addHTML( $render->renderCustomQuery() );
-			$out->addHTML( '</div></div>' );
+
 
 			return true;
 		}

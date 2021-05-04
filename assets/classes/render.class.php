@@ -26,54 +26,6 @@ class render {
 		flush();
 	}
 
-	function textUpdate( $txt = "", $add = false, $slider = false ) {
-		ob_flush();
-		echo '<script>';
-		if ( $add ) {
-			echo 'var txt = document.getElementById("text-update").innerHTML;';
-			echo 'document.getElementById("text-update").innerHTML = txt + "' . $txt . '";</script>';
-		} elseif ( $slider === false ) {
-			echo 'document.getElementById("text-update").innerHTML="' . $txt . '";</script>';
-		}
-		if ( $slider !== false ) {
-			echo 'document.getElementById("info").innerHTML="' . $txt . '";</script>';
-		}
-		ob_flush();
-		flush();
-	}
-
-	function statusUpdate( $txt = "", $paragraph = true, $icon = false ) {
-		ob_flush();
-		if ( $icon !== false ) {
-			$txt = $txt . "&nbsp;&nbsp;&nbsp;<span uk-icon='" . $icon . "'></span>";
-		}
-		if ( $paragraph ) {
-			$txt = '<p>' . $txt . '</p>';
-		}
-		echo '<script>';
-		echo 'var stat = document.getElementById("status").innerHTML;';
-		echo 'document.getElementById("status").innerHTML= stat + "' . $txt . '";</script>';
-		ob_flush();
-		flush();
-		usleep( 500000 );
-	}
-
-	function showElement( $id ) {
-		ob_flush();
-		echo '<script>var elem = document.getElementById("' . $id . '");';
-		echo 'elem.style.visibility = "visible";</script>';
-		ob_flush();
-		flush();
-	}
-
-	function hideElement( $id ) {
-		ob_flush();
-		echo '<script>var elem = document.getElementById("' . $id . '");';
-		echo 'elem.style.visibility = "collapse";</script>';
-		ob_flush();
-		flush();
-	}
-
 	public function head( $title ) {
 		$ret = '<html><head><title>' . $title . '</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
 		$ret .= '<link rel="stylesheet" href="WSDW/css/uikit.min.css" /><script src="WSDW/js/uikit.min.js"></script><script src="WSDW/js/uikit-icons.min.js"></script>';
@@ -97,21 +49,6 @@ class render {
 		return $ret;
 	}
 
-	function drawProgress( $max ) {
-		$ret = '<div id="pbar" class="uk-child-width-expand@s uk-text-center " uk-grid >
-    <div>
-      <div class="uk-card uk-card-default uk-card-body" style="border:1px solid #ccc;">
-        <div id="number" class="uk-card-badge uk-inverse uk-label-warning uk-text-center" style="width:150px;"></div>
-        <h3 class="uk-card-title">Progress</h3>
-        <progress id="progressbar" class="uk-progress" value="" max="' . $max . '" style="height:25px;" ></progress>
-        <div id="info" class="uk-text-left uk-width-1-1"></div>
-      </div>
-    </div>
-  </div>';
-
-		return $ret;
-	}
-
 	/**
 	 * @param string $name
 	 *
@@ -127,52 +64,6 @@ class render {
 		}
 	}
 
-	function renderCard( $title, $subTitle, $content, $footer, $width = '-1-1', $type = "default" ) {
-		global $wgScript, $IP;
-		$url      = rtrim( $wgScript, 'index.php' );
-		$dir      = $url . 'extensions/WSPageSync/assets/';
-		$template = $this->getTemplate( 'renderCard' );
-		$search   = array(
-			'%%type%%',
-			'%%width%%',
-			'%%url%%',
-			'%%dir%%',
-			'%%title%%',
-			'%%subTitle%%',
-			'%%content%%',
-			'%%footer%%'
-		);
-		$replace  = array(
-			$type,
-			$width,
-			$url,
-			$dir,
-			$title,
-			$subTitle,
-			$content,
-			$footer
-		);
-
-		return str_replace( $search, $replace, $template );
-	}
-
-	function renderStatusCard( $title, $content, $width = '-1-1', $type = "default" ) {
-		$template = $this->getTemplate( 'renderStatusCard' );
-		$search   = array(
-			'%%type%%',
-			'%%width%%',
-			'%%title%%',
-			'%%content%%'
-		);
-		$replace  = array(
-			$type,
-			$width,
-			$title,
-			$content
-		);
-
-		return str_replace( $search, $replace, $template );
-	}
 
 	function renderDoQueryForm( $query ){
 		$form = '<form method="post">';
@@ -215,7 +106,9 @@ class render {
 	 * @return string
 	 */
 	function renderCustomQuery(): string {
-		$content = '<form method="POST" class="uk-form-horizontal uk-margin-large"><div class="uk-margin">';
+		$content = '<h3 class="uk-card-title uk-margin-remove-bottom">' . wfMessage( 'wsps-special_custom_query_card_header' )->text() . '</h3>';
+		$content .= '<p class="uk-text-meta uk-margin-remove-top">' . wfMessage( 'wsps-special_custom_query_card_subheader' )->text() . '</p>';
+		$content .= '<form method="POST" class="uk-form-horizontal uk-margin-large"><div class="uk-margin">';
 		$content .= '<input type="hidden" name="wsps-action" value="doQuery">';
 		$content .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
 		$content .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
@@ -225,16 +118,11 @@ class render {
 		$content .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
 		$content .= '">';
 		$content .= '</div>';
-		$footer  = '<input type="submit" class="uk-button uk-button-default" value="';
-		$footer  .= wfMessage( 'wsps-special_custom_query_card_submit' )->text();
-		$footer  .= '"></form>';
-		$card    = $this->renderCard(
-			wfMessage( 'wsps-special_custom_query_card_header' )->text(),
-			wfMessage( 'wsps-special_custom_query_card_subheader' )->text(),
-			$content,
-			$footer
-		);
-		return $card;
+		$content  .= '<input type="submit" class="uk-button uk-button-default" value="';
+		$content  .= wfMessage( 'wsps-special_custom_query_card_submit' )->text();
+		$content  .= '"></form>';
+
+		return $content;
 	}
 
 	/**
@@ -319,7 +207,7 @@ class render {
 		$ret = '<nav class="uk-navbar-container uk-margin" uk-navbar>
     <div class="uk-navbar-left">
 	<div class="uk-navbar-item">
-        <a class="uk-navbar-item uk-logo" href="' . $baseUrl . 'index.php/Special:WSps"><img src="' . $logo . '" style="height:40px"></a>
+        <a class="uk-navbar-item uk-logo" title="Home WS PageSync" href="' . $baseUrl . 'index.php/Special:WSps"><img src="' . $logo . '" style="height:40px"></a>
 
         <ul class="uk-navbar-nav" style="list-style: none;">
             ' . $item3 . $item4 . '

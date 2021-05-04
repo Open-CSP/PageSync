@@ -58,7 +58,7 @@
 	"wsps-special_delete_card_deleting": "Deleting : ",
 	"wsps-special_delete_card_current": "<p>We currently have <strong>$1</strong> files.</p>",
 	"wsps-special_delete_card_click_to_delete": "Click to delete all files",
-	"wsps-special_delete_card_result": "All done! Successfully deleted $1 {{PLURAL:$1|file|files}} $2 {{PLURAL:$2|fail|fails}}",
+	"wsps-special_delete_card_result": "All done! Successfully deleted $1 {{PLURAL:$1|file|files}} ( every sync consists of two files ) $2 {{PLURAL:$2|fail|fails}}",
 	"wsps-special_delete_failed": " failed to delete",
 	"wsps-special_status_card": "Possible Errors",
 	"wsps-special_status_card_failed": " failed to get ID",
