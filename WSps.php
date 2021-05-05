@@ -460,6 +460,12 @@ class WSpsHooks {
 		return true;
 	}
 
+	/**
+	 * Check to see if we are dealing with a file page
+	 * @param $id
+	 *
+	 * @return mixed Either Title of false
+	 */
 	public static function isFile( $id ) {
 		$title = Title::newFromId( $id );
 
@@ -473,6 +479,11 @@ class WSpsHooks {
 		return false;
 	}
 
+	/**
+	 * @param $id
+	 *
+	 * @return mixed Either Title as string or false
+	 */
 	public static function getPageTitle( $id ) {
 		$id      = (int) ( $id );
 		$artikel = WikiPage::newFromId( $id );
