@@ -10,43 +10,15 @@
 
 class render {
 
+
 	/**
-	 * Output a progressbar
-	 *
-	 * @param  [int] $processed [Where are we]
-	 * @param  [int] $max       [Total]
+	 * @return string
 	 */
-
-	function progress( $percentage, $value, $max, $extraInfo = "" ) {
-		ob_flush();
-		echo '<script>document.getElementById("progressbar").value="' . $percentage . '";';
-		echo 'document.getElementById("number").innerHTML="' . $value . ' / ' . $max . '";';
-		echo 'document.getElementById("info").innerHTML="' . $extraInfo . '";</script>';
-		ob_flush();
-		flush();
-	}
-
-	public function head( $title ) {
-		$ret = '<html><head><title>' . $title . '</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
-		$ret .= '<link rel="stylesheet" href="WSDW/css/uikit.min.css" /><script src="WSDW/js/uikit.min.js"></script><script src="WSDW/js/uikit-icons.min.js"></script>';
-		$ret .= '</head><body><div class="uk-container">';
-
-		echo $ret;
-	}
-
-	function footer() {
-		$ret = '</div></body></html>';
-		echo $ret;
-	}
-
-	public function loadResources() {
+	public function loadResources(): string {
 		global $wgScript;
 		$url = rtrim( $wgScript, 'index.php' );
 		$dir = $url . 'extensions/WSPageSync/assets/';
-		$ret = '<link rel="stylesheet" href="' . $dir . 'css/uikit.min.css" /><script src="' . $dir . 'js/uikit.min.js"></script><script src="' . $dir . 'js/uikit-icons.min.js"></script>';
-
-		//$ret .= '<div class="uk-container">';
-		return $ret;
+		return '<link rel="stylesheet" href="' . $dir . 'css/uikit.min.css" /><script src="' . $dir . 'js/uikit.min.js"></script><script src="' . $dir . 'js/uikit-icons.min.js"></script>';
 	}
 
 	/**
@@ -65,12 +37,18 @@ class render {
 	}
 
 
-	function renderDoQueryForm( $query ){
+	/**
+	 * @param $query
+	 *
+	 * @return string
+	 */
+	function renderDoQueryForm( $query ) {
 		$form = '<form method="post">';
 		$form .= '<input type="hidden" name="wsps-action" value="wsps-import-query">';
 		$form .= '<input type="hidden" name="wsps-query" value="' . base64_encode( $query ) . '">';
 		$form .= '<input type="submit" class="uk-button uk-button-primary uk-width-1-1 uk-margin-small-bottom uk-text-large" value="' . wfMessage( 'wsps-special_custom_query_add_results' )->text() . '">';
-		$form   .= '</form>';
+		$form .= '</form>';
+
 		return $form;
 	}
 
@@ -98,6 +76,7 @@ class render {
 			$row ++;
 		}
 		$html .= '</table>';
+
 		return $html;
 	}
 
@@ -118,9 +97,9 @@ class render {
 		$content .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
 		$content .= '">';
 		$content .= '</div>';
-		$content  .= '<input type="submit" class="uk-button uk-button-default" value="';
-		$content  .= wfMessage( 'wsps-special_custom_query_card_submit' )->text();
-		$content  .= '"></form>';
+		$content .= '<input type="submit" class="uk-button uk-button-default" value="';
+		$content .= wfMessage( 'wsps-special_custom_query_card_submit' )->text();
+		$content .= '"></form>';
 
 		return $content;
 	}
@@ -157,9 +136,10 @@ class render {
 			$html .= '</tr>';
 			$row ++;
 		}
-		$html   .= '</tbody></table>';
+		$html .= '</tbody></table>';
+
 		return array(
-			'html' => $html,
+			'html'   => $html,
 			'active' => $active
 		);
 	}
@@ -169,55 +149,45 @@ class render {
 	 *
 	 * @return string
 	 */
-	function getStyle( string $assets ):string {
-		$style = '<style>';
-		$style .= '.wsps-td {
-	        font-size:10px;
-	        padding:5px;
-	    }';
-		$style .= '.wsps-toggle-special {
-            width : 22px;
-            height: 12px;
-            display:inline-block;
-            vertical-align:middle;
-            background-image:url(' . $assets . 'off.png);
-            background-size:cover;
-        }';
-		$style .= '.wsps-active {
-        background-image:url(' . $assets . 'on.png);   
-        }';
-		$style .= '</style>';
-		return $style;
+	function getStyle( string $assets ): string {
+		return str_replace( '%%assets%%', $assets, $this->getTemplate( 'renderStyle' ) );
 	}
 
-	function renderMenu( $baseUrl, $logo, $version, $active ) {
-//exportcustom
-
+	/**
+	 * @param string $baseUrl
+	 * @param string $logo
+	 * @param string $version
+	 * @param int $active
+	 *
+	 * @return string
+	 */
+	function renderMenu( string $baseUrl, string $logo, string $version, int $active ): string {
+		$item3class = '';
+		$item4class = '';
 		if ( $active === 3 ) {
-			$item3 = '<li class="uk-active"><a href="' . $baseUrl . 'index.php/Special:WSps?action=exportcustom">' . wfMessage( 'wsps-special_menu_sync_custom_query' )->text() . '</a></li>';
-		} else {
-			$item3 = '<li><a href="' . $baseUrl . 'index.php/Special:WSps?action=exportcustom">' . wfMessage( 'wsps-special_menu_sync_custom_query' )->text() . '</a></li>';
+			$item3class = 'uk-active';
 		}
 		if ( $active === 4 ) {
-			$item4 = '<li class="uk-active"><a href="' . $baseUrl . 'index.php/Special:WSps?action=delete">' . wfMessage( 'wsps-special_menu_delete_synced_files' )->text() . '</a></li>';
-		} else {
-			$item4 = '<li><a href="' . $baseUrl . 'index.php/Special:WSps?action=delete">' . wfMessage( 'wsps-special_menu_delete_synced_files' )->text() . '</a></li>';
+			$item4class = 'uk-active';
 		}
+		$search = array(
+			'%%baseUrl%%',
+			'%%logo%%',
+			'%%item3class%%',
+			'%%item4class%%',
+			'%%wsps-special_menu_sync_custom_query%%',
+			'%%wsps-special_menu_delete_synced_files%%'
+		);
+		$replace = array(
+			$baseUrl,
+			$logo,
+			$item3class,
+			$item4class,
+			wfMessage( 'wsps-special_menu_sync_custom_query' )->text(),
+			wfMessage( 'wsps-special_menu_delete_synced_files' )->text()
+		);
 
-		$ret = '<nav class="uk-navbar-container uk-margin" uk-navbar>
-    <div class="uk-navbar-left">
-	<div class="uk-navbar-item">
-        <a class="uk-navbar-item uk-logo" title="Home WS PageSync" href="' . $baseUrl . 'index.php/Special:WSps"><img src="' . $logo . '" style="height:40px"></a>
-
-        <ul class="uk-navbar-nav" style="list-style: none;">
-            ' . $item3 . $item4 . '
-        </ul>
-    </div>
-
-    </div>
-    
-</nav>';
-		$ret .= '<div class="uk-container">';
+		$ret = str_replace( $search, $replace, $this->getTemplate( 'renderMenu' ) );
 		$ret .= wfMessage( 'wsps-special_version', $version )->text();
 
 		return $ret;

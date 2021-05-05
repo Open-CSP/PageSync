@@ -552,15 +552,6 @@ class WSpsHooks {
 			'redundant' => '1',
 			'rel'       => 'WSPageSync'
 		);
-		//print_r($links);
-
-		// grab user persmissions
-
-		//echo  $title;
-
-
-		//echo "</pre>";
-
 		return true;
 	}
 

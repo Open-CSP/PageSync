@@ -226,7 +226,7 @@ class WSpsSpecial extends SpecialPage {
 			echo $render->loadResources();
 			$pAction = $this->getPost( 'wsps-action' );
 			$error   = '';
-			$out->addHTML( $render->renderMenu( $this->url, $this->logo, $this->version, 3 ) );
+			$out->addHTML( $render->renderMenu( $this->url, $this->logo, $this->version, 4 ) );
 			if ( $pAction === "wsps-delete" ) {
 				$files = WSpsHooks::getFileIndex();
 				$nr      = count( $files );
