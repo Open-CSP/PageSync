@@ -561,6 +561,7 @@ class WSpsHooks {
 			"exists"    => '1',
 			"primary"   => '1',
 			'redundant' => '1',
+			'title'     => 'WSPageSync',
 			'rel'       => 'WSPageSync'
 		);
 		return true;

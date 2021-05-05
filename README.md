@@ -38,6 +38,7 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+v 0.9.9.5 Fix for skins other than Chameleon
 v 0.9.9.4 Delete un-used translations
 v 0.9.9.3 Clean-up Special page
 v 0.9.9.2 More messy code clean-up

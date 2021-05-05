@@ -1,6 +1,6 @@
 {
 	"name": "WSPageSync",
-	"version": "0.9.9.4",
+	"version": "0.9.9.5",
 	"author": [
 		"Sen-Sai"
 	],
@@ -30,7 +30,7 @@
 		"PageContentSaveComplete": [
 			"WSpsHooks::pageSaved"
 		],
-		"SkinTemplateNavigation": [
+		"SkinTemplateNavigation::Universal": [
 			"WSpsHooks::nav"
 		]
 	},
