@@ -38,10 +38,10 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
-v 0.9.9.6 Not using user received from API anymore. Added check to only show sync button if a page can actually be synced. ( introduced by SkinTemplateNavigation::Universal )
-v 0.9.9.5 Fix for skins other than Chameleon
-v 0.9.9.4 Delete un-used translations
-v 0.9.9.3 Clean-up Special page
-v 0.9.9.2 More messy code clean-up
-v 0.9.9.1 Clean-up
-v 0.9.9 Initial Community release
+* 0.9.9.6 Not using user received from API anymore. Added check to only show sync button if a page can actually be synced. ( introduced by SkinTemplateNavigation::Universal )
+* 0.9.9.5 Fix for skins other than Chameleon
+* 0.9.9.4 Delete un-used translations
+* 0.9.9.3 Clean-up Special page
+* 0.9.9.2 More messy code clean-up
+* 0.9.9.1 Clean-up
+* 0.9.9 Initial Community release
