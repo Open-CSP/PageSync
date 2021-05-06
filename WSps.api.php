@@ -28,7 +28,8 @@ class ApiWSps extends ApiBase {
 		}
 
 		$pageId   = $params['pageId'];
-		$userName = $params['user'];
+		//$userName = $params['user'];
+		$userName = $user->getName();
 
 		WSpsHooks::setConfig();
 		if ( WSpsHooks::$config === false ) {

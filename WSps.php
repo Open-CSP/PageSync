@@ -549,21 +549,26 @@ class WSpsHooks {
 			$title = $sktemplate->mTitle;
 		}
 
-		$class  = "wsps-toggle";
-		$fIndex = WSpsHooks::getFileIndex();
-		if ( in_array( $title, $fIndex ) ) {
-			$class .= ' wsps-active';
+		$articleId = $title->getArticleID();
+
+		if( $articleId !== 0 ) {
+
+			$class  = "wsps-toggle";
+			$fIndex = WSpsHooks::getFileIndex();
+			if ( in_array( $title, $fIndex ) ) {
+				$class .= ' wsps-active';
+			}
+			$links['views']['wsps'] = array(
+				"class"     => $class,
+				"text"      => "",
+				"href"      => '#',
+				"exists"    => '1',
+				"primary"   => '1',
+				'redundant' => '1',
+				'title'     => 'WSPageSync',
+				'rel'       => 'WSPageSync'
+			);
 		}
-		$links['views']['wsps'] = array(
-			"class"     => $class,
-			"text"      => "",
-			"href"      => '#',
-			"exists"    => '1',
-			"primary"   => '1',
-			'redundant' => '1',
-			'title'     => 'WSPageSync',
-			'rel'       => 'WSPageSync'
-		);
 		return true;
 	}
 
