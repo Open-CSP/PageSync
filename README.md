@@ -2,7 +2,7 @@
 Export and import wiki pages
 
 ## Installation
-Grab in instance from the Wikibase Task repository. Create a "WSPageSync" folder in your Wiki extensions folder and extract the files there.
+Grab an instance from the Wikibase Task repository. Create a "WSPageSync" folder in your Wiki extensions folder and extract the files there.
 
 ## Setup
 WSPS needs a full path to a directory to store the file that can be synced. e.g. $IP/wspsFiles
@@ -11,7 +11,7 @@ This can be set in the localsettings as  :
 $wgWSPageSync['filePath'] =  $IP . '/wspsFiles';
 ```
 Make sure the map has the correct right for WSPageSync to store files
-
+It is also a good practice to store these files outside of your html folder.
 
 Files from the File namespace will also be synced.
 
