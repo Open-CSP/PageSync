@@ -4,7 +4,7 @@
 	"author": [
 		"Sen-Sai"
 	],
-	"url": "https://bitbucket.org/wikibasesolutions/mw-wspagesync",
+	"url": "https://www.mediawiki.org/wiki/Extension:WSPageSync",
 	"descriptionmsg": "wsps-desc",
 	"license-name": "GPL v2",
 	"type": "other",
