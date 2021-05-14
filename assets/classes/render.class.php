@@ -87,7 +87,7 @@ class render {
 	function renderCustomQuery(): string {
 		$content = '<h3 class="uk-card-title uk-margin-remove-bottom">' . wfMessage( 'wsps-special_custom_query_card_header' )->text() . '</h3>';
 		$content .= '<p class="uk-text-meta uk-margin-remove-top">' . wfMessage( 'wsps-special_custom_query_card_subheader' )->text() . '</p>';
-		$content .= '<form method="POST" class="uk-form-horizontal uk-margin-large"><div class="uk-margin">';
+		$content .= '<form method="POST" class="uk-form-horizontal uk-margin-large">';
 		$content .= '<input type="hidden" name="wsps-action" value="doQuery">';
 		$content .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
 		$content .= wfMessage( 'wsps-special_custom_query_card_label' )->text();

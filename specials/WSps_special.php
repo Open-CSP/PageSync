@@ -201,7 +201,7 @@ class WSpsSpecial extends SpecialPage {
 						$header .= wfMessage( 'wsps-special_custom_query_result_text1', $nr )->text();
 						$header .= wfMessage( 'wsps-special_custom_query_result_text2', $bodyResult['active'] )->text();
 						$html   = $header . $html;
-						$html   .= $form . '</div>';
+						$html   .= $form;
 						$out->addHTML( $style );
 						$out->addHTML( $html );
 						return true;
