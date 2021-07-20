@@ -51,6 +51,9 @@
 			"filePath" : "",
 			"fileNameSpaces" : [
 				6
+			],
+			"contentSlotsToBeSynced" : [
+
 			]
 		}
 	},
