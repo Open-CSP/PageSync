@@ -38,6 +38,7 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+* 0.9.9.8 MW codestyle
 * 0.9.9.7 Sub specials pages visual fix for most MW skins
 * 0.9.9.6 Not using user received from API anymore. Added check to only show sync button if a page can actually be synced. ( introduced by SkinTemplateNavigation::Universal )
 * 0.9.9.5 Fix for skins other than Chameleon

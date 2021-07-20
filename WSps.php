@@ -177,7 +177,7 @@ class WSpsHooks {
 	 */
 	public static function getFileIndex() {
 		if ( self::$config === false ) {
-			echo wfMessage( 'wsps-api-error-no-config-body' )->text();
+			//echo wfMessage( 'wsps-api-error-no-config-body' )->text();
 
 			return false;
 		}
@@ -219,14 +219,14 @@ class WSpsHooks {
 	 */
 	public static function getAllPageInfo() {
 		if ( self::$config === false ) {
-			echo wfMessage( 'wsps-api-error-no-config-body' )->text();
+			//echo wfMessage( 'wsps-api-error-no-config-body' )->text();
 
 			return false;
 		}
 		$filesPath = self::$config['exportPath'];
 		$fList     = WSpsHooks::getFileIndex();
 		$data      = array();
-		if ( ! empty( $fList ) ) {
+		if ( false !== $fList && ! empty( $fList ) ) {
 			foreach ( $fList as $k => $v ) {
 				$infoFile = $filesPath . $k . '.info';
 				if ( file_exists( $infoFile ) ) {
@@ -728,6 +728,18 @@ class WSpsHooks {
 				) ) {
 				$class .= ' wsps-active';
 			}
+			$links['views']['wsps'] = array(
+				"class"     => $class,
+				"text"      => "",
+				"href"      => '#',
+				"exists"    => '1',
+				"primary"   => '1',
+				'redundant' => '1',
+				'title'     => 'WSPageSync',
+				'rel'       => 'WSPageSync'
+			);
+		} else {
+			$class                  = "wsps-error";
 			$links['views']['wsps'] = array(
 				"class"     => $class,
 				"text"      => "",

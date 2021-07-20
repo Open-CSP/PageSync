@@ -18,7 +18,7 @@ $(function() {
 	/**
 	 * When sysop clicks slider on the Special Page
 	 */
-	$('.wsps-toggle-special').click(function (e) {
+	$('.wsps-toggle-special').click(function(e) {
 		e.stopPropagation();
 		var button = $(this);
 		var id = $(this).attr("data-id");

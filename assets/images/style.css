@@ -1,20 +1,33 @@
 .wsps-toggle {
-    width : 23px !important;
-    display:inline-block;
-    vertical-align:middle;
-    background-image:url(off.png) !important;
-    background-size:contain;
+    width: 23px !important;
+    display: inline-block;
+    vertical-align: middle;
+    background-image: url(off.png) !important;
+    background-size: contain;
     background-position: center center !important;
     background-repeat: no-repeat;
     padding: 0px 4px 4px 0px !important;
 }
-.wsps-toggle a{
-    width:100%;
+
+.wsps-error {
+    width: 23px !important;
+    display: inline-block;
+    vertical-align: middle;
+    background-image: url(error.png) !important;
+    background-size: contain;
+    background-position: center center !important;
+    background-repeat: no-repeat;
+    padding: 0px 4px 4px 0px !important;
+}
+
+.wsps-toggle a {
+    width: 100%;
     display: none;
-    background:none;
+    background: none;
 
 }
+
 .wsps-active {
-    background-image:url(on.png) !important;
+    background-image: url(on.png) !important;
 
 }

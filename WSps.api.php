@@ -23,11 +23,14 @@ class ApiWSps extends ApiBase {
 		// Need to have sufficient user rights to proceed...
 		$groups = $user->getGroups();
 
-		if ( ! in_array( 'sysop', $groups ) ) {
+		if ( ! in_array(
+			'sysop',
+			$groups
+		) ) {
 			$this->dieUsageMsg( 'badaccess-group0' );
 		}
 
-		$pageId   = $params['pageId'];
+		$pageId = $params['pageId'];
 		//$userName = $params['user'];
 		$userName = $user->getName();
 
@@ -35,7 +38,9 @@ class ApiWSps extends ApiBase {
 		if ( WSpsHooks::$config === false ) {
 			$output['status']  = wfMessage( 'wsps-api-error-no-config-title' )->text();
 			$output['message'] = wfMessage( 'wsps-api-error-no-config-body' )->text();
-			$this->getResult()->addValue( null, $this->getModuleName(),
+			$this->getResult()->addValue(
+				null,
+				$this->getModuleName(),
 				array( 'result' => $output )
 			);
 
@@ -44,27 +49,39 @@ class ApiWSps extends ApiBase {
 
 		switch ( $action ) {
 			case "add" :
-				$result = WSpsHooks::addFileForExport( $pageId, $userName );
+				$result = WSpsHooks::addFileForExport(
+					$pageId,
+					$userName
+				);
 				$output = $this->setOutput( $result );
 				break;
 			case "remove" :
-				$result = WSpsHooks::removeFileForExport( $pageId, $userName );
+				$result = WSpsHooks::removeFileForExport(
+					$pageId,
+					$userName
+				);
 				$output = $this->setOutput( $result );
 				break;
 			default :
 				$this->dieUsageMsg( 'No recognized action' );
 		}
 
-
 		// Top level
-		$this->getResult()->addValue( null, $this->getModuleName(),
+		$this->getResult()->addValue(
+			null,
+			$this->getModuleName(),
 			array( 'result' => $output )
 		);
 
 		return true;
 	}
 
-	private function setOutput( $result ){
+	/**
+	 * @param array $result
+	 *
+	 * @return array
+	 */
+	private function setOutput( array $result ) : array {
 		$output = array();
 		if ( $result['status'] === true ) {
 			$output['status'] = "ok";
@@ -73,14 +90,21 @@ class ApiWSps extends ApiBase {
 			$output['status']  = "error";
 			$output['message'] = $result['info'];
 		}
+
 		return $output;
 	}
 
-	public function needsToken() {
+	/**
+	 * @return string
+	 */
+	public function needsToken() : string {
 		return "csrf";
 	}
 
-	public function isWriteMode() {
+	/**
+	 * @return bool
+	 */
+	public function isWriteMode() : bool {
 		return true;
 	}
 
@@ -88,7 +112,7 @@ class ApiWSps extends ApiBase {
 	/**
 	 * @return array
 	 */
-	public function getAllowedParams() {
+	public function getAllowedParams() : array {
 		return array(
 			'what'   => array(
 				ApiBase::PARAM_TYPE     => 'string',
@@ -107,9 +131,10 @@ class ApiWSps extends ApiBase {
 	}
 
 	/**
+	 * @return string[]
 	 * @see ApiBase::getExamplesMessages()
 	 */
-	protected function getExamplesMessages() {
+	protected function getExamplesMessages() : array {
 		return array(
 			'action=wspagesync&what=add&pageId=666'    => 'apihelp-wsps-example-1',
 			'action=wspagesync&what=remove&pageId=666' => 'apihelp-wsps-example-2'
