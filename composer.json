@@ -1,0 +1,14 @@
+{
+  "name": "wikibasesolutions/WSPageSync",
+  "description": "Sync pages from and to wikis",
+  "type": "mediawiki-extension",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Sen-Sai",
+      "homepage": "https://www.wikibase-solutions.com/author/charlot"
+    }
+  ],
+  "require": {
+  }
+}
