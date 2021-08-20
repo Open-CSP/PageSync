@@ -24,3 +24,4 @@ composer_test:
     - composer install --ignore-platform-reqs
   script:
     - composer test
+  allow_failure: true
