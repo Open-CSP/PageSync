@@ -186,7 +186,7 @@ class WSpsHooks {
 		if ( ! file_exists( $indexFile ) ) {
 			file_put_contents(
 				$indexFile,
-				''
+				array()
 			);
 
 			return array();
@@ -663,6 +663,20 @@ class WSpsHooks {
 		$artikel = WikiPage::newFromId( $id );
 		if ( $artikel !== false || $artikel !== null ) {
 			return $artikel->getTimestamp();
+		} else {
+			return false;
+		}
+	}
+
+	public static function getSlotContent( $id, $slotName ) {
+		$id      = (int) ( $id );
+		$artikel = WikiPage::newFromId( $id );
+		if ( $artikel !== false || $artikel !== null ) {
+			$revision = $artikel->getRevisionRecord();
+			if( null === $revision ) return false;
+			if( !$revision->hasSlot( $slotName ) ) return false;
+			$content  = $revision->getContent( $slotName );
+			return ContentHandler::getContentText( $content );
 		} else {
 			return false;
 		}

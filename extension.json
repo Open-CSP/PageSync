@@ -52,9 +52,7 @@
 			"fileNameSpaces" : [
 				6
 			],
-			"contentSlotsToBeSynced" : [
-
-			]
+			"contentSlotsToBeSynced" : "all"
 		}
 	},
 	"ResourceModules": {
