@@ -52,7 +52,11 @@
 			"fileNameSpaces" : [
 				6
 			],
-			"contentSlotsToBeSynced" : "all"
+			"contentSlotsToBeSynced" : "all",
+			"maintenance" : {
+				"doNotRestoreThesePages" : [],
+				"restoreFrom" : ""
+			}
 		}
 	},
 	"ResourceModules": {

@@ -92,6 +92,7 @@ class WSpsHooks {
 	 */
 	private static function setDefaultConfig() {
 		global $IP;
+		self::$config['contentSlotsToBeSynced'] = 'all';
 		self::$config['filePath']   = $IP . '/extensions/WSPageSync/files/';
 		self::$config['exportPath'] = self::$config['filePath'] . 'export/';
 		$currentPermissionsPath     = self::$config['filePath'];
@@ -446,6 +447,16 @@ class WSpsHooks {
 				'owner' => $fileOwner
 			);
 		}
+		$slotContent = WSpsHooks::getSlotsContentForPage( $id );
+		if ( $slotContent === false ) {
+			return WSpsHooks::makeMessage(
+				false,
+				wfMessage( 'wsps-error_page_not_retrievable' )->text()
+			);
+		}
+		$fname = WSpsHooks::cleanFileName( $title );
+
+
 		$content = WSpsHooks::getPageContent( $id );
 		if ( $content === false ) {
 			return WSpsHooks::makeMessage(
@@ -485,7 +496,7 @@ class WSpsHooks {
 	 *
 	 * @return false|mixed
 	 */
-	public static function isTitleInIndex( string $title, $module = false ) {
+	public static function isTitleInIndex( string $title ) {
 		$index = WSpsHooks::getFileIndex();
 		if ( in_array(
 			$title,
@@ -668,9 +679,41 @@ class WSpsHooks {
 		}
 	}
 
-	public static function getSlotContent( $id, $slotName ) {
+	/**
+	 * @param int $id
+	 *
+	 * @return array|false|null
+	 */
+	public static function getSlotsContentForPage( $id ) {
 		$id      = (int) ( $id );
-		$artikel = WikiPage::newFromId( $id );
+		$page = WikiPage::newFromId( $id );
+		if ( $page === false || $page === null ) {
+			return false;
+		}
+		$latest_revision = $page->getRevisionRecord();
+		if ( $latest_revision === null ) {
+			return false;
+		}
+		$slot_roles = $latest_revision->getSlotRoles();
+		$slot_contents = [];
+
+		foreach ( $slot_roles as $slot_role ) {
+			if ( !$latest_revision->hasSlot( $slot_role ) ) {
+				return null;
+			}
+
+			$content_object = $latest_revision->getContent( $slot_role );
+
+			if ( $content_object === null || !( $content_object instanceof TextContent ) ) {
+				continue;
+			}
+
+			$slot_contents[$slot_role] = ContentHandler::getContentText( $content_object );
+		}
+
+		return $slot_contents;
+
+		/*
 		if ( $artikel !== false || $artikel !== null ) {
 			$revision = $artikel->getRevisionRecord();
 			if( null === $revision ) return false;
@@ -680,6 +723,7 @@ class WSpsHooks {
 		} else {
 			return false;
 		}
+		*/
 	}
 
 	/**
