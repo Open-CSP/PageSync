@@ -6,22 +6,12 @@ stages:
   - build
 
 publish:
-  cache:
-    - key: composer
-      paths:
-        - vendor/
   rules:
-    - if: '$CI_COMMIT_BRANCH == "gitlab-testing"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
-composer_test:
-  cache:
-  - key: composer-dev
-    paths:
-      - vendor/
+run_tests:
   image: composer:1
   stage: test
-  before_script:
-    - composer install --ignore-platform-reqs
   script:
-    - composer test
-  allow_failure: true
+    - composer update --ignore-platform-reqs
+    - compose
