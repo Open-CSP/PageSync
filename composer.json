@@ -1,5 +1,5 @@
 {
-    "name": "wikibasesolutions/w-s-mw-pagesync",
+    "name": "wikibase/w-s-pagesync",
     "type": "mediawiki-extension",
     "description": "import and export wiki pages",
     "keywords": ["mediawiki", "wspagesync", "extension", "import", "export"],
