@@ -4,6 +4,7 @@
   "description": "import and export wiki pages",
   "keywords": ["mediawiki", "wspagesync", "extension", "import", "export"],
   "license": "GPL-2.0-or-later",
+  "author": "Sen-Sai",
   "require-dev": {
     "mediawiki/mediawiki-codesniffer": "34.0.0",
     "mediawiki/minus-x": "1.1.0",
