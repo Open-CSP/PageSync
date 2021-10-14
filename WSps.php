@@ -32,8 +32,11 @@ class WSpsHooks {
 	 */
 	public static function setConfig() {
 		global $IP;
-		$config = MediaWikiServices::getInstance()->getMainConfig();
-		$json = json_decode( file_get_contents( $IP . '/extensions/WSPageSync/extension.json' ), true );
+		$config                  = MediaWikiServices::getInstance()->getMainConfig();
+		$json                    = json_decode(
+			file_get_contents( $IP . '/extensions/WSPageSync/extension.json' ),
+			true
+		);
 		self::$config['version'] = $json['version'];
 		if ( $config->has( "WSPageSync" ) ) {
 			$wgWSPageSync = $config->get( "WSPageSync" );
@@ -47,14 +50,14 @@ class WSpsHooks {
 				self::$config['fileNameSpaces'] = $wgWSPageSync['fileNameSpaces'];
 			}
 
-			if( ! isset( $wgWSPageSync['maintenance'] ) ) {
+			if ( ! isset( $wgWSPageSync['maintenance'] ) ) {
 				self::$config['maintenance']['doNotRestoreThesePages'] = [];
-				self::$config['maintenance']['restoreFrom'] = '';
+				self::$config['maintenance']['restoreFrom']            = '';
 			} else {
 				self::$config['maintenance'] = $wgWSPageSync['maintenance'];
 			}
 
-			if( ! isset( $wgWSPageSync['contentSlotsToBeSynced'] ) ) {
+			if ( ! isset( $wgWSPageSync['contentSlotsToBeSynced'] ) ) {
 				self::$config['contentSlotsToBeSynced'] = 'all';
 			} else {
 				self::$config['contentSlotsToBeSynced'] = $wgWSPageSync['contentSlotsToBeSynced'];
@@ -110,12 +113,12 @@ class WSpsHooks {
 	 */
 	private static function setDefaultConfig() {
 		global $IP;
-		self::$config['contentSlotsToBeSynced'] = 'all';
+		self::$config['contentSlotsToBeSynced']                = 'all';
 		self::$config['maintenance']['doNotRestoreThesePages'] = [];
-		self::$config['maintenance']['restoreFrom'] = '';
-		self::$config['filePath']   = $IP . '/extensions/WSPageSync/files/';
-		self::$config['exportPath'] = self::$config['filePath'] . 'export/';
-		$currentPermissionsPath     = self::$config['filePath'];
+		self::$config['maintenance']['restoreFrom']            = '';
+		self::$config['filePath']                              = $IP . '/extensions/WSPageSync/files/';
+		self::$config['exportPath']                            = self::$config['filePath'] . 'export/';
+		$currentPermissionsPath                                = self::$config['filePath'];
 		//$permissions            = substr( sprintf( '%o', fileperms( $currentPermissionsPath ) ), - 4 );
 		if ( ! file_exists( self::$config['filePath'] ) ) {
 			mkdir(
@@ -205,10 +208,8 @@ class WSpsHooks {
 
 		$indexFile = self::$config['filePath'] . 'export.index';
 		if ( ! file_exists( $indexFile ) ) {
-			file_put_contents(
-				$indexFile,
-				array()
-			);
+			file_put_contents( $indexFile,
+							   array() );
 
 			return array();
 		}
@@ -314,7 +315,7 @@ class WSpsHooks {
 		return self::$config['exportPath'] . $fname . '.info';
 	}
 
-	private static function addOrUpdateToFileIndex( $fname, $title ){
+	private static function addOrUpdateToFileIndex( $fname, $title ) {
 		// get current indexfile
 		$index = WSpsHooks::getFileIndex();
 
@@ -343,7 +344,6 @@ class WSpsHooks {
 			);
 		}
 	}
-
 
 
 	/**
@@ -383,7 +383,10 @@ class WSpsHooks {
 		$infoFile = self::setInfoName( $fname );
 
 		// save index file
-		$result = self::addOrUpdateToFileIndex( $fname, $title );
+		$result = self::addOrUpdateToFileIndex(
+			$fname,
+			$title
+		);
 		if ( $result === false ) {
 			return WSpsHooks::makeMessage(
 				false,
@@ -393,14 +396,25 @@ class WSpsHooks {
 		//Set content for info file
 
 		$slots = array();
-		foreach( $slotsContents as $k=>$v ){
-			$slots[]=$k;
+		foreach ( $slotsContents as $k => $v ) {
+			$slots[] = $k;
 		}
 
-		$infoContent = self::setInfoContent( $fname, $title, $uname, $id, $slots, $isFile );
+		$infoContent = self::setInfoContent(
+			$fname,
+			$title,
+			$uname,
+			$id,
+			$slots,
+			$isFile
+		);
 
 		if ( $isFile !== false ) {
-			self::copyFile( $exportFolder, $isFile['name'], $isFile['url'] );
+			self::copyFile(
+				$exportFolder,
+				$isFile['name'],
+				$isFile['url']
+			);
 		}
 
 		// save the info file
@@ -416,22 +430,28 @@ class WSpsHooks {
 		}
 		//set wiki filenames
 		$storeResults = array();
-		foreach( $slotsContents as $slotName=>$slotContent ) {
-			$wikiFile = self::setWikiName( $fname, $slotName );
+		foreach ( $slotsContents as $slotName => $slotContent ) {
+			$wikiFile = self::setWikiName(
+				$fname,
+				$slotName
+			);
 			// save the content file
 			$result = file_put_contents(
 				$wikiFile,
 				$slotContent
 			);
-			if( $result === false ) {
-				$storeResults[]=$slotName;
+			if ( $result === false ) {
+				$storeResults[] = $slotName;
 			}
 		}
 
-		if( !empty( $storeResults ) ) {
+		if ( ! empty( $storeResults ) ) {
 			return WSpsHooks::makeMessage(
 				false,
-				wfMessage( 'wsps-error_content_file' )->text() . ': ' . implode(',', $storeResults )
+				wfMessage( 'wsps-error_content_file' )->text() . ': ' . implode(
+					',',
+					$storeResults
+				)
 			);
 		}
 
@@ -441,16 +461,15 @@ class WSpsHooks {
 		);
 	}
 
-	private static function copyFile( $exportFolder, $fName, $fUrl ){
+	private static function copyFile( $exportFolder, $fName, $fUrl ) {
 		file_put_contents(
 			$exportFolder . $fName,
 			file_get_contents( $fUrl )
 		);
 	}
 
-	private static function setInfoContent( $fname, $title, $uname, $id, $slots, $isFile, $changed = false ){
-
-		if( $changed === false ) {
+	private static function setInfoContent( $fname, $title, $uname, $id, $slots, $isFile, $changed = false ) {
+		if ( $changed === false ) {
 			$datetime = new DateTime();
 			$date     = $datetime->format( 'd-m-Y H:i:s' );
 		} else {
@@ -462,7 +481,10 @@ class WSpsHooks {
 		$infoContent['username']  = $uname;
 		$infoContent['changed']   = $date;
 		$infoContent['pageid']    = $id;
-		$infoContent['slots']	  = implode(',', $slots );
+		$infoContent['slots']     = implode(
+			',',
+			$slots
+		);
 
 		if ( $isFile !== false ) {
 			$infoContent['isFile']           = true;
@@ -472,6 +494,7 @@ class WSpsHooks {
 		} else {
 			$infoContent['isFile'] = false;
 		}
+
 		return $infoContent;
 	}
 
@@ -513,6 +536,7 @@ class WSpsHooks {
 				wfMessage( 'wsps-error_page_not_found' )->text()
 			);
 		}
+		//TODO: Fix file inclusion when using img_auth is not working atm
 		if ( WSpsHooks::isFile( $id ) !== false ) {
 			// we are dealing with a file or image
 			$f            = wfFindFile( WSpsHooks::isFile( $id ) );
@@ -587,6 +611,7 @@ class WSpsHooks {
 					file_get_contents( $infoFile ),
 					true
 				);
+
 				return $info['pageid'];
 			} else {
 				return false;
@@ -620,7 +645,10 @@ class WSpsHooks {
 			$indexFile = self::$config['filePath'] . 'export.index';
 
 			// save index file
-			$result = self::removeFileFromIndex( $fname, $title );
+			$result = self::removeFileFromIndex(
+				$fname,
+				$title
+			);
 			if ( $result === false ) {
 				return WSpsHooks::makeMessage(
 					false,
@@ -628,10 +656,13 @@ class WSpsHooks {
 				);
 			}
 			$slot_result = self::getSlotNamesForPageAndRevision( $id );
-			$slot_names = $slot_result['slots'];
+			$slot_names  = $slot_result['slots'];
 
-			foreach( $slot_names as $slot_name ){
-				$wikiFile = self::setWikiName( $fname, $slot_name );
+			foreach ( $slot_names as $slot_name ) {
+				$wikiFile = self::setWikiName(
+					$fname,
+					$slot_name
+				);
 				if ( file_exists( $wikiFile ) ) {
 					unlink( $wikiFile );
 				}
@@ -650,9 +681,8 @@ class WSpsHooks {
 				}
 				unlink( $infoFile );
 			}
-
-
 		}
+
 		return WSpsHooks::makeMessage(
 			true,
 			''
@@ -760,7 +790,7 @@ class WSpsHooks {
 	}
 
 	private static function getSlotNamesForPageAndRevision( $id ) {
-		$id      = (int) ( $id );
+		$id   = (int) ( $id );
 		$page = WikiPage::newFromId( $id );
 		if ( $page === false || $page === null ) {
 			return false;
@@ -769,7 +799,11 @@ class WSpsHooks {
 		if ( $latest_revision === null ) {
 			return false;
 		}
-		return array("slots" => $latest_revision->getSlotRoles(), "latest_revision" => $latest_revision );
+
+		return array(
+			"slots"           => $latest_revision->getSlotRoles(),
+			"latest_revision" => $latest_revision
+		);
 	}
 
 	/**
@@ -778,37 +812,39 @@ class WSpsHooks {
 	 * @return array|false|null
 	 */
 	public static function getSlotsContentForPage( $id ) {
-
 		$slot_result = self::getSlotNamesForPageAndRevision( $id );
-		if( $slot_result === false ) return false;
-		$slot_roles = $slot_result['slots'];
+		if ( $slot_result === false ) {
+			return false;
+		}
+		$slot_roles      = $slot_result['slots'];
 		$latest_revision = $slot_result['latest_revision'];
 
 		$slot_contents = [];
 
 		foreach ( $slot_roles as $slot_role ) {
 			echo $slot_role;
-			if( strtolower( self::$config['contentSlotsToBeSynced'] ) !== 'all' ) {
-				if ( ! array_key_exists( $slot_role, self::$config['contentSlotsToBeSynced']) ){
+			if ( strtolower( self::$config['contentSlotsToBeSynced'] ) !== 'all' ) {
+				if ( ! array_key_exists(
+					$slot_role,
+					self::$config['contentSlotsToBeSynced']
+				) ) {
 					continue;
 				}
 			}
-			if ( !$latest_revision->hasSlot( $slot_role ) ) {
+			if ( ! $latest_revision->hasSlot( $slot_role ) ) {
 				continue;
 			}
 
 			$content_object = $latest_revision->getContent( $slot_role );
 
-			if ( $content_object === null || !( $content_object instanceof TextContent ) ) {
+			if ( $content_object === null || ! ( $content_object instanceof TextContent ) ) {
 				continue;
 			}
 
 			$slot_contents[$slot_role] = ContentHandler::getContentText( $content_object );
 		}
 
-
 		return $slot_contents;
-
 		/*
 		if ( $artikel !== false || $artikel !== null ) {
 			$revision = $artikel->getRevisionRecord();
@@ -841,130 +877,220 @@ class WSpsHooks {
 		}
 	}
 
-	public static function createZipFileBackup(){
-		if( self::$config !== false ) {
+	public static function createZipFileBackup() {
+		if ( self::$config !== false ) {
 			self::setConfig();
 		}
-		$path = self::$config['exportPath'];
-		$indexPath = self::$config['filePath'];
-		$version = str_replace('.', '-', ( self::$config['version'] ) );
+		$path          = self::$config['exportPath'];
+		$indexPath     = self::$config['filePath'];
+		$version       = str_replace(
+			'.',
+			'-',
+			( self::$config['version'] )
+		);
+		$allFileinfo = self::getAllPageInfo();
+		$addUploadedFile = array();
+		foreach( $allFileinfo as $fileToCheck ) {
+			if( isset( $fileToCheck['isFile']) && $fileToCheck['isFile'] === true ) {
+				$addUploadedFile[] = $path . $fileToCheck['fileoriginalname'];
+			}
+		}
 		$infoFilesList = glob( $path . "*.info" );
 		$wikiFilesList = glob( $path . "*.wiki" );
-		$indexFile = $indexPath . 'export.index';
-		$datetime                 = new DateTime();
-		$date                     = $datetime->format( 'd-m-Y-H-i-s' );
-		$zip = new ZipArchive();
-		if( $zip->open( $path.'backup_' . $date . '_' . $version .'.zip', zipArchive::CREATE ) !== true ){
-			die("cannot create " . $path.'backup_' . $date );
+		$indexFile     = $indexPath . 'export.index';
+		$datetime      = new DateTime();
+		$date          = $datetime->format( 'd-m-Y-H-i-s' );
+		$zip           = new ZipArchive();
+		if ( $zip->open(
+				$path . 'backup_' . $date . '_' . $version . '.zip',
+				zipArchive::CREATE
+			) !== true ) {
+			die( "cannot create " . $path . 'backup_' . $date );
 		}
-		$zip->addFile( $indexFile, basename( $indexFile ) );
+		$zip->addFile(
+			$indexFile,
+			basename( $indexFile )
+		);
 		$zip->addemptyDir( 'export' );
-		foreach( $infoFilesList as $infoFile ) {
-			$zip->addFile( $infoFile, 'export/' . basename( $infoFile ) );
+		foreach ( $infoFilesList as $infoFile ) {
+			$zip->addFile(
+				$infoFile,
+				'export/' . basename( $infoFile )
+			);
 		}
-		foreach( $wikiFilesList as $wikiFile ) {
-			$zip->addFile( $wikiFile, 'export/' . basename( $wikiFile ) );
+		foreach ( $wikiFilesList as $wikiFile ) {
+			$zip->addFile(
+				$wikiFile,
+				'export/' . basename( $wikiFile )
+			);
+		}
+		foreach ( $addUploadedFile as $sepFile ) {
+			$zip->addFile(
+				$sepFile,
+				'export/' . basename( $sepFile )
+			);
 		}
 		$zip->close();
 	}
 
 	private static function convertContentTov0999( $content ) {
-		$json = json_decode( $content, true );
-		if( !isset( $json['slots'] ) ) {
-			$json['slots'] =  array( 'main' );
+		$json = json_decode(
+			$content,
+			true
+		);
+		if ( ! isset( $json['slots'] ) ) {
+			$json['slots'] = array( 'main' );
 		}
 		//$infoContent['isFile']           = true;
 		//			$infoContent['fileurl']          = $isFile['url'];
 		//			$infoContent['fileoriginalname'] = $isFile['name'];
 		//			$infoContent['fileowner']        = $isFile['owner'];
-		if( $json['isFile'] !== false ) {
+		if ( $json['isFile'] !== false ) {
 			$json['isFile'] = true;
-			$json['url'] = $json['fileurl'];
-			$json['name'] = $json['fileoriginalname'];;
+			$json['url']    = $json['fileurl'];
+			$json['name']   = $json['fileoriginalname'];;
 			$json['owner'] = $json['fileowner'];;
 		}
-		return self::setInfoContent( $json['filename'], $json['pagetitle'], $json['username'], $json['pageid'], $json['slots'], $json['isFile'], $json['changed'] );
 
+		return json_encode(
+			self::setInfoContent(
+				$json['filename'],
+				$json['pagetitle'],
+				$json['username'],
+				$json['pageid'],
+				$json['slots'],
+				$json['isFile'],
+				$json['changed']
+			)
+		);
 	}
 
-	public static function convertFilesTov0999(){
-		if( self::$config !== false ) {
+	public static function convertFilesTov0999() {
+		if ( self::$config !== false ) {
 			self::setConfig();
 		}
-		$path = self::$config['exportPath'];
+		$path      = self::$config['exportPath'];
 		$indexList = self::getFileIndex();
-		$cnt = 0;
+		$cnt       = 0;
 		$converted = 0;
-		foreach( $indexList as $item ) {
-			$infoFileList = glob( $path . $item . "*.wiki" );
-			if( file_exists( $path . $item . '.wiki' ) && count($infoFileList) <= 1 ) {
+		foreach ( $indexList as $file=>$title ) {
+			$convertedFile = false;
+			echo "<p>Working on $title</p>";
+			$wikiFileList = glob( $path . $file . "*.wiki" );
+			echo "<p>Checking File:" . $path . $file . '.wiki</p>';
+			if ( file_exists( $path . $file . '.wiki' ) && count( $wikiFileList ) <= 1 ) {
 				// we have an old version here
-				$newFileName = $path . $item . '_slot_main' . '.wiki';
-				file_put_contents( $newFileName, self::convertContentTov0999( file_get_contents( $path . $item . '.wiki' ) ) );
-				unlink( $path . $item . '.wiki' );
+				$newFileName = $path . $file . '_slot_main' . '.wiki';
+				file_put_contents(
+					$newFileName,
+					file_get_contents( $path . $file . '.wiki' )
+				);
+				unlink( $path . $file . '.wiki' );
 				$converted++;
-			} elseif( file_exists( $path . $item . '.wiki' ) && count($infoFileList) > 1 ) {
+				$convertedFile = true;
+			} elseif ( file_exists( $path . $file . '.wiki' ) && count( $wikiFileList ) > 1 ) {
 				// we have some new files, but it looks the main slot is still the old version.
-				$newFileName = $path . $item . '_slot_main' . '.wiki';
-				if( in_array( $item . '_slot_main' . '.wiki', $infoFileList ) ) {
+				$newFileName = $path . $file . '_slot_main' . '.wiki';
+				if ( in_array(
+					$file . '_slot_main' . '.wiki',
+					$wikiFileList
+				) ) {
 					// we should be fine, new main slot exists
+					unlink( $path . $file . '.wiki' );
 				} else {
-					file_put_contents( $newFileName, self::convertContentTov0999( file_get_contents( $path . $item . '.wiki' ) ) );
-					unlink( $path . $item . '.wiki' );
+					file_put_contents(
+						$newFileName,
+						file_get_contents( $path . $file . '.wiki' )
+					);
+					unlink( $path . $file . '.wiki' );
 					$converted++;
+					$convertedFile = true;
+				}
+			}
+			if( $convertedFile === true ) {
+				$infoFile = $path . $file . ".info";
+				echo "<p>Working on $infoFile</p>";
+				if( file_exists( $infoFile ) ) {
+					file_put_contents( $infoFile, self::convertContentTov0999( file_get_contents( $infoFile ) ) );
 				}
 			}
 			$cnt++;
 		}
+
 		return array(
-			'total' => $cnt,
+			'total'     => $cnt,
 			'converted' => $converted
 		);
-
 	}
 
-	public static function getBackupList(){
+	public static function getBackupList() {
 		$data = array();
-		if( self::$config !== false ) {
+		if ( self::$config !== false ) {
 			self::setConfig();
 		}
-		$path = self::$config['exportPath'];
+		$path       = self::$config['exportPath'];
 		$backupList = glob( $path . "backup_*.zip" );
-		if( empty( $backupList ) ) return $data;
+		if ( empty( $backupList ) ) {
+			return $data;
+		}
 		$t = 0;
-		foreach( $backupList as $backup ){
-			$exploded = explode( '_', basename( $backup ) );
-			$version = str_replace('.zip', '', str_replace('-', '.', $exploded[2] ) );
-			$data[$t]['file'] = basename( $backup );
+		foreach ( $backupList as $backup ) {
+			$exploded            = explode(
+				'_',
+				basename( $backup )
+			);
+			$version             = str_replace(
+				'.zip',
+				'',
+				str_replace(
+					'-',
+					'.',
+					$exploded[2]
+				)
+			);
+			$data[$t]['file']    = basename( $backup );
 			$data[$t]['version'] = $version;
-			$data[$t]['date'] = date( 'd-m-Y H:i:s', filemtime( $backup ) );
+			$data[$t]['date']    = date(
+				'd-m-Y H:i:s',
+				filemtime( $backup )
+			);
 			$t++;
 		}
+
 		return $data;
 	}
 
-	public static function checkFileConsistency( $returnCnt = false ){
-		if( self::$config !== false ) {
+	public static function checkFileConsistency( $returnCnt = false, $returnFileNames =  false ) {
+		if ( self::$config !== false ) {
 			self::setConfig();
 		}
-		$flag = true;
-		$path = self::$config['exportPath'];
+		$flag          = true;
+		$path          = self::$config['exportPath'];
 		$infoFilesList = glob( $path . "*.info" );
-		$cnt = 0;
-		if( empty( $infoFilesList ) ) {
+		$cnt           = 0;
+		$markedFiles   = array();
+		if ( empty( $infoFilesList ) ) {
 			$flag = true;
 		} else {
 			foreach ( $infoFilesList as $infoFile ) {
-				$fileContent = json_decode( file_get_contents( $infoFile ), true );
+				$fileContent = json_decode(
+					file_get_contents( $infoFile ),
+					true
+				);
 				if ( ! isset( $fileContent['slots'] ) ) {
 					$flag = false;
+					$markedFiles[] = $fileContent['pagetitle'];
 					$cnt++;
 				}
 			}
 		}
-		if( $returnCnt ) {
+		if( $returnFileNames ) {
+			return $markedFiles;
+		}
+		if ( $returnCnt ) {
 			return $cnt;
 		}
+
 		return $flag;
 	}
 
@@ -1000,11 +1126,14 @@ class WSpsHooks {
 
 		$articleId = $title->getArticleID();
 
-
-		if( self::checkFileConsistency() === false ){
+		if ( self::checkFileConsistency() === false ) {
 			global $wgArticlePath;
-			$url = str_replace( '$1', 'Special:WSPageSync', $wgArticlePath );
-			$class          = "wsps-notice";
+			$url                    = str_replace(
+				'$1',
+				'Special:WSPageSync',
+				$wgArticlePath
+			);
+			$class                  = "wsps-notice";
 			$links['views']['wsps'] = array(
 				"class"     => $class,
 				"text"      => "",
@@ -1015,6 +1144,7 @@ class WSpsHooks {
 				'title'     => 'WSPageSync cannot be currently used. Please click this button to visit the Special page',
 				'rel'       => 'WSPageSync'
 			);
+
 			return true;
 		}
 

@@ -86,6 +86,22 @@ class render {
 		return $html;
 	}
 
+	function renderMarkedFiles( $data ): string {
+		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
+		$html .= '<th>#</th><th>' . wfMessage( 'wsps-error_file_consistency_convert_file' )->text() . '</th></tr>';
+		$row  = 1;
+
+		foreach ( $data as $markedFile ) {
+			$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
+			$html   .= '<td class="wsps-td">' . $markedFile . '</td>';
+			$html   .= '</tr>';
+			$row ++;
+		}
+		$html .= '</table>';
+
+		return $html;
+	}
+
 	function renderBackups( $data ): string {
 		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_backup_name' )->text() . '</th>';

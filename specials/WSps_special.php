@@ -152,7 +152,67 @@ class WSpsSpecial extends SpecialPage {
 
 
 		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "convert" ) ) {
+			if ( WSpsHooks::checkFileConsistency() === false ) {
+				$pAction = $this->getPost( 'wsps-action' );
+				if( $pAction === 'wsps-convert-real' ) {
+					$result = WSpsHooks::convertFilesTov0999();
+					$out->addHTML( $render->loadResources() );
+					$out->addHTML(
+						$render->renderMenu(
+							$this->url,
+							$this->logo,
+							$this->version,
+							0
+						)
+					);
+					$out->addHTML( $render->renderCard(
+						$this->msg( 'wsps-error_file_consistency_page_2_header' ),
+						$this->msg( 'wsps-error_file_consistency_page_2_subheader' ),
+						'<p>' . $this->msg( 'wsps-error_file_consistency_result_total', $result['total'] ) . '<br>'
+						. $this->msg( 'wsps-error_file_consistency_result_converted', $result['converted'] ) . '</p>',
+						''
+					));
+					$out->addHTML( $style );
+					return true;
+				}
+				$markedFiles = WSpsHooks::checkFileConsistency( false, true );
+				$out->addHTML( $render->loadResources() );
+				$out->addHTML(
+					$render->renderMenu(
+						$this->url,
+						$this->logo,
+						$this->version,
+						0
+					)
+				);
 
+				$table = $render->renderMarkedFiles(
+					$markedFiles
+				);
+				$btn_backup = '<form method="post" action="' . $wgScript . '/Special:WSps?action=backup">';
+				$btn_backup .= '<input type="hidden" name="wsps-action" value="wsps-backup">';
+				$btn_backup .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
+				$btn_backup .= wfMessage( 'wsps-error_file_consistency_btn_backup' )->text();
+				$btn_backup .= '"></form>';
+				$btn_convert = '<form method="post" action="' . $wgScript. '/Special:WSps?action=convert">';
+				$btn_convert .= '<input type="hidden" name="wsps-action" value="wsps-convert-real">';
+				$btn_convert .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
+				$btn_convert .= wfMessage( 'wsps-error_file_consistency_btn_convert_real' )->text();
+				$btn_convert .= '"></form>';
+				$out->addHTML( $render->renderCard(
+					$this->msg( 'wsps-error_file_consistency_page_2_header' ),
+					$this->msg( 'wsps-error_file_consistency_page_2_subheader' ),
+					$table,
+					'<table><tr><td>'.$btn_backup.'</td><td>'.$btn_convert.'</td></tr></table>'
+				));
+				$out->addHTML( $style );
+
+				//$out->addHTML( '<h3>' . $this->msg( 'wsps-error_file_consistency_page_2_header' ) . '</h3>' );
+				//$out->addHTML( $style );
+				//$out->addHTML( $html );
+				return true;
+
+			}
 		}
 
 		//Make backup$_POST['wsps-action']
@@ -172,7 +232,6 @@ class WSpsSpecial extends SpecialPage {
 				)
 			);
 
-
 			$data = WSpsHooks::getBackupList();
 			$nr   = count( $data );
 			$html = wfMessage(
@@ -184,6 +243,13 @@ class WSpsSpecial extends SpecialPage {
 					$data
 				);
 			}
+			$btn_backup = '<form method="post" action="' . $wgScript . '/Special:WSps?action=backup">';
+			$btn_backup .= '<input type="hidden" name="wsps-action" value="wsps-backup">';
+			$btn_backup .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
+			$btn_backup .= wfMessage( 'wsps-error_file_consistency_btn_backup' )->text();
+			$btn_backup .= '"></form>';
+
+			$html .= $btn_backup;
 			$out->addHTML( '<h3>' . $this->msg( 'wsps-content_backups' ) . '</h3>' );
 			$out->addHTML( $style );
 			$out->addHTML( $html );
@@ -216,8 +282,10 @@ class WSpsSpecial extends SpecialPage {
 			$out->addHTML( $render->renderCard(
 				$this->msg( 'wsps-error_file_consistency_0' ),
 				$this->msg( 'wsps-error_file_consistency_1' ),
-				'<p>' . $this->msg( 'wsps-error_file_consistency_2' ) . '<br>'. $this->msg( 'wsps-error_file_consistency_3' ) . '<br>' .
-				$this->msg( 'wsps-error_file_consistency_4' ),
+				'<p>' . $this->msg( 'wsps-error_file_consistency_2' ) .
+				'<br>' . $this->msg( 'wsps-error_file_consistency_count', $numberOfBadFiles ) .
+				'<br>'. $this->msg( 'wsps-error_file_consistency_3' ) .
+				'<br>' .$this->msg( 'wsps-error_file_consistency_4' ),
 				'<table><tr><td>'.$btn_backup.'</td><td>'.$btn_convert.'</td></tr></table>'
 			));
 			$out->addHTML( $style );
