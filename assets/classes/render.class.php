@@ -61,6 +61,7 @@ class render {
 	function renderIndexPage( $data, string $wgScript ): string {
 		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_slots' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_user' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
@@ -68,6 +69,11 @@ class render {
 		foreach ( $data as $page ) {
 			$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
 			$html   .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
+			if( isset( $page['slots'] ) ) {
+				$html .= '<td class="wsps-td">' . $page['slots'] . '</td>';
+			} else {
+				$html .= '<td class="wsps-td">main</td>';
+			}
 			$html   .= '<td class="wsps-td">' . $page['username'] . '</td>';
 			$html   .= '<td class="wsps-td">' . $page['changed'] . '</td>';
 			$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $page['pageid'] . '"></a>';
@@ -77,6 +83,32 @@ class render {
 		}
 		$html .= '</table>';
 
+		return $html;
+	}
+
+	function renderBackups( $data ): string {
+		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
+		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_backup_name' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_version' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_delete' )->text() . '</th></tr>';
+		$row  = 1;
+		if( empty( $data ) ) { // content_no_backups
+			$html .= '</table>';
+			$html .=  wfMessage( 'wsps-content_no_backups' )->text();
+		} else {
+			foreach ( $data as $backup ) {
+				$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
+				$html   .= '<td class="wsps-td">' . $backup['file'] . '</td>';
+				$html   .= '<td class="wsps-td">' . $backup['date'] . '</td>';
+				$html   .= '<td class="wsps-td">' . $backup['version'] . '</td>';
+				$button = '<a data-id="' . $backup['file'] . '">DELETE</a>';
+				$html   .= '<td class="wsps-td">' . $button . '</td>';
+				$html   .= '</tr>';
+				$row ++;
+			}
+			$html .= '</table>';
+		}
 		return $html;
 	}
 
@@ -176,7 +208,8 @@ class render {
 			'%%item3class%%',
 			'%%item4class%%',
 			'%%wsps-special_menu_sync_custom_query%%',
-			'%%wsps-special_menu_delete_synced_files%%'
+			'%%wsps-special_menu_delete_synced_files%%',
+			'%%wsps-special_menu_backup_files%%'
 		);
 		$replace = array(
 			$baseUrl,
@@ -184,13 +217,24 @@ class render {
 			$item3class,
 			$item4class,
 			wfMessage( 'wsps-special_menu_sync_custom_query' )->text(),
-			wfMessage( 'wsps-special_menu_delete_synced_files' )->text()
+			wfMessage( 'wsps-special_menu_delete_synced_files' )->text(),
+			wfMessage( 'wsps-special_menu_backup_files' )->text()
 		);
 
 		$ret = str_replace( $search, $replace, $this->getTemplate( 'renderMenu' ) );
 		$ret .= wfMessage( 'wsps-special_version', $version )->text();
 
 		return $ret;
+	}
+
+	function renderCard( string $title, string $subTitle, string $body, string $footer ): string {
+		$content = '<div class="uk-card uk-card-default">';
+		$content .= '<div class="uk-card-header"><h3 class="uk-card-title uk-margin-remove-bottom">' . $title . '</h3>';
+		$content .= '<p class="uk-text-meta uk-margin-remove-top">' . $subTitle . '</p></div>';
+		$content .= '<div class="uk-card-body"><p class="uk-text-meta uk-margin-remove-top">' . $body . '</p></div>';
+		$content .= '<div class="uk-card-footer"><p>' . $footer . '</p></div>';
+		$content .= '</div>';
+		return $content;
 	}
 
 

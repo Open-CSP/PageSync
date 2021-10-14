@@ -20,6 +20,17 @@
     padding: 0px 4px 4px 0px !important;
 }
 
+.wsps-notice {
+    width: 23px !important;
+    display: inline-block;
+    vertical-align: middle;
+    background-image: url(notice.png) !important;
+    background-size: contain;
+    background-position: center center !important;
+    background-repeat: no-repeat;
+    padding: 0px 4px 4px 0px !important;
+}
+
 .wsps-toggle a {
     width: 100%;
     display: none;

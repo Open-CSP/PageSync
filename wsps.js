@@ -5,6 +5,14 @@ $(function() {
 	$('.wsps-toggle').click(function (e) {
 		e.stopPropagation();
 		var button = $(this);
+		if( button.hasClass("wsps-error" ) ) {
+			$( '<span style="color:red;">' + mw.msg( 'wsps-error_special-page' ) + '</span>' ), { title: 'ERROR' }
+			return;
+		}
+		if( button.hasClass("wsps-notice" ) ) {
+			window.location.href = mw.config.get("wgArticlePath").replace('$1', '') + 'Special:WSPageSync';
+			return;
+		}
 		var id = mw.config.get('wgArticleId');
 		var user = mw.user.getName();
 		if (button.hasClass("wsps-active")) {
