@@ -530,7 +530,6 @@ class WSpsHooks {
 				wfMessage( 'wsps-error_page_not_found' )->text()
 			);
 		}
-		//TODO: Fix file inclusion when using img_auth is not working atm
 		if ( WSpsHooks::isFile( $id ) !== false ) {
 			// we are dealing with a file or image
 			$f            = wfFindFile( WSpsHooks::isFile( $id ) );

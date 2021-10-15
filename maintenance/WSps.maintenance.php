@@ -46,6 +46,10 @@ class importPagesIntoWiki extends Maintenance {
 			'rc',
 			'Place revisions in RecentChanges.'
 		);
+		$this->addOption(
+			'rebuild-index',
+			'Will recreate the index file from existing file structure'
+		);
 	}
 
 	/**
@@ -151,6 +155,17 @@ class importPagesIntoWiki extends Maintenance {
 		if ( $this->hasOption( 'autodelete' ) && strtolower( $this->getOption( 'autodelete' ) ) === 'true' ) {
 			$autoDelete = true;
 			echo "\n[Auto delete files turned on]\n";
+		}
+
+		if ( $this->hasOption( 'rebuild-index' ) ) {
+			// We need to rebuild the index file here.
+			echo "\n[Rebuilding index file from file structure]\n";
+			$answer = strtolower( readline( "Are you sure (y/n)" ) );
+			if( $answer !== "y" ){
+				die( "no action" );
+			}
+			echo "\n[Rebuilding index file from file structure --RUN--]\n";
+			die();
 		}
 
 		$summary = $this->getOption(
