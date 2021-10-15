@@ -217,9 +217,30 @@ class WSpsSpecial extends SpecialPage {
 
 		//Make backup$_POST['wsps-action']
 		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "backup" ) ) {
+			$backActionResult = false;
 			$pAction = $this->getPost( 'wsps-action' );
 			if( $pAction === 'wsps-backup' ) {
 				WSpsHooks::createZipFileBackup();
+			}
+			if( $pAction === 'delete-backup' ) {
+				$resultDeleteBackup = false;
+				$backupFile = $this->getPost( 'ws-backup-file' );
+				if( $backupFile !== false ) {
+					$resultDeleteBackup = WSpsHooks::deleteBackupFile( $backupFile );
+				}
+				if( $resultDeleteBackup === true ) {
+					$backActionResult = wfMessage( 'wsps-special_backup_delete_file_success', $backupFile )->text();
+				} else {
+					$backActionResult = wfMessage( 'wsps-special_backup_delete_file_error', $backupFile )->text();
+				}
+			}
+			if( $pAction === 'restore-backup' ) {
+				$resultDeleteBackup = false;
+				$backupFile = $this->getPost( 'ws-backup-file' );
+				if( $backupFile !== false ) {
+					WSpsHooks::restoreBackupFile( $backupFile );
+					$backActionResult = wfMessage( 'wsps-special_backup_restore_file_success', $backupFile )->text();
+				}
 			}
 
 			$out->addHTML( $render->loadResources() );
@@ -250,6 +271,9 @@ class WSpsSpecial extends SpecialPage {
 			$btn_backup .= '"></form>';
 
 			$html .= $btn_backup;
+			if( $backActionResult !== false ) {
+				$out->addHTML( $backActionResult );
+			}
 			$out->addHTML( '<h3>' . $this->msg( 'wsps-content_backups' ) . '</h3>' );
 			$out->addHTML( $style );
 			$out->addHTML( $html );

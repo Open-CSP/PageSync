@@ -66,7 +66,9 @@
 			"position": "top",
 			"messages": [
 				"wsps-page-added",
-				"wsps-page-removed"
+				"wsps-page-removed",
+				"wsps-javascript_restore_backup_text",
+				"wsps-javascript_delete_backup_text"
 			]
 		}
 	},

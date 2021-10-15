@@ -71,13 +71,7 @@ class WSpsHooks {
 				$filePath               .= '/';
 				$exportPath             = $filePath . 'export/';
 				$currentPermissionsPath = $filePath;
-				$permissions            = substr(
-					sprintf(
-						'%o',
-						fileperms( $currentPermissionsPath )
-					),
-					-4
-				);
+
 				if ( ! file_exists( $filePath ) ) {
 					mkdir(
 						$filePath,
@@ -540,7 +534,10 @@ class WSpsHooks {
 		if ( WSpsHooks::isFile( $id ) !== false ) {
 			// we are dealing with a file or image
 			$f            = wfFindFile( WSpsHooks::isFile( $id ) );
-			$canonicalURL = $f->getCanonicalURL();
+			$canonicalURL = $f->getLocalRefPath();
+			if( $canonicalURL === false ){
+				$canonicalURL = $f->getCanonicalUr();
+			}
 			$baseName     = $f->getName();
 			$fileOwner    = $f->getUser();
 			$isFile       = array(
@@ -874,6 +871,53 @@ class WSpsHooks {
 			return $text;
 		} else {
 			return false;
+		}
+	}
+
+	public static function deleteBackupFile( $backupFile ){
+		if ( self::$config !== false ) {
+			self::setConfig();
+		}
+		$path          = self::$config['exportPath'];
+		if( file_exists( $path . $backupFile ) ) {
+			unlink( $path . $backupFile );
+			return true;
+		}
+		return false;
+	}
+
+	private static function removeRecursively( $dir, $finalDir ) {
+		if (is_dir($dir)) {
+			$objects = scandir($dir);
+			foreach ($objects as $object) {
+				if ($object != "." && $object != "..") {
+					if (is_dir($dir. DIRECTORY_SEPARATOR .$object) && !is_link($dir."/".$object))
+						self::removeRecursively($dir. DIRECTORY_SEPARATOR .$object, $finalDir);
+					else {
+						if( strpos( basename( $object ), 'backup_' ) === false ) {
+							unlink( $dir . DIRECTORY_SEPARATOR . $object );
+						}
+					}
+				}
+			}
+			if( $dir !== $finalDir ) {
+				rmdir( $dir );
+			}
+		}
+	}
+
+	public static function restoreBackupFile( $backupFile ){
+		if ( self::$config !== false ) {
+			self::setConfig();
+		}
+		$path          = self::$config['exportPath'];
+		$indexPath     = self::$config['filePath'];
+		$zip           = new ZipArchive();
+		if( $zip->open( $path . $path ) === true ) {
+			self::removeRecursively( $indexPath, $indexPath );
+			self::setConfig(); // re-initiate deleted folder
+			$zip->extractTo( $indexPath );
+			$zip->close();
 		}
 	}
 

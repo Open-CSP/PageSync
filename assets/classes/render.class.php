@@ -118,7 +118,8 @@ class render {
 				$html   .= '<td class="wsps-td">' . $backup['file'] . '</td>';
 				$html   .= '<td class="wsps-td">' . $backup['date'] . '</td>';
 				$html   .= '<td class="wsps-td">' . $backup['version'] . '</td>';
-				$button = '<a data-id="' . $backup['file'] . '">DELETE</a>';
+				$button = '<a class="wsps-delete-backup" data-id="' . $backup['file'] . '">DELETE</a> / ';
+				$button .= '<a class="wsps-restore-backup" data-id="' . $backup['file'] . '">RESTORE</a>';
 				$html   .= '<td class="wsps-td">' . $button . '</td>';
 				$html   .= '</tr>';
 				$row ++;
