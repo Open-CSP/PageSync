@@ -11,7 +11,8 @@
 	"AutoloadClasses": {
 		"ApiWSps": "WSps.api.php",
 		"WSpsHooks": "WSps.php",
-		"WSpsSpecial": "specials/WSps_special.php"
+		"WSpsSpecial": "specials/WSps_special.php",
+		"WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php"
 	},
 	"ExtensionMessagesFiles": {
 		"WSpsAlias": "WSps.i18n.alias.php",

@@ -44,6 +44,7 @@
 	"wsps-special_backup_delete_file_error" : "<div class=\"uk-alert-danger\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> could not be deleted. Please contact the website administrator.</p>\n</div>",
 	"wsps-special_backup_delete_file_success" : "<div class=\"uk-alert-success\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> successfully deleted.</p>\n</div>",
 	"wsps-special_backup_restore_file_success" : "<div class=\"uk-alert-success\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> successfully restored.</p>\n</div>",
+	"wsps-special_backup_restore_file_failure" : "<div class=\"uk-alert-danger\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> could not be restored.</p>\n</div>",
 	"wsps-special_version": "<p>Version $1</p>",
 	"wsps-special_table_header_backup_name": "Backup",
 	"wsps-special_table_header_delete": "Action",

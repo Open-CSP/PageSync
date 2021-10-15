@@ -217,16 +217,17 @@ class WSpsSpecial extends SpecialPage {
 
 		//Make backup$_POST['wsps-action']
 		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "backup" ) ) {
+			$psBackup = new WSpsHooksBackup();
 			$backActionResult = false;
 			$pAction = $this->getPost( 'wsps-action' );
 			if( $pAction === 'wsps-backup' ) {
-				WSpsHooks::createZipFileBackup();
+				$psBackup->createZipFileBackup();
 			}
 			if( $pAction === 'delete-backup' ) {
 				$resultDeleteBackup = false;
 				$backupFile = $this->getPost( 'ws-backup-file' );
 				if( $backupFile !== false ) {
-					$resultDeleteBackup = WSpsHooks::deleteBackupFile( $backupFile );
+					$resultDeleteBackup = $psBackup->deleteBackupFile( $backupFile );
 				}
 				if( $resultDeleteBackup === true ) {
 					$backActionResult = wfMessage( 'wsps-special_backup_delete_file_success', $backupFile )->text();
@@ -235,11 +236,21 @@ class WSpsSpecial extends SpecialPage {
 				}
 			}
 			if( $pAction === 'restore-backup' ) {
-				$resultDeleteBackup = false;
+				$backActionResult = false;
 				$backupFile = $this->getPost( 'ws-backup-file' );
 				if( $backupFile !== false ) {
-					WSpsHooks::restoreBackupFile( $backupFile );
-					$backActionResult = wfMessage( 'wsps-special_backup_restore_file_success', $backupFile )->text();
+					$resRestore = $psBackup->restoreBackupFile( $backupFile );
+					if( $resRestore === true ) {
+						$backActionResult = wfMessage(
+							'wsps-special_backup_restore_file_success',
+							$backupFile
+						)->text();
+					} else {
+						$backActionResult = wfMessage(
+							'wsps-special_backup_restore_file_failure',
+							$backupFile
+						)->text();
+					}
 				}
 			}
 
@@ -253,7 +264,7 @@ class WSpsSpecial extends SpecialPage {
 				)
 			);
 
-			$data = WSpsHooks::getBackupList();
+			$data = $psBackup->getBackupList();
 			$nr   = count( $data );
 			$html = wfMessage(
 				'wsps-special_backup_count',
