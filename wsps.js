@@ -2,6 +2,24 @@ $(function() {
 
 
 	/**
+	 * on Special backup page download button has been pressed
+	 */
+	$('.wsps-download-backup').click( function (e) {
+		e.stopPropagation();
+		var lnk = $( this );
+
+		// download it!
+		var url = window.location.href;
+		var backupFile = lnk.attr('data-id');
+		var form = $('<form action="' + url + '"method="post">' +
+			'<input type="hidden" name="wsps-action" value="download-backup">' +
+			'<input type="hidden" name="ws-backup-file" value="' + backupFile + '"></form>' );
+		$('body').append(form);
+		form.submit();
+
+	});
+
+	/**
 	 * on Special backup page delete button has been pressed
 	 */
 	$('.wsps-delete-backup').click( function (e) {

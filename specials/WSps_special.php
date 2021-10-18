@@ -147,6 +147,24 @@ class WSpsSpecial extends SpecialPage {
 		$this->assets  = '/extensions/WSPageSync/assets/images/';
 		$style         = $render->getStyle( $this->assets );
 
+		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "backup" ) ) {
+			$pAction = $this->getPost( 'wsps-action' );
+			if( $pAction === 'download-backup' ) {
+				$backupFile = $this->getPost( 'ws-backup-file' );
+				if( false !== $backupFile ) {
+					$path = WSpsHooks::$config['exportPath'];
+					if ( file_exists( $path . $backupFile ) ) {
+						header('Content-type: application/zip');
+						header('Content-Disposition: attachment; filename="'. $backupFile . '"');
+						readfile( $path . $backupFile  );
+						exit();
+					}
+
+				}
+
+			}
+		}
+
 		$this->setHeaders();
 		$out->setPageTitle( '' );
 
@@ -223,6 +241,7 @@ class WSpsSpecial extends SpecialPage {
 			if( $pAction === 'wsps-backup' ) {
 				$psBackup->createZipFileBackup();
 			}
+
 			if( $pAction === 'delete-backup' ) {
 				$resultDeleteBackup = false;
 				$backupFile = $this->getPost( 'ws-backup-file' );

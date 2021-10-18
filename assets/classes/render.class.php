@@ -18,6 +18,7 @@ class render {
 		global $wgScript;
 		$url = rtrim( $wgScript, 'index.php' );
 		$dir = $url . 'extensions/WSPageSync/assets/';
+
 		return '<link rel="stylesheet" href="' . $dir . 'css/uikit.min.css" /><script src="' . $dir . 'js/uikit.min.js"></script><script src="' . $dir . 'js/uikit-icons.min.js"></script>';
 	}
 
@@ -67,9 +68,9 @@ class render {
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
 		$row  = 1;
 		foreach ( $data as $page ) {
-			$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
-			$html   .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
-			if( isset( $page['slots'] ) ) {
+			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
+			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
+			if ( isset( $page['slots'] ) ) {
 				$html .= '<td class="wsps-td">' . $page['slots'] . '</td>';
 			} else {
 				$html .= '<td class="wsps-td">main</td>';
@@ -92,9 +93,9 @@ class render {
 		$row  = 1;
 
 		foreach ( $data as $markedFile ) {
-			$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
-			$html   .= '<td class="wsps-td">' . $markedFile . '</td>';
-			$html   .= '</tr>';
+			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
+			$html .= '<td class="wsps-td">' . $markedFile . '</td>';
+			$html .= '</tr>';
 			$row ++;
 		}
 		$html .= '</table>';
@@ -103,29 +104,31 @@ class render {
 	}
 
 	function renderBackups( $data ): string {
-		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
+		$html = '<table style="width:100%;" class="uk-table uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_backup_name' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_version' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_delete' )->text() . '</th></tr>';
 		$row  = 1;
-		if( empty( $data ) ) { // content_no_backups
+		if ( empty( $data ) ) { // content_no_backups
 			$html .= '</table>';
-			$html .=  wfMessage( 'wsps-content_no_backups' )->text();
+			$html .= wfMessage( 'wsps-content_no_backups' )->text();
 		} else {
 			foreach ( $data as $backup ) {
 				$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
-				$html   .= '<td class="wsps-td">' . $backup['file'] . '</td>';
-				$html   .= '<td class="wsps-td">' . $backup['date'] . '</td>';
+				$html   .= '<td class="wsps-td"><span uk-icon="icon: album"></span> ' . $backup['file'] . '</td>';
+				$html   .= '<td class="wsps-td"><span uk-icon="icon: calendar"></span> ' . $backup['date'] . '</td>';
 				$html   .= '<td class="wsps-td">' . $backup['version'] . '</td>';
-				$button = '<a class="wsps-delete-backup" data-id="' . $backup['file'] . '">DELETE</a> / ';
-				$button .= '<a class="wsps-restore-backup" data-id="' . $backup['file'] . '">RESTORE</a>';
+				$button = '<a class="uk-icon-button wsps-download-backup" uk-icon="download" data-id="' . $backup['file'] . '" title="' . wfMessage( 'wsps-special_backup_download' )->text() . '"></a> ';
+				$button .= '<a class="uk-icon-button wsps-delete-backup" uk-icon="ban" data-id="' . $backup['file'] . '" title="' . wfMessage( 'wsps-special_backup_delete' )->text() . '"></a> ';
+				$button .= '<a class="uk-icon-button wsps-restore-backup" uk-icon="push" data-id="' . $backup['file'] . '" title="' . wfMessage( 'wsps-special_backup_restore' )->text() . '"></a>';
 				$html   .= '<td class="wsps-td">' . $button . '</td>';
 				$html   .= '</tr>';
 				$row ++;
 			}
 			$html .= '</table>';
 		}
+
 		return $html;
 	}
 
@@ -219,7 +222,7 @@ class render {
 		if ( $active === 4 ) {
 			$item4class = 'uk-active';
 		}
-		$search = array(
+		$search  = array(
 			'%%baseUrl%%',
 			'%%logo%%',
 			'%%item3class%%',
@@ -251,6 +254,7 @@ class render {
 		$content .= '<div class="uk-card-body"><p class="uk-text-meta uk-margin-remove-top">' . $body . '</p></div>';
 		$content .= '<div class="uk-card-footer"><p>' . $footer . '</p></div>';
 		$content .= '</div>';
+
 		return $content;
 	}
 
