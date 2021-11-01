@@ -14,9 +14,12 @@ class render {
 	/**
 	 * @return string
 	 */
-	public function loadResources(): string {
+	public function loadResources() : string {
 		global $wgScript;
-		$url = rtrim( $wgScript, 'index.php' );
+		$url = rtrim(
+			$wgScript,
+			'index.php'
+		);
 		$dir = $url . 'extensions/WSPageSync/assets/';
 
 		return '<link rel="stylesheet" href="' . $dir . 'css/uikit.min.css" /><script src="' . $dir . 'js/uikit.min.js"></script><script src="' . $dir . 'js/uikit-icons.min.js"></script>';
@@ -47,7 +50,9 @@ class render {
 		$form = '<form method="post">';
 		$form .= '<input type="hidden" name="wsps-action" value="wsps-import-query">';
 		$form .= '<input type="hidden" name="wsps-query" value="' . base64_encode( $query ) . '">';
-		$form .= '<input type="submit" class="uk-button uk-button-primary uk-width-1-1 uk-margin-small-bottom uk-text-large" value="' . wfMessage( 'wsps-special_custom_query_add_results' )->text() . '">';
+		$form .= '<input type="submit" class="uk-button uk-button-primary uk-width-1-1 uk-margin-small-bottom uk-text-large" value="' . wfMessage(
+				'wsps-special_custom_query_add_results'
+			)->text() . '">';
 		$form .= '</form>';
 
 		return $form;
@@ -59,7 +64,7 @@ class render {
 	 *
 	 * @return string
 	 */
-	function renderIndexPage( $data, string $wgScript ): string {
+	function renderIndexPage( $data, string $wgScript ) : string {
 		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_slots' )->text() . '</th>';
@@ -80,35 +85,38 @@ class render {
 			$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $page['pageid'] . '"></a>';
 			$html   .= '<td class="wsps-td">' . $button . '</td>';
 			$html   .= '</tr>';
-			$row ++;
+			$row++;
 		}
 		$html .= '</table>';
 
 		return $html;
 	}
 
-	function renderMarkedFiles( $data ): string {
-		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
-		$html .= '<th>#</th><th>' . wfMessage( 'wsps-error_file_consistency_convert_file' )->text() . '</th></tr>';
+	function renderMarkedFiles( $data ) : string {
+		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><thead><tr>';
+		$html .= '<th>#</th><th>' . wfMessage( 'wsps-error_file_consistency_convert_file' )->text(
+			) . '</th></tr></thead>';
+		$html .= '<tfoot><tr><td colspan="2">' . wfMessage( 'wsps-error_file_not_in_index' )->text(
+			) . '</td></tr></tfoot><tbody>';
 		$row  = 1;
 
 		foreach ( $data as $markedFile ) {
 			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
 			$html .= '<td class="wsps-td">' . $markedFile . '</td>';
 			$html .= '</tr>';
-			$row ++;
+			$row++;
 		}
-		$html .= '</table>';
+		$html .= '</tbody></table>';
 
 		return $html;
 	}
 
-	function renderBackups( $data ): string {
-		$html = '<table style="width:100%;" class="uk-table uk-table-striped uk-table-hover"><tr>';
+	function renderBackups( $data ) : string {
+		$html = '<table style="width:100%;" class="uk-table uk-table-striped uk-table-hover"><thead><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_backup_name' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_version' )->text() . '</th>';
-		$html .= '<th>' . wfMessage( 'wsps-special_table_header_delete' )->text() . '</th></tr>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_delete' )->text() . '</th></tr></thead>';
 		$row  = 1;
 		if ( empty( $data ) ) { // content_no_backups
 			$html .= '</table>';
@@ -119,12 +127,18 @@ class render {
 				$html   .= '<td class="wsps-td"><span uk-icon="icon: album"></span> ' . $backup['file'] . '</td>';
 				$html   .= '<td class="wsps-td"><span uk-icon="icon: calendar"></span> ' . $backup['date'] . '</td>';
 				$html   .= '<td class="wsps-td">' . $backup['version'] . '</td>';
-				$button = '<a class="uk-icon-button wsps-download-backup" uk-icon="download" data-id="' . $backup['file'] . '" title="' . wfMessage( 'wsps-special_backup_download' )->text() . '"></a> ';
-				$button .= '<a class="uk-icon-button wsps-delete-backup" uk-icon="ban" data-id="' . $backup['file'] . '" title="' . wfMessage( 'wsps-special_backup_delete' )->text() . '"></a> ';
-				$button .= '<a class="uk-icon-button wsps-restore-backup" uk-icon="push" data-id="' . $backup['file'] . '" title="' . wfMessage( 'wsps-special_backup_restore' )->text() . '"></a>';
+				$button = '<a class="uk-icon-button wsps-download-backup" uk-icon="download" data-id="' . $backup['file'] . '" title="' . wfMessage(
+						'wsps-special_backup_download'
+					)->text() . '"></a> ';
+				$button .= '<a class="uk-icon-button wsps-delete-backup" uk-icon="ban" data-id="' . $backup['file'] . '" title="' . wfMessage(
+						'wsps-special_backup_delete'
+					)->text() . '"></a> ';
+				$button .= '<a class="uk-icon-button wsps-restore-backup" uk-icon="push" data-id="' . $backup['file'] . '" title="' . wfMessage(
+						'wsps-special_backup_restore'
+					)->text() . '"></a>';
 				$html   .= '<td class="wsps-td">' . $button . '</td>';
 				$html   .= '</tr>';
-				$row ++;
+				$row++;
 			}
 			$html .= '</table>';
 		}
@@ -136,9 +150,13 @@ class render {
 	/**
 	 * @return string
 	 */
-	function renderCustomQuery(): string {
-		$content = '<h3 class="uk-card-title uk-margin-remove-bottom">' . wfMessage( 'wsps-special_custom_query_card_header' )->text() . '</h3>';
-		$content .= '<p class="uk-text-meta uk-margin-remove-top">' . wfMessage( 'wsps-special_custom_query_card_subheader' )->text() . '</p>';
+	function renderCustomQuery() : string {
+		$content = '<h3 class="uk-card-title uk-margin-remove-bottom">' . wfMessage(
+				'wsps-special_custom_query_card_header'
+			)->text() . '</h3>';
+		$content .= '<p class="uk-text-meta uk-margin-remove-top">' . wfMessage(
+				'wsps-special_custom_query_card_subheader'
+			)->text() . '</p>';
 		$content .= '<form method="POST" class="uk-form-horizontal uk-margin-large">';
 		$content .= '<input type="hidden" name="wsps-action" value="doQuery">';
 		$content .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
@@ -161,7 +179,7 @@ class render {
 	 *
 	 * @return array
 	 */
-	function renderDoQueryBody( $result ): array {
+	function renderDoQueryBody( $result ) : array {
 		$html   = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover">';
 		$html   .= '<thead><tr><th>#</th>';
 		$html   .= '<th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
@@ -175,7 +193,7 @@ class render {
 			$pageId = WSpsHooks::isTitleInIndex( $page );
 			if ( $pageId !== false ) {
 				$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $pageId . '"></a>';
-				$active ++;
+				$active++;
 			} else {
 				$pageId = WSpsHooks::getPageIdFromTitle( $page );
 				if ( $pageId === false || $pageId === 0 ) {
@@ -186,7 +204,7 @@ class render {
 			}
 			$html .= '<td>' . $button . '</td>';
 			$html .= '</tr>';
-			$row ++;
+			$row++;
 		}
 		$html .= '</tbody></table>';
 
@@ -201,8 +219,12 @@ class render {
 	 *
 	 * @return string
 	 */
-	function getStyle( string $assets ): string {
-		return str_replace( '%%assets%%', $assets, $this->getTemplate( 'renderStyle' ) );
+	function getStyle( string $assets ) : string {
+		return str_replace(
+			'%%assets%%',
+			$assets,
+			$this->getTemplate( 'renderStyle' )
+		);
 	}
 
 	/**
@@ -213,7 +235,7 @@ class render {
 	 *
 	 * @return string
 	 */
-	function renderMenu( string $baseUrl, string $logo, string $version, int $active ): string {
+	function renderMenu( string $baseUrl, string $logo, string $version, int $active ) : string {
 		$item3class = '';
 		$item4class = '';
 		if ( $active === 3 ) {
@@ -241,13 +263,20 @@ class render {
 			wfMessage( 'wsps-special_menu_backup_files' )->text()
 		);
 
-		$ret = str_replace( $search, $replace, $this->getTemplate( 'renderMenu' ) );
-		$ret .= wfMessage( 'wsps-special_version', $version )->text();
+		$ret = str_replace(
+			$search,
+			$replace,
+			$this->getTemplate( 'renderMenu' )
+		);
+		$ret .= wfMessage(
+			'wsps-special_version',
+			$version
+		)->text();
 
 		return $ret;
 	}
 
-	function renderCard( string $title, string $subTitle, string $body, string $footer ): string {
+	function renderCard( string $title, string $subTitle, string $body, string $footer ) : string {
 		$content = '<div class="uk-card uk-card-default">';
 		$content .= '<div class="uk-card-header"><h3 class="uk-card-title uk-margin-remove-bottom">' . $title . '</h3>';
 		$content .= '<p class="uk-text-meta uk-margin-remove-top">' . $subTitle . '</p></div>';

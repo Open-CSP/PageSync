@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Hooks for WSps extension
  *
@@ -6,7 +7,11 @@
  * @ingroup Extensions
  */
 error_reporting( -1 );
-ini_set( 'display_errors', 1 );
+ini_set(
+	'display_errors',
+	1
+);
+
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 
@@ -404,7 +409,7 @@ class WSpsHooks {
 			// Set the content for the slot we want to edit
 			if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
 				$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()->getModelID(
-					);
+				);
 			} else {
 				$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
 			}
@@ -663,11 +668,12 @@ class WSpsHooks {
 
 	/**
 	 * Create name for file saving
+	 *
 	 * @param string $fname
 	 *
 	 * @return string
 	 */
-	private function makeDataStoreName(string $fname ) {
+	private function makeDataStoreName( string $fname ) {
 		return $fname . '.data';
 	}
 
@@ -1044,13 +1050,9 @@ class WSpsHooks {
 	}
 
 
-
-
-
-
-
 	/**
 	 * Convert .info content to version 0.9.9.9+
+	 *
 	 * @param string $content
 	 *
 	 * @return false|string
@@ -1071,9 +1073,9 @@ class WSpsHooks {
 			$json['isFile']['isFile'] = true;
 			$json['isFile']['url']    = $json['fileurl'];
 			$json['isFile']['name']   = $json['fileoriginalname'];;
-			$json['isFile']['owner']  = $json['fileowner'];;
+			$json['isFile']['owner'] = $json['fileowner'];;
 		}
-		if( !isset( $json['isFile'] ) ) {
+		if ( ! isset( $json['isFile'] ) ) {
 			$json['isFile'] = false;
 		}
 
@@ -1092,9 +1094,10 @@ class WSpsHooks {
 
 	/**
 	 * Full function to convert synced file to version 0.9.9.9+
+	 *
 	 * @return array
 	 */
-	public static function convertFilesTov0999():array {
+	public static function convertFilesTov0999() : array {
 		if ( self::$config !== false ) {
 			self::setConfig();
 		}
@@ -1140,7 +1143,7 @@ class WSpsHooks {
 			}
 			if ( $convertedFile === true ) {
 				$infoFile = $path . $file . ".info";
-				echo "<p>Working on $infoFile</p>";
+				//echo "<p>Working on $infoFile</p>";
 				if ( file_exists( $infoFile ) ) {
 					file_put_contents(
 						$infoFile,

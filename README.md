@@ -45,6 +45,7 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+* 1.0ß Added support message when files are not in index. Removed debug information.
 * 0.9.9.9 Removed Maintenance script option --rc, --overwrite and --timestamp. Added slot support. Added rebuild index option. Added backup and restore. 
 * 0.9.9.8 MW codestyle
 * 0.9.9.7 Sub specials pages visual fix for most MW skins
