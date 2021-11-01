@@ -1067,11 +1067,14 @@ class WSpsHooks {
 		//			$infoContent['fileurl']          = $isFile['url'];
 		//			$infoContent['fileoriginalname'] = $isFile['name'];
 		//			$infoContent['fileowner']        = $isFile['owner'];
-		if ( $json['isFile'] !== false ) {
-			$json['isFile'] = true;
-			$json['url']    = $json['fileurl'];
-			$json['name']   = $json['fileoriginalname'];;
-			$json['owner'] = $json['fileowner'];;
+		if ( isset( $json['isFile'] ) && $json['isFile'] !== false ) {
+			$json['isFile']['isFile'] = true;
+			$json['isFile']['url']    = $json['fileurl'];
+			$json['isFile']['name']   = $json['fileoriginalname'];;
+			$json['isFile']['owner']  = $json['fileowner'];;
+		}
+		if( !isset( $json['isFile'] ) ) {
+			$json['isFile'] = false;
 		}
 
 		return json_encode(
