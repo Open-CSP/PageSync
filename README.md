@@ -45,6 +45,7 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+* 1.0ß2 Fixed weird username JavaScript error on one specific wiki
 * 1.0ß Added support message when files are not in index. Removed debug information.
 * 0.9.9.9 Removed Maintenance script option --rc, --overwrite and --timestamp. Added slot support. Added rebuild index option. Added backup and restore. 
 * 0.9.9.8 MW codestyle

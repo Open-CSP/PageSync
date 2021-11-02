@@ -71,7 +71,7 @@ $(function() {
 			return;
 		}
 		var id = mw.config.get('wgArticleId');
-		var user = mw.user.getName();
+		var user = getUserName()
 		if (button.hasClass("wsps-active")) {
 			wspsPost(id, user, 'remove');
 			button.removeClass("wsps-active ");
@@ -87,7 +87,7 @@ $(function() {
 		e.stopPropagation();
 		var button = $(this);
 		var id = $(this).attr("data-id");
-		var user = mw.user.getName();
+		var user = getUserName()
 		if (button.hasClass("wsps-active")) {
 			wspsPost(id, user, 'remove');
 			button.removeClass("wsps-active ");
@@ -97,6 +97,10 @@ $(function() {
 		}
 	});
 });
+
+function getUserName(){
+	return mw.config.get('wgUserName');
+}
 
 /**
  * @param {int} id (page id)
