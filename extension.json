@@ -1,6 +1,6 @@
 {
 	"name": "WSPageSync",
-	"version": "0.9.9.8",
+	"version": "1alpha2",
 	"author": [
 		"Sen-Sai"
 	],
@@ -11,7 +11,8 @@
 	"AutoloadClasses": {
 		"ApiWSps": "WSps.api.php",
 		"WSpsHooks": "WSps.php",
-		"WSpsSpecial": "specials/WSps_special.php"
+		"WSpsSpecial": "specials/WSps_special.php",
+		"WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php"
 	},
 	"ExtensionMessagesFiles": {
 		"WSpsAlias": "WSps.i18n.alias.php",
@@ -51,7 +52,12 @@
 			"filePath" : "",
 			"fileNameSpaces" : [
 				6
-			]
+			],
+			"contentSlotsToBeSynced" : "all",
+			"maintenance" : {
+				"doNotRestoreThesePages" : [],
+				"restoreFrom" : ""
+			}
 		}
 	},
 	"ResourceModules": {
@@ -61,7 +67,9 @@
 			"position": "top",
 			"messages": [
 				"wsps-page-added",
-				"wsps-page-removed"
+				"wsps-page-removed",
+				"wsps-javascript_restore_backup_text",
+				"wsps-javascript_delete_backup_text"
 			]
 		}
 	},

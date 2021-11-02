@@ -1,12 +1,77 @@
 $(function() {
+
+
+	/**
+	 * on Special backup page download button has been pressed
+	 */
+	$('.wsps-download-backup').click( function (e) {
+		e.stopPropagation();
+		var lnk = $( this );
+
+		// download it!
+		var url = window.location.href;
+		var backupFile = lnk.attr('data-id');
+		var form = $('<form action="' + url + '"method="post">' +
+			'<input type="hidden" name="wsps-action" value="download-backup">' +
+			'<input type="hidden" name="ws-backup-file" value="' + backupFile + '"></form>' );
+		$('body').append(form);
+		form.submit();
+
+	});
+
+	/**
+	 * on Special backup page delete button has been pressed
+	 */
+	$('.wsps-delete-backup').click( function (e) {
+		e.stopPropagation();
+		var lnk = $( this );
+		if ( confirm( mw.msg( 'wsps-javascript_delete_backup_text' ) ) ) {
+			// delete it!
+			var url = window.location.href;
+			var backupFile = lnk.attr('data-id');
+			var form = $('<form action="' + url + '"method="post">' +
+				'<input type="hidden" name="wsps-action" value="delete-backup">' +
+				'<input type="hidden" name="ws-backup-file" value="' + backupFile + '"></form>' );
+				$('body').append(form);
+				form.submit();
+		}
+	});
+
+	/**
+	 * on Special backup page restore button has been pressed
+	 */
+	$('.wsps-restore-backup').click( function (e) {
+		e.stopPropagation();
+		var lnk = $( this );
+		if ( confirm( mw.msg( 'wsps-javascript_restore_backup_text' ) ) ) {
+			// restore it!
+			var url = window.location.href;
+			var backupFile = lnk.attr('data-id');
+			var form = $('<form action="' + url + '"method="post">' +
+				'<input type="hidden" name="wsps-action" value="restore-backup">' +
+				'<input type="hidden" name="ws-backup-file" value="' + backupFile + '"></form>' );
+			$('body').append(form);
+			form.submit();
+		}
+	});
+
+
 	/**
 	 * When sysop clicks slider on top of a page
 	 */
 	$('.wsps-toggle').click(function (e) {
 		e.stopPropagation();
 		var button = $(this);
+		if( button.hasClass("wsps-error" ) ) {
+			$( '<span style="color:red;">' + mw.msg( 'wsps-error_special-page' ) + '</span>' ), { title: 'ERROR' }
+			return;
+		}
+		if( button.hasClass("wsps-notice" ) ) {
+			window.location.href = mw.config.get("wgArticlePath").replace('$1', '') + 'Special:WSPageSync';
+			return;
+		}
 		var id = mw.config.get('wgArticleId');
-		var user = mw.user.getName();
+		var user = getUserName()
 		if (button.hasClass("wsps-active")) {
 			wspsPost(id, user, 'remove');
 			button.removeClass("wsps-active ");
@@ -22,7 +87,7 @@ $(function() {
 		e.stopPropagation();
 		var button = $(this);
 		var id = $(this).attr("data-id");
-		var user = mw.user.getName();
+		var user = getUserName()
 		if (button.hasClass("wsps-active")) {
 			wspsPost(id, user, 'remove');
 			button.removeClass("wsps-active ");
@@ -32,6 +97,10 @@ $(function() {
 		}
 	});
 });
+
+function getUserName(){
+	return mw.config.get('wgUserName');
+}
 
 /**
  * @param {int} id (page id)

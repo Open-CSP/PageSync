@@ -6,6 +6,7 @@
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 
+
 $IP = getenv( 'MW_INSTALL_PATH' );
 if ( $IP === false ) {
 	$IP = __DIR__ . '/../../..';
@@ -35,16 +36,12 @@ class importPagesIntoWiki extends Maintenance {
 			"u"
 		);
 		$this->addOption(
-			'use-timestamp',
-			'Use the modification date of the page as the timestamp for the edit, instead of time of import'
+			'rebuild-index',
+			'Will recreate the index file from existing file structure'
 		);
 		$this->addOption(
-			'overwrite',
-			'Overwrite existing pages. If --use-timestamp is passed, this ' . 'will only overwrite pages if the date in the .info file is modified since the page was last modified.'
-		);
-		$this->addOption(
-			'rc',
-			'Place revisions in RecentChanges.'
+			'force-rebuild-index',
+			'Used with rebuild-index. This forces rebuild-index without prompting for user interaction'
 		);
 	}
 
@@ -153,6 +150,35 @@ class importPagesIntoWiki extends Maintenance {
 			echo "\n[Auto delete files turned on]\n";
 		}
 
+		if ( $this->hasOption( 'rebuild-index' ) ) {
+			// We need to rebuild the index file here.
+			if( $this->hasOption('force-rebuild-index') === false ) {
+				echo "\n[Rebuilding index file from file structure]\n";
+				$answer = strtolower( readline( "Are you sure (y/n)" ) );
+				if ( $answer !== "y" ) {
+					die( "no action\n\n" );
+				}
+			}
+			echo "\n[Rebuilding index file from file structure --RUN--]\n";
+			if ( WSpsHooks::$config === false ) {
+				WSpsHooks::setConfig();
+			}
+			$path          = WSpsHooks::$config['exportPath'];
+			$infoFilesList = glob( $path . "*.info" );
+			$cnt           = 0;
+			$index = array();
+			foreach( $infoFilesList as $infoFile ){
+				$content = json_decode( file_get_contents( $infoFile ), true );
+				$fName = $content['filename'];
+				$fTitle = $content['pagetitle'];
+				$index[$fName] = $fTitle;
+				$cnt++;
+			}
+			WSpsHooks::saveFileIndex( $index );
+			echo "\nIndex Rebuild with $cnt file(s).\nDone!\n";
+			die();
+		}
+
 		$summary = $this->getOption(
 			'summary',
 			'Imported by WSPageSync'
@@ -165,9 +191,6 @@ class importPagesIntoWiki extends Maintenance {
 
 			return;
 		}
-		$overwrite    = $this->hasOption( 'overwrite' );
-		$useTimestamp = $this->hasOption( 'use-timestamp' );
-		$rc           = $this->hasOption( 'rc' );
 
 		$user = User::newFromName( $user );
 
@@ -192,10 +215,13 @@ class importPagesIntoWiki extends Maintenance {
 
 		foreach ( $data as $page ) {
 			if ( isset( $page['isFile'] ) && $page['isFile'] === true ) {
-				$fpath = WSpsHooks::$config['exportPath'] . $page['fileoriginalname'];
-				$text  = WSpsHooks::getFileContent( $page['filename'] );
+				$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
+				$text  = WSpsHooks::getFileContent(
+					$page['filename'],
+					SlotRecord::MAIN
+				);
 				if ( $text === false ) {
-					$this->fatalError( "Cannot read file : " . $page['filename'] );
+					$this->fatalError( "Cannot read content of file : " . $page['filename'] );
 				}
 				$resultFileUpload = $this->uploadFileToWiki(
 					$fpath,
@@ -203,7 +229,7 @@ class importPagesIntoWiki extends Maintenance {
 					$user,
 					$text,
 					$summary,
-					$timestamp
+					wfTimestampNow()
 				);
 				if ( $resultFileUpload !== true ) {
 					$this->fatalError( $resultFileUpload );
@@ -212,171 +238,79 @@ class importPagesIntoWiki extends Maintenance {
 				$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
 				continue;
 			}
-			$pageName  = $page['pagetitle'];
-			$tme       = strtotime( $page['changed'] );
-			$newTime   = date(
-				'YmdHis',
-				$tme
+			$pageName = $page['pagetitle'];
+			$pageSlots = explode(
+				',',
+				$page['slots']
 			);
-			$timestamp = $useTimestamp ? $newTime : wfTimestampNow();
 
 			$title = Title::newFromText( $pageName );
 			if ( ! $title || $title->hasFragment() ) {
 				$this->error( "Invalid title $pageName. Skipping.\n" );
-				$skipCount++;
-				continue;
-			}
-			$exists = $title->exists();
-
-			$oldRevID = $title->getLatestRevID();
-			if ( version_compare(
-					 $GLOBALS['wgVersion'],
-					 "1.35"
-				 ) < 0 ) {
-				$oldRev = $oldRevID ? Revision::newFromId( $oldRevID ) : null;
-			} else {
-				$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
-				$oldRev    = $oldRevID ? $revLookup->getRevisionById( $oldRevID ) : null;
-			}
-			$oldRev      = $oldRevID ? Revision::newFromId( $oldRevID ) : null;
-			$actualTitle = $title->getPrefixedText();
-
-			if ( $exists ) {
-				$touched = wfTimestamp(
-					TS_UNIX,
-					$title->getTouched()
-				);
-				if ( ! $overwrite ) {
-					$this->output( "Title $actualTitle already exists. Skipping.\n" );
-					$skipCount++;
-					continue;
-				} elseif ( $useTimestamp && intval( $touched ) >= intval( $timestamp ) ) {
-					$this->output(
-						"\e[41mFile for title $actualTitle has not been modified since the " . "destination page was touched. Skipping.\e[0m\n"
-					);
-					$skipCount++;
-					continue;
-				}
-			}
-
-			$text = WSpsHooks::getFileContent( $page['filename'] );
-			if ( $text === false ) {
-				$this->fatalError( "Cannot read file : " . $page['filename'] );
-			}
-
-			$rev = new WikiRevision( MediaWikiServices::getInstance()->getMainConfig() );
-
-			if ( version_compare(
-					 $GLOBALS['wgVersion'],
-					 "1.35"
-				 ) < 0 ) {
-				$rev->setText( rtrim( $text ) );
-				$rev->setTitle( $title );
-				$rev->setUserObj( $user );
-				$rev->setComment( $summary );
-				$rev->setTimestamp( $timestamp );
-			} else {
-				$content = ContentHandler::makeContent(
-					rtrim( $text ),
-					$title
-				);
-				$rev->setContent(
-					SlotRecord::MAIN,
-					$content
-				);
-				$rev->setTitle( $title );
-				$rev->setUserObj( $user );
-				$rev->setComment( $summary );
-				$rev->setTimestamp( $timestamp );
-			}
-
-			if ( ! is_null( $oldRev ) ) {
-				if ( version_compare(
-						 $GLOBALS['wgVersion'],
-						 "1.35"
-					 ) < 0 ) {
-					if ( $exists && $overwrite && $rev->getContent()->equals( $oldRev->getContent() ) ) {
-						$this->output(
-							"File for title $actualTitle contains no changes from the current " . "revision. Skipping.\n"
-						);
-						$skipCount++;
-						continue;
-					}
-				} else {
-					if ( $exists && $rev->getContent()->equals( $oldRev->getContent( SlotRecord::MAIN ) ) ) {
-						$this->output(
-							"File for title $actualTitle contains no changes from the current " . "revision. Skipping.\n"
-						);
-						$skipCount++;
-						continue;
-					}
-				}
-			} elseif ( ! $overwrite ) {
-				$this->output(
-					"File for title $actualTitle seems to exist in the wiki, but no revision info " . "overwrite is turned off so.. Skipping.\n"
-				);
-				$skipCount++;
-				continue;
-			}
-
-			$status = $rev->importOldRevision();
-			$newId  = $title->getLatestRevID();
-
-			if ( $status ) {
-				$action = $exists ? 'updated' : 'created';
-				$this->output( "\e[42mSuccessfully $action $actualTitle\e[0m\n" );
-				$successCount++;
-			} else {
-				$action = $exists ? 'update' : 'create';
-				$this->output( "\e[41mFailed to $action $actualTitle\e[0m\n" );
 				$failCount++;
-				$exit = 1;
+				$exit = true;
+				continue;
+			}
+			try {
+				$wikiPageObject = WikiPage::factory( $title );
+			} catch ( MWException $e ) {
+				echo "Could not create a WikiPage Object from title " . $title->getText(
+					) . '. Message ' . $e->getMessage();
+				$failCount++;
+				$exit = true;
+				continue;
+			}
+			if ( is_null( $wikiPageObject ) ) {
+				echo "Could not create a WikiPage Object from Article Id. Title: " . $title->getText();
+				$failCount++;
+				$exit = true;
+				continue;
 			}
 
-			// Create the RecentChanges entry if necessary
-			if ( $rc && $status ) {
-				if ( $exists ) {
-					if ( is_object( $oldRev ) ) {
-						if ( version_compare(
-								 $GLOBALS['wgVersion'],
-								 "1.35"
-							 ) < 0 ) {
-							$oldContent = $oldRev->getContent();
-						} else {
-							$oldContent = $oldRev->getContent( SlotRecord::MAIN );
-						}
-						RecentChange::notifyEdit(
-							$timestamp,
-							$title,
-							$rev->getMinor(),
-							$user,
-							$summary,
-							$oldRevID,
-							$oldRev->getTimestamp(),
-							$bot,
-							'',
-							$oldContent ? $oldContent->getSize() : 0,
-							$rev->getContent()->getSize(),
-							$newId,
-							1 /* the pages don't need to be patrolled */
+			foreach ( $pageSlots as $slot ) {
+				$content = WSpsHooks::getFileContent(
+					$page['filename'],
+					$slot
+				);
+				if( false === $content ) {
+					$failCount++;
+					$this->output(
+						"\e[41mFailed " . $page['pagetitle'] . " with slot: " . $slot . ". Could not find file:" . $page['filename'] . "\e[0m\n"
+					);
+					continue;
+				}
+				$result  = WSpsHooks::editSlot(
+					$user,
+					$wikiPageObject,
+					$content,
+					$slot,
+					$summary
+				);
+				if ( true !== $result['result'] ) {
+					list( $message, $code ) = $result;
+					$failCount++;
+					$this->output(
+						"\e[41mFailed " . $page['pagetitle'] . " with slot: " . $slot . ". Message:" . $message . "\e[0m\n"
+					);
+					//echo "\n$message\n";
+				} else {
+					if ( $result['changed'] === false ) {
+						$successCount++;
+						$this->output(
+							"\e[42mSuccessfully changed " . $page['pagetitle'] . " and slot " . $slot . "\e[0m\n"
+						);
+					} else {
+						$skipCount++;
+						$this->output(
+							"\e[42mSkipped no change for " . $page['pagetitle'] . " and slot " . $slot . "\e[0m\n"
 						);
 					}
-				} else {
-					RecentChange::notifyNew(
-						$timestamp,
-						$title,
-						$rev->getMinor(),
-						$user,
-						$summary,
-						$bot,
-						'',
-						$rev->getContent()->getSize(),
-						$newId,
-						1
-					);
 				}
 			}
 		}
+
+
+
 		$this->output( "Done! $successCount succeeded, $skipCount skipped.\n" );
 		if ( $exit ) {
 			$this->fatalError(
