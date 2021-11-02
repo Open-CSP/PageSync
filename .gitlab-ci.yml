@@ -5,10 +5,19 @@ stages:
   - test
   - build
 
-run_tests:
-  allow_failure: true
+publish:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+composer_test:
+  cache:
+  - key: composer-dev
+    paths:
+      - vendor/
   image: composer:1
   stage: test
+  before_script:
+    - composer install --ignore-platform-reqs
   script:
-    - composer update --ignore-platform-reqs
     - composer test
+  allow_failure: true

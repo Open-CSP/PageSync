@@ -1,25 +1,24 @@
 {
-  "name": "wikibasesolutions/w-s-mw-pagesync",
-  "type": "mediawiki-extension",
-  "description": "import and export wiki pages",
-  "keywords": ["mediawiki", "wspagesync", "extension", "import", "export"],
-  "license": "GPL-2.0-or-later",
-  "author": "Sen-Sai",
-  "require-dev": {
-    "mediawiki/mediawiki-codesniffer": "34.0.0",
-    "mediawiki/minus-x": "1.1.0",
-    "php-parallel-lint/php-console-highlighter": "0.5.0",
-    "php-parallel-lint/php-parallel-lint": "1.2.0"
-  },
-  "scripts": {
-    "test": [
-      "parallel-lint . --exclude vendor --exclude node_modules",
-      "phpcs -p -s",
-      "minus-x check ."
-    ],
-    "fix": [
-      "minus-x fix .",
-      "phpcbf"
-    ]
-  }
+    "name": "wikibase-solutions/w-s-page-sync",
+    "type": "mediawiki-extension",
+    "description": "import and export wiki pages",
+    "keywords": ["mediawiki", "wspagesync", "extension", "import", "export"],
+    "license": "GPL-2.0-or-later",
+    "require-dev": {
+        "mediawiki/mediawiki-codesniffer": "34.0.0",
+        "mediawiki/minus-x": "1.1.0",
+        "php-parallel-lint/php-console-highlighter": "0.5.0",
+        "php-parallel-lint/php-parallel-lint": "1.2.0"
+    },
+    "scripts": {
+        "test": [
+            "parallel-lint . --exclude vendor --exclude node_modules",
+            "phpcs -p -s",
+            "minus-x check ."
+        ],
+        "fix": [
+            "minus-x fix .",
+            "phpcbf"
+        ]
+    }
 }
