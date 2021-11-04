@@ -6,11 +6,7 @@
  * @file
  * @ingroup Extensions
  */
-error_reporting( -1 );
-ini_set(
-	'display_errors',
-	1
-);
+
 
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
@@ -51,7 +47,7 @@ class WSpsHooks {
 			if ( ! isset( $wgWSPageSync['fileNameSpaces'] ) && ! is_array( $wgWSPageSync['fileNameSpaces'] ) ) {
 				self::$config['fileNameSpaces'] = [
 					6,
-					-2
+					- 2
 				];
 			} else {
 				self::$config['fileNameSpaces'] = $wgWSPageSync['fileNameSpaces'];
@@ -210,7 +206,7 @@ class WSpsHooks {
 		$indexFile = self::$config['filePath'] . 'export.index';
 		if ( ! file_exists( $indexFile ) ) {
 			file_put_contents( $indexFile,
-							   array() );
+				array() );
 
 			return array();
 		}
@@ -227,7 +223,7 @@ class WSpsHooks {
 	 *
 	 * @return string cleaned filename, replacing not valid character with an _
 	 */
-	public static function cleanFileName( string $fname ) : string {
+	public static function cleanFileName( string $fname ): string {
 		return preg_replace(
 			'/[^a-z0-9]+/',
 			'_',
@@ -362,7 +358,7 @@ class WSpsHooks {
 		$index = WSpsHooks::getFileIndex();
 
 		// add or replace page
-		$index[$fname] = $title;
+		$index[ $fname ] = $title;
 
 		return self::saveFileIndex( $index );
 	}
@@ -408,8 +404,7 @@ class WSpsHooks {
 		} else {
 			// Set the content for the slot we want to edit
 			if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
-				$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()->getModelID(
-				);
+				$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()->getModelID();
 			} else {
 				$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
 			}
@@ -463,8 +458,8 @@ class WSpsHooks {
 	 */
 	private static function removeFileFromIndex( string $fName, string $title ) {
 		$index = WSpsHooks::getFileIndex();
-		if ( isset( $index[$fName] ) && $index[$fName] === $title ) {
-			unset( $index[$fName] );
+		if ( isset( $index[ $fName ] ) && $index[ $fName ] === $title ) {
+			unset( $index[ $fName ] );
 
 			return self::saveFileIndex( $index );
 		}
@@ -491,12 +486,12 @@ class WSpsHooks {
 		string $uname,
 		int $id,
 		$isFile
-	) : array {
+	): array {
 		// get current indexfile
 		$index = WSpsHooks::getFileIndex();
 
 		// add or replace page
-		$index[$fname] = $title;
+		$index[ $fname ] = $title;
 
 		$filesPath = self::$config['filePath'];
 		$indexFile = $filesPath . 'export.index';
@@ -512,6 +507,8 @@ class WSpsHooks {
 			$fname,
 			$title
 		);
+
+
 		if ( $result === false ) {
 			return WSpsHooks::makeMessage(
 				false,
@@ -658,7 +655,7 @@ class WSpsHooks {
 	 *
 	 * @return array
 	 */
-	public static function makeMessage( $type, $result ) : array {
+	public static function makeMessage( $type, $result ): array {
 		$data           = array();
 		$data['status'] = $type;
 		$data['info']   = $result;
@@ -673,7 +670,7 @@ class WSpsHooks {
 	 *
 	 * @return string
 	 */
-	private function makeDataStoreName( string $fname ) {
+	private static function makeDataStoreName( string $fname ) {
 		return $fname . '.data';
 	}
 
@@ -684,7 +681,7 @@ class WSpsHooks {
 	 *
 	 * @return array
 	 */
-	public static function addFileForExport( $id, string $uname, $module = false ) : array {
+	public static function addFileForExport( $id, string $uname, $module = false ): array {
 		$isFile = false;
 		if ( $id === null || $id === 0 ) {
 			return WSpsHooks::makeMessage(
@@ -723,16 +720,6 @@ class WSpsHooks {
 				wfMessage( 'wsps-error_page_not_retrievable' )->text()
 			);
 		}
-
-		/*
-		$content = WSpsHooks::getPageContent( $id );
-		if ( $content === false ) {
-			return WSpsHooks::makeMessage(
-				false,
-				wfMessage( 'wsps-error_page_not_retrievable' )->text()
-			);
-		}
-		*/
 
 		$result = WSpsHooks::putFileIndex(
 			$fname,
@@ -794,7 +781,7 @@ class WSpsHooks {
 	 *
 	 * @return array
 	 */
-	public static function removeFileForExport( int $id, string $uname, $module = false ) : array {
+	public static function removeFileForExport( int $id, string $uname, $module = false ): array {
 		$title = WSpsHooks::getPageTitle( $id );
 		if ( $title === false ) {
 			return WSpsHooks::makeMessage(
@@ -806,8 +793,8 @@ class WSpsHooks {
 		$fname = WSpsHooks::cleanFileName( $title );
 
 		$index = WSpsHooks::getFileIndex();
-		if ( isset( $index[$fname] ) && $index[$fname] === $title ) {
-			unset( $index[$fname] );
+		if ( isset( $index[ $fname ] ) && $index[ $fname ] === $title ) {
+			unset( $index[ $fname ] );
 			$indexFile = self::$config['filePath'] . 'export.index';
 
 			// save index file
@@ -875,7 +862,7 @@ class WSpsHooks {
 	 * @throws Exception
 	 */
 	static function pageSaved(
-		WikiPage $article,
+		$article,
 		$user,
 		$content,
 		$summary,
@@ -887,22 +874,15 @@ class WSpsHooks {
 		$status,
 		$baseRevId
 	) {
-		$content  = $content->getTextForSearchIndex();
 		$t_title  = $article->getTitle();
 		$id       = $article->getId();
 		$title    = $t_title->getFullText();
 		$fname    = WSpsHooks::cleanFileName( $title );
 		$username = $user->getName();
 		$index    = WSpsHooks::getFileIndex();
-		if ( isset( $index[$fname] ) && $index[$fname] === $title ) {
-			$result = WSpsHooks::putFileIndex(
-				$fname,
-				$title,
-				$content,
-				$username,
-				$id,
-				false
-			);
+
+		if ( isset( $index[ $fname ] ) && $index[ $fname ] === $title ) {
+			$result = self::addFileForExport( $id, $username );
 		}
 
 		return true;
@@ -920,7 +900,7 @@ class WSpsHooks {
 
 		if ( ! is_null( $title ) && $title !== false ) {
 			$ns = $title->getNamespace();
-			if ( $ns === 6 || $ns === -2 ) {
+			if ( $ns === 6 || $ns === - 2 ) {
 				return $title;
 			}
 		}
@@ -1013,21 +993,11 @@ class WSpsHooks {
 				continue;
 			}
 
-			$slot_contents[$slot_role] = ContentHandler::getContentText( $content_object );
+			$slot_contents[ $slot_role ] = ContentHandler::getContentText( $content_object );
 		}
 
 		return $slot_contents;
-		/*
-		if ( $artikel !== false || $artikel !== null ) {
-			$revision = $artikel->getRevisionRecord();
-			if( null === $revision ) return false;
-			if( !$revision->hasSlot( $slotName ) ) return false;
-			$content  = $revision->getContent( $slotName );
-			return ContentHandler::getContentText( $content );
-		} else {
-			return false;
-		}
-		*/
+
 	}
 
 	/**
@@ -1097,7 +1067,7 @@ class WSpsHooks {
 	 *
 	 * @return array
 	 */
-	public static function convertFilesTov0999() : array {
+	public static function convertFilesTov0999(): array {
 		if ( self::$config !== false ) {
 			self::setConfig();
 		}
@@ -1119,7 +1089,7 @@ class WSpsHooks {
 					file_get_contents( $path . $file . '.wiki' )
 				);
 				unlink( $path . $file . '.wiki' );
-				$converted++;
+				$converted ++;
 				$convertedFile = true;
 			} elseif ( file_exists( $path . $file . '.wiki' ) && count( $wikiFileList ) > 1 ) {
 				// we have some new files, but it looks the main slot is still the old version.
@@ -1137,7 +1107,7 @@ class WSpsHooks {
 						file_get_contents( $path . $file . '.wiki' )
 					);
 					unlink( $path . $file . '.wiki' );
-					$converted++;
+					$converted ++;
 					$convertedFile = true;
 				}
 			}
@@ -1151,7 +1121,7 @@ class WSpsHooks {
 					);
 				}
 			}
-			$cnt++;
+			$cnt ++;
 		}
 
 		return array(
@@ -1187,7 +1157,7 @@ class WSpsHooks {
 				if ( ! isset( $fileContent['slots'] ) ) {
 					$flag          = false;
 					$markedFiles[] = $fileContent['pagetitle'];
-					$cnt++;
+					$cnt ++;
 				}
 			}
 		}
@@ -1300,7 +1270,7 @@ class WSpsHooks {
 	 *
 	 * @return array $results
 	 */
-	public static function extractOptions( array $options ) : array {
+	public static function extractOptions( array $options ): array {
 		$results = array();
 		foreach ( $options as $option ) {
 			$pair = explode(
@@ -1309,13 +1279,13 @@ class WSpsHooks {
 				2
 			);
 			if ( count( $pair ) === 2 ) {
-				$name           = trim( $pair[0] );
-				$value          = trim( $pair[1] );
-				$results[$name] = $value;
+				$name             = trim( $pair[0] );
+				$value            = trim( $pair[1] );
+				$results[ $name ] = $value;
 			}
 			if ( count( $pair ) === 1 ) {
-				$name           = trim( $pair[0] );
-				$results[$name] = true;
+				$name             = trim( $pair[0] );
+				$results[ $name ] = true;
 			}
 		}
 
