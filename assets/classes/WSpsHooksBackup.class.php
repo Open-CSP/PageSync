@@ -119,7 +119,7 @@ class WSpsHooksBackup {
 		$addUploadedFile = array();
 		foreach ( $allFileinfo as $fileToCheck ) {
 			if ( isset( $fileToCheck['isFile'] ) && $fileToCheck['isFile'] === true ) {
-				$addUploadedFile[] = $path . $fileToCheck['fileoriginalname'];
+				$addUploadedFile[] = $path .$fileToCheck['filestoredname'];
 			}
 		}
 		$infoFilesList = glob( $path . "*.info" );

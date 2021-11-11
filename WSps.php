@@ -99,8 +99,9 @@ class WSpsHooks {
 				self::$config['filePath']   = $filePath;
 				self::$config['exportPath'] = $exportPath;
 
-				return;
+
 			}
+			return;
 		}
 		self::setDefaultConfig();
 	}
@@ -285,7 +286,7 @@ class WSpsHooks {
 				$fname,
 				$slotName
 			);
-		echo "\n$fileAndPath\n";
+		echo "\nGetting file : $fileAndPath\n";
 
 		if ( file_exists( $fileAndPath ) ) {
 			return file_get_contents( $fileAndPath );
@@ -362,6 +363,104 @@ class WSpsHooks {
 
 		return self::saveFileIndex( $index );
 	}
+
+	/**
+	 * @param User $user The user that performs the edit
+	 * @param WikiPage $wikipage_object The page to edit
+	 * @param array $text $key is slotname and value is the text to insert/append
+	 * @param string $slot_name The slot to edit
+	 * @param string $summary The summary to use
+	 *
+	 * @return true|array True on success, and an error message with an error code otherwise
+	 *
+	 * @throws \MWContentSerializationException Should not happen
+	 * @throws \MWException Should not happen
+	 */
+	public static function editSlots(
+		User $user,
+		WikiPage $wikipage_object,
+		array $text,
+		string $summary
+	) {
+		$status = true;
+		$errors = array();
+		$title_object        = $wikipage_object->getTitle();
+		$page_updater        = $wikipage_object->newPageUpdater( $user );
+		$old_revision_record = $wikipage_object->getRevisionRecord();
+		$slot_role_registry  = MediaWikiServices::getInstance()->getSlotRoleRegistry();
+
+		foreach( $text as $slot_name => $content ) {
+			echo "\nWorking with $slot_name";
+			// Make sure the slot we are editing exists
+			if ( ! $slot_role_registry->isDefinedRole( $slot_name ) ) {
+				$status = false;
+				$errors[] = wfMessage(
+					"wsslots-apierror-unknownslot",
+					$slot_name
+				); // TODO: Update message name
+				unset( $text[$slot_name] );
+				continue;
+			}
+			if ( $content === "" && $slot_name !== SlotRecord::MAIN ) {
+				// Remove the slot if $text is empty and the slot name is not MAIN
+				echo "\nSlot $slot_name is empty. Removing..";
+				$page_updater->removeSlot( $slot_name );
+			} else {
+				// Set the content for the slot we want to edit
+				if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
+					$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()->getModelID();
+				} else {
+					$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
+				}
+
+				$slot_content = ContentHandler::makeContent(
+					$content,
+					$title_object,
+					$model_id
+				);
+				$page_updater->setContent(
+					$slot_name,
+					$slot_content
+				);
+				if ( $slot_name !== SlotRecord::MAIN ) {
+					$page_updater->addTag( 'wsslots-slot-edit' ); // TODO: Update message name
+				}
+			}
+		}
+
+		if ( $old_revision_record === null && !isset( $text[SlotRecord::MAIN] ) ) {
+			// The 'main' content slot MUST be set when creating a new page
+			echo "\nWe have no older revision for this page and we do not have a main record. So creating an empty Main.";
+			$main_content = ContentHandler::makeContent(
+				"",
+				$title_object
+			);
+			$page_updater->setContent(
+				SlotRecord::MAIN,
+				$main_content
+			);
+		}
+
+		$comment = CommentStoreComment::newUnsavedComment( $summary );
+		$page_updater->saveRevision(
+			$comment,
+			EDIT_INTERNAL
+		);
+
+		if( true === $status ) {
+			return array(
+				"result"  => true,
+				"changed" => $page_updater->isUnchanged()
+			);
+		} else {
+			return array(
+				'result' => false,
+				'errors' => $errors
+			);
+		}
+
+	}
+
 
 	/**
 	 * @param User $user The user that performs the edit
@@ -974,7 +1073,7 @@ class WSpsHooks {
 		$slot_contents = [];
 
 		foreach ( $slot_roles as $slot_role ) {
-			echo $slot_role;
+			echo "\ngetSlotsContentForPage for slot : $slot_role";
 			if ( strtolower( self::$config['contentSlotsToBeSynced'] ) !== 'all' ) {
 				if ( ! array_key_exists(
 					$slot_role,

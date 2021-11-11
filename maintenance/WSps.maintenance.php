@@ -213,7 +213,9 @@ class importPagesIntoWiki extends Maintenance {
 		$this->filePath = WSpsHooks::$config['exportPath'];
 		$data           = WSpsHooks::getAllPageInfo();
 
+
 		foreach ( $data as $page ) {
+			$content = array();
 			if ( isset( $page['isFile'] ) && $page['isFile'] === true ) {
 				$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
 				$text  = WSpsHooks::getFileContent(
@@ -243,7 +245,7 @@ class importPagesIntoWiki extends Maintenance {
 				',',
 				$page['slots']
 			);
-
+			echo "\n\e[36mWorking with page $pageName\e[0m";
 			$title = Title::newFromText( $pageName );
 			if ( ! $title || $title->hasFragment() ) {
 				$this->error( "Invalid title $pageName. Skipping.\n" );
@@ -268,45 +270,48 @@ class importPagesIntoWiki extends Maintenance {
 			}
 
 			foreach ( $pageSlots as $slot ) {
-				$content = WSpsHooks::getFileContent(
+				echo "\nGetting content for slot $slot.";
+				$content[ $slot ] = WSpsHooks::getFileContent(
 					$page['filename'],
 					$slot
 				);
-				if( false === $content ) {
-					$failCount++;
+				if ( false === $content[ $slot ] ) {
+					$failCount ++;
 					$this->output(
-						"\e[41mFailed " . $page['pagetitle'] . " with slot: " . $slot . ". Could not find file:" . $page['filename'] . "\e[0m\n"
+						"\n\e[41mFailed " . $page['pagetitle'] . " with slot: " . $slot . ". Could not find file:" . $page['filename'] . "\e[0m\n"
 					);
-					continue;
-				}
-				$result  = WSpsHooks::editSlot(
-					$user,
-					$wikiPageObject,
-					$content,
-					$slot,
-					$summary
-				);
-				if ( true !== $result['result'] ) {
-					list( $message, $code ) = $result;
-					$failCount++;
-					$this->output(
-						"\e[41mFailed " . $page['pagetitle'] . " with slot: " . $slot . ". Message:" . $message . "\e[0m\n"
-					);
-					//echo "\n$message\n";
-				} else {
-					if ( $result['changed'] === false ) {
-						$successCount++;
-						$this->output(
-							"\e[42mSuccessfully changed " . $page['pagetitle'] . " and slot " . $slot . "\e[0m\n"
-						);
-					} else {
-						$skipCount++;
-						$this->output(
-							"\e[42mSkipped no change for " . $page['pagetitle'] . " and slot " . $slot . "\e[0m\n"
-						);
-					}
+					unset( $content[$slot] );
 				}
 			}
+			$result  = WSpsHooks::editSlots(
+				$user,
+				$wikiPageObject,
+				$content,
+				$summary
+			);
+			if ( false === $result['result'] ) {
+				list( $result, $errors ) = $result;
+				$failCount++;
+				foreach( $errors as $error ) {
+					$this->output(
+						"\n\e[41mFailed " . $page['pagetitle'] . " with. Message:" . $error . "\e[0m\n"
+					);
+				}
+				//echo "\n$message\n";
+			} else {
+				if ( $result['changed'] === false ) {
+					$successCount++;
+					$this->output(
+						"\n\e[42mSuccessfully changed " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
+					);
+				} else {
+					$skipCount++;
+					$this->output(
+						"\n\e[42mSkipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
+					);
+				}
+			}
+
 		}
 
 
