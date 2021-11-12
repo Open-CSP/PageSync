@@ -133,6 +133,11 @@ class importPagesIntoWiki extends Maintenance {
 		$autoDelete = false;
 		$bot        = false;
 
+		if ( WSpsHooks::$config === false ) {
+			WSpsHooks::setConfig();
+		}
+		$versionCurrent = WSpsHooks::$config['version'];
+
 		$IP = getenv( 'MW_INSTALL_PATH' );
 
 		if ( $IP === false ) {
@@ -140,6 +145,7 @@ class importPagesIntoWiki extends Maintenance {
 		}
 		echo "\n\n\n";
 		echo "********************************************************************\n";
+		echo str_pad( "** WSPageSync version \e[36m$versionCurrent\e[0m", 75 ) . "**\n";
 		echo "** /WSps/maintenance/WSps.maintenance.php                         **\n";
 		echo "********************************************************************\n";
 		echo "** Import pages that have been synced by the WSPageSync extension **\n";
@@ -148,6 +154,12 @@ class importPagesIntoWiki extends Maintenance {
 		if ( $this->hasOption( 'autodelete' ) && strtolower( $this->getOption( 'autodelete' ) ) === 'true' ) {
 			$autoDelete = true;
 			echo "\n[Auto delete files turned on]\n";
+		}
+
+
+		if( WSpsHooks::checkFileConsistency() === false ) {
+			$this->fatalError( "\n\e[41mConsistency check failed. Please read instructions on converting old file formats to new."  . "\e[0m\n" );
+			return;
 		}
 
 		if ( $this->hasOption( 'rebuild-index' ) ) {

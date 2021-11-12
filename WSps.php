@@ -1237,9 +1237,10 @@ class WSpsHooks {
 	 * @return array|bool|int
 	 */
 	public static function checkFileConsistency( bool $returnCnt = false, bool $returnFileNames = false ) {
-		if ( self::$config !== false ) {
+		if ( self::$config === false ) {
 			self::setConfig();
 		}
+
 		$flag          = true;
 		$path          = self::$config['exportPath'];
 		$infoFilesList = glob( $path . "*.info" );
@@ -1260,6 +1261,7 @@ class WSpsHooks {
 				}
 			}
 		}
+
 		if ( $returnFileNames ) {
 			return $markedFiles;
 		}
