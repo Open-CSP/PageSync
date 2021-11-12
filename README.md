@@ -45,7 +45,8 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
-* 1.alpha3 fixed on page save
+* 1alpha4 Added consistency in maintenance script
+* 1alpha3 fixed on page save
 * 1.0ß2 Fixed weird username JavaScript error on one specific wiki
 * 1.0ß Added support message when files are not in index. Removed debug information.
 * 0.9.9.9 Removed Maintenance script option --rc, --overwrite and --timestamp. Added slot support. Added rebuild index option. Added backup and restore. 
