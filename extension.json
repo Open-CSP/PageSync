@@ -1,6 +1,6 @@
 {
 	"name": "WSPageSync",
-	"version": "1alpha4",
+	"version": "1alpha5",
 	"author": [
 		"Sen-Sai"
 	],
@@ -8,11 +8,20 @@
 	"descriptionmsg": "wsps-desc",
 	"license-name": "GPL v2",
 	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.35.1",
+		"platform": {
+			"php": ">= 7.1",
+			"ext-zip": "*"
+		}
+	},
 	"AutoloadClasses": {
 		"ApiWSps": "WSps.api.php",
 		"WSpsHooks": "WSps.php",
 		"WSpsSpecial": "specials/WSps_special.php",
-		"WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php"
+		"WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php",
+		"WSpsBackupHandler": "specials/handlers/WSpsBackupHandler.php",
+		"WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php"
 	},
 	"ExtensionMessagesFiles": {
 		"WSpsAlias": "WSps.i18n.alias.php",

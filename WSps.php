@@ -1073,7 +1073,7 @@ class WSpsHooks {
 		$slot_contents = [];
 
 		foreach ( $slot_roles as $slot_role ) {
-			echo "\ngetSlotsContentForPage for slot : $slot_role";
+			//echo "\ngetSlotsContentForPage for slot : $slot_role";
 			if ( strtolower( self::$config['contentSlotsToBeSynced'] ) !== 'all' ) {
 				if ( ! array_key_exists(
 					$slot_role,
@@ -1091,6 +1091,10 @@ class WSpsHooks {
 			if ( $content_object === null || ! ( $content_object instanceof TextContent ) ) {
 				continue;
 			}
+
+			$contentOfSLot = ContentHandler::getContentText( $content_object );
+
+			if( empty( $contentOfSLot ) && $slot_role !== 'main' ) continue;
 
 			$slot_contents[ $slot_role ] = ContentHandler::getContentText( $content_object );
 		}

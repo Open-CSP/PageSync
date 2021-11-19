@@ -8,7 +8,7 @@
  * Time        : 22:13
  */
 
-class render {
+class WSpsRender {
 
 
 	/**
@@ -236,30 +236,34 @@ class render {
 	 * @return string
 	 */
 	function renderMenu( string $baseUrl, string $logo, string $version, int $active ) : string {
+		$item1class = '';
+		$item2class = '';
 		$item3class = '';
-		$item4class = '';
+		if ( $active === 1 ) {
+			$item1class = 'uk-active';
+		}
+		if ( $active === 2 ) {
+			$item2class = 'uk-active';
+		}
 		if ( $active === 3 ) {
 			$item3class = 'uk-active';
-		}
-		if ( $active === 4 ) {
-			$item4class = 'uk-active';
 		}
 		$search  = array(
 			'%%baseUrl%%',
 			'%%logo%%',
+			'%%item1class%%',
+			'%%item2class%%',
 			'%%item3class%%',
-			'%%item4class%%',
 			'%%wsps-special_menu_sync_custom_query%%',
-			'%%wsps-special_menu_delete_synced_files%%',
 			'%%wsps-special_menu_backup_files%%'
 		);
 		$replace = array(
 			$baseUrl,
 			$logo,
+			$item1class,
+			$item2class,
 			$item3class,
-			$item4class,
 			wfMessage( 'wsps-special_menu_sync_custom_query' )->text(),
-			wfMessage( 'wsps-special_menu_delete_synced_files' )->text(),
 			wfMessage( 'wsps-special_menu_backup_files' )->text()
 		);
 

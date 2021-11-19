@@ -66,6 +66,45 @@ class WSpsSpecial extends SpecialPage {
 	}
 
 	/**
+	 * @param string $name
+	 * @param bool $checkIfEmpty
+	 *
+	 * @return false|mixed
+	 */
+	public function getGet( string $name, bool $checkIfEmpty = true ) {
+		if ( $checkIfEmpty ) {
+			if ( isset( $_GET[$name] ) && ! empty( $_GET[$name] ) ) {
+				return $_GET[$name];
+			} else {
+				return false;
+			}
+		}
+		if ( isset( $_GET[$name] ) ) {
+			return $_GET[$name];
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @param WSpsRender $render
+	 * @param int $activeTab
+	 *
+	 * @return string
+	 */
+	private function setResourcesAndMenu( WSpsRender $render, int $activeTab ) {
+		$ret = $render->loadResources();
+		$ret .= $render->renderMenu(
+			$this->url,
+			$this->logo,
+			$this->version,
+			$activeTab
+		);
+
+		return $ret;
+	}
+
+	/**
 	 * @param string|false $query
 	 * @param bool $returnUnFiltered
 	 *
@@ -115,9 +154,10 @@ class WSpsSpecial extends SpecialPage {
 	 */
 	public function execute( $sub ) {
 		global $IP, $wgScript, $wgUser;
-		$out    = $this->getOutput();
-		$usr    = $wgUser->getName();
-		$groups = $wgUser->getGroups();
+		$out            = $this->getOutput();
+		$usr            = $wgUser->getName();
+		$groups         = $wgUser->getGroups();
+		$showAnyMessage = false;
 		if ( ! in_array(
 			'sysop',
 			$groups
@@ -134,9 +174,9 @@ class WSpsSpecial extends SpecialPage {
 			return true;
 		}
 
-		include( $IP . '/extensions/WSPageSync/assets/classes/render.class.php' );
+		include( $IP . '/extensions/WSPageSync/assets/classes/WSpsRender.class.php' );
 
-		$render = new render();
+		$render = new WSpsRender();
 
 		$this->url     = rtrim(
 			$wgScript,
@@ -147,213 +187,260 @@ class WSpsSpecial extends SpecialPage {
 		$this->assets  = '/extensions/WSPageSync/assets/images/';
 		$style         = $render->getStyle( $this->assets );
 
-		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "backup" ) ) {
+		$wspsAction = $this->getGet( 'action' );
+
+		// First handle serving backup file for download, before we output anything
+		if ( false !== $wspsAction && strtolower( $wspsAction ) === 'backup' ) {
 			$pAction = $this->getPost( 'wsps-action' );
 			if ( $pAction === 'download-backup' ) {
-				$backupFile = $this->getPost( 'ws-backup-file' );
-				if ( false !== $backupFile ) {
-					$path = WSpsHooks::$config['exportPath'];
-					if ( file_exists( $path . $backupFile ) ) {
-						header( 'Content-type: application/zip' );
-						header( 'Content-Disposition: attachment; filename="' . $backupFile . '"' );
-						readfile( $path . $backupFile );
-						exit();
-					}
-				}
+				$backupHandler = new WSpsBackupHandler();
+				$backupHandler->setBackFile( $this->getPost( 'ws-backup-file' ) );
+				$backupHandler->downloadBackup();
 			}
 		}
 
 		$this->setHeaders();
 		$out->setPageTitle( '' );
 
-		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "convert" ) ) {
-			if ( WSpsHooks::checkFileConsistency() === false ) {
-				$pAction = $this->getPost( 'wsps-action' );
-				if ( $pAction === 'wsps-convert-real' ) {
-					$result = WSpsHooks::convertFilesTov0999();
-					$out->addHTML( $render->loadResources() );
-					$out->addHTML(
-						$render->renderMenu(
-							$this->url,
-							$this->logo,
-							$this->version,
-							0
-						)
-					);
-					$out->addHTML(
-						$render->renderCard(
-							$this->msg( 'wsps-error_file_consistency_page_2_header' ),
-							$this->msg( 'wsps-error_file_consistency_page_2_subheader' ),
-							'<p>' . $this->msg(
-								'wsps-error_file_consistency_result_total',
-								$result['total']
-							) . '<br>' . $this->msg(
-								'wsps-error_file_consistency_result_converted',
-								$result['converted']
-							) . '</p>',
-							''
-						)
-					);
+		switch ( strtolower( $wspsAction ) ) {
+			case "convert":
+				$out->addHTML(
+					$this->setResourcesAndMenu(
+						$render,
+						0
+					)
+				);
+				$convertHandler = new WSpsConvertHandler();
+				if ( WSpsHooks::checkFileConsistency() === false ) {
+					$pAction = $this->getPost( 'wsps-action' );
+
+					// Do the actual conversion
+					if ( $pAction === 'wsps-convert-real' ) {
+						$out->addHTML( $convertHandler->convertForReal( $render ) );
+						$out->addHTML( $style );
+
+						return true;
+					}
+
+					// Preview files affected
+					$out->addHTML( $convertHandler->preview( $render ) );
 					$out->addHTML( $style );
 
 					return true;
 				}
-				$markedFiles = WSpsHooks::checkFileConsistency(
-					false,
-					true
-				);
-				foreach ( $markedFiles as $k => $mFile ) {
-					$result = WSpsHooks::isTitleInIndex( $mFile );
-					if ( ! $result ) {
-						$markedFiles[$k] .= ' *';
-					}
-				}
-				$out->addHTML( $render->loadResources() );
+				break;
+			case "backup":
 				$out->addHTML(
-					$render->renderMenu(
-						$this->url,
-						$this->logo,
-						$this->version,
-						0
+					$this->setResourcesAndMenu(
+						$render,
+						2
 					)
 				);
-
-				$table       = $render->renderMarkedFiles(
-					$markedFiles
-				);
-				$btn_backup  = '<form method="post" action="' . $wgScript . '/Special:WSps?action=backup">';
-				$btn_backup  .= '<input type="hidden" name="wsps-action" value="wsps-backup">';
-				$btn_backup  .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
-				$btn_backup  .= wfMessage( 'wsps-error_file_consistency_btn_backup' )->text();
-				$btn_backup  .= '"></form>';
-				$btn_convert = '<form method="post" action="' . $wgScript . '/Special:WSps?action=convert">';
-				$btn_convert .= '<input type="hidden" name="wsps-action" value="wsps-convert-real">';
-				$btn_convert .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
-				$btn_convert .= wfMessage( 'wsps-error_file_consistency_btn_convert_real' )->text();
-				$btn_convert .= '"></form>';
-				$out->addHTML(
-					$render->renderCard(
-						$this->msg( 'wsps-error_file_consistency_page_2_header' ),
-						$this->msg( 'wsps-error_file_consistency_page_2_subheader' ),
-						$table,
-						'<table><tr><td>' . $btn_backup . '</td><td>' . $btn_convert . '</td></tr></table>'
-					)
-				);
-				$out->addHTML( $style );
-
-				//$out->addHTML( '<h3>' . $this->msg( 'wsps-error_file_consistency_page_2_header' ) . '</h3>' );
-				//$out->addHTML( $style );
-				//$out->addHTML( $html );
-				return true;
-			}
-		}
-
-		//Make backup$_POST['wsps-action']
-		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "backup" ) ) {
-			$psBackup         = new WSpsHooksBackup();
-			$backActionResult = false;
-			$pAction          = $this->getPost( 'wsps-action' );
-			if ( $pAction === 'wsps-backup' ) {
-				$psBackup->createZipFileBackup();
-			}
-
-			if ( $pAction === 'delete-backup' ) {
-				$resultDeleteBackup = false;
-				$backupFile         = $this->getPost( 'ws-backup-file' );
-				if ( $backupFile !== false ) {
-					$resultDeleteBackup = $psBackup->deleteBackupFile( $backupFile );
-				}
-				if ( $resultDeleteBackup === true ) {
-					$backActionResult = wfMessage(
-						'wsps-special_backup_delete_file_success',
-						$backupFile
-					)->text();
-				} else {
-					$backActionResult = wfMessage(
-						'wsps-special_backup_delete_file_error',
-						$backupFile
-					)->text();
-				}
-			}
-			if ( $pAction === 'restore-backup' ) {
+				$psBackup         = new WSpsHooksBackup();
 				$backActionResult = false;
-				$backupFile       = $this->getPost( 'ws-backup-file' );
-				if ( $backupFile !== false ) {
-					$resRestore = $psBackup->restoreBackupFile( $backupFile );
-					if ( $resRestore === true ) {
-						$backActionResult = wfMessage(
-							'wsps-special_backup_restore_file_success',
-							$backupFile
-						)->text();
-					} else {
-						$backActionResult = wfMessage(
-							'wsps-special_backup_restore_file_failure',
-							$backupFile
-						)->text();
-					}
+
+				// check if we have zip extension
+				if( !extension_loaded( 'zip' ) ) {
+					$out->addHTML( $this->makeAlert( wfMessage( 'wsps-special_backup_we_need_zip_extension' )->text() ) );
+					$out->addHTML( $style );
+					return true;
 				}
-			}
 
-			$out->addHTML( $render->loadResources() );
-			$out->addHTML(
-				$render->renderMenu(
-					$this->url,
-					$this->logo,
-					$this->version,
-					0
-				)
-			);
+				//Handle any backup actions
+				$pAction = $this->getPost( 'wsps-action' );
+				switch ( $pAction ) {
+					case "wsps-backup":
+						$psBackup->createZipFileBackup();
+						break;
+					case "delete-backup":
+						$resultDeleteBackup = false;
+						$backupFile         = $this->getPost( 'ws-backup-file' );
+						if ( $backupFile !== false ) {
+							$resultDeleteBackup = $psBackup->deleteBackupFile( $backupFile );
+						}
+						if ( $resultDeleteBackup === true ) {
+							$backActionResult = wfMessage(
+								'wsps-special_backup_delete_file_success',
+								$backupFile
+							)->text();
+						} else {
+							$backActionResult = wfMessage(
+								'wsps-special_backup_delete_file_error',
+								$backupFile
+							)->text();
+						}
+						break;
+					case "restore-backup":
+						$backActionResult = false;
+						$backupFile       = $this->getPost( 'ws-backup-file' );
+						if ( $backupFile !== false ) {
+							$resRestore = $psBackup->restoreBackupFile( $backupFile );
+							if ( $resRestore === true ) {
+								$backActionResult = wfMessage(
+									'wsps-special_backup_restore_file_success',
+									$backupFile
+								)->text();
+							} else {
+								$backActionResult = wfMessage(
+									'wsps-special_backup_restore_file_failure',
+									$backupFile
+								)->text();
+							}
+						}
+						break;
+				}
 
-			$data = $psBackup->getBackupList();
-			$nr   = count( $data );
-			$html = wfMessage(
-				'wsps-special_backup_count',
-				$nr
-			)->text();
-			if ( $nr >= 1 ) {
-				$html .= $render->renderBackups(
-					$data
+				// Show list of backups
+				$data = $psBackup->getBackupList();
+				$nr   = count( $data );
+				$html = wfMessage(
+					'wsps-special_backup_count',
+					$nr
+				)->text();
+				if ( $nr >= 1 ) {
+					$html .= $render->renderBackups(
+						$data
+					);
+				}
+				$btn_backup = '<form method="post" action="' . $wgScript . '/Special:WSps?action=backup">';
+				$btn_backup .= '<input type="hidden" name="wsps-action" value="wsps-backup">';
+				$btn_backup .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
+				$btn_backup .= wfMessage( 'wsps-error_file_consistency_btn_backup' )->text();
+				$btn_backup .= '"></form>';
+
+				$html .= $btn_backup;
+				if ( $backActionResult !== false ) {
+					$out->addHTML( $backActionResult );
+				}
+				$out->addHTML( '<h3>' . $this->msg( 'wsps-content_backups' ) . '</h3>' );
+				$out->addHTML( $style );
+				$out->addHTML( $html );
+
+				return true;
+				break;
+			case "exportcustom":
+				$out->addHTML(
+					$this->setResourcesAndMenu(
+						$render,
+						1
+					)
 				);
-			}
-			$btn_backup = '<form method="post" action="' . $wgScript . '/Special:WSps?action=backup">';
-			$btn_backup .= '<input type="hidden" name="wsps-action" value="wsps-backup">';
-			$btn_backup .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
-			$btn_backup .= wfMessage( 'wsps-error_file_consistency_btn_backup' )->text();
-			$btn_backup .= '"></form>';
+				// First check if we have SMW
+				if( ! ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' ) ) {
+					$out->addHTML( $this->makeAlert( wfMessage( 'wsps-special_custom_query_we_need_smw' )->text() ) );
+					$out->addHTML( $style );
+					return true;
+				}
 
-			$html .= $btn_backup;
-			if ( $backActionResult !== false ) {
-				$out->addHTML( $backActionResult );
-			}
-			$out->addHTML( '<h3>' . $this->msg( 'wsps-content_backups' ) . '</h3>' );
-			$out->addHTML( $style );
-			$out->addHTML( $html );
+				$pAction = $this->getPost( 'wsps-action' );
+				$error   = '';
 
-			return true;
+				switch ( $pAction ) {
+					case "wsps-import-query" :
+						$query = $this->getPost( 'wsps-query' );
+
+						if ( $query === false ) {
+							$error = $this->makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
+						} else {
+							$query       = base64_decode( $query );
+							$listOfPages = $this->doAsk( $query );
+							$nr          = count( $listOfPages );
+							$count       = 1;
+							foreach ( $listOfPages as $page ) {
+								$pageId = WSpsHooks::getPageIdFromTitle( $page );
+								if ( $pageId === false ) {
+								} else {
+									$result = WSpsHooks::addFileForExport(
+										$pageId,
+										$usr
+									);
+									if ( $result['status'] === false ) {
+									}
+								}
+								$count++;
+							}
+							$content = '<h2>' . wfMessage( 'wsps-special_status_card_done' )->text() . '</h2>';
+							$content .= '<p>Added ' . ( $count - 1 ) . '/' . $nr . ' pages.</p>';
+							$out->addHTML( $content );
+
+							return true;
+						}
+						break;
+					case "doQuery" :
+						$query = $this->getPost( 'wsps-query' );
+
+						if ( $query === false ) {
+							$error = $this->makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
+						} else {
+							$result = $this->doAsk( $query );
+
+							$nr = count( $result );
+
+							$form       = $render->renderDoQueryForm( $query );
+							$html       = $form;
+							$bodyResult = $render->renderDoQueryBody( $result );
+							$html       .= $bodyResult['html'];
+
+							$header = wfMessage( 'wsps-special_custom_query_result' )->text();
+							$header .= '<p>' . wfMessage( 'wsps-special_custom_query' )->text(
+								) . '<span class="uk-text-warning">' . htmlspecialchars( $query ) . '</span></p>';
+							$header .= wfMessage(
+								'wsps-special_custom_query_result_text1',
+								$nr
+							)->text();
+							$header .= wfMessage(
+								'wsps-special_custom_query_result_text2',
+								$bodyResult['active']
+							)->text();
+							$html   = $header . $html;
+							$html   .= $form;
+							$out->addHTML( $style );
+							$out->addHTML( $html );
+
+							return true;
+						}
+						break;
+					case false :
+						break;
+				}
+
+				if ( $error !== '' ) {
+					echo $error;
+				}
+
+				$out->addHTML( $render->renderCustomQuery() );
+
+				return true;
+				break;
 		}
 
+		// Render Main page
+
+		$out->addHTML(
+			$this->setResourcesAndMenu(
+				$render,
+				0
+			)
+		);
+
+		// Do we have any results here then show them
+		if ( false !== $showAnyMessage ) {
+			$out->addHTML( $showAnyMessage );
+		}
+
+		// Render file consistency check failed
 		if ( WSpsHooks::checkFileConsistency() === false ) {
 			$numberOfBadFiles = WSpsHooks::checkFileConsistency( true );
-
-			$out->addHTML( $render->loadResources() );
-			$out->addHTML(
-				$render->renderMenu(
-					$this->url,
-					$this->logo,
-					$this->version,
-					0
-				)
-			);
-			$btn_backup  = '<form method="post" action="' . $wgScript . '/Special:WSps?action=backup">';
-			$btn_backup  .= '<input type="hidden" name="wsps-action" value="wsps-backup">';
-			$btn_backup  .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
-			$btn_backup  .= wfMessage( 'wsps-error_file_consistency_btn_backup' )->text();
-			$btn_backup  .= '"></form>';
-			$btn_convert = '<form method="post" action="' . $wgScript . '/Special:WSps?action=convert">';
-			$btn_convert .= '<input type="hidden" name="wsps-action" value="wsps-convert">';
-			$btn_convert .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
-			$btn_convert .= wfMessage( 'wsps-error_file_consistency_btn_convert' )->text();
-			$btn_convert .= '"></form>';
+			$btn_backup       = '<form method="post" action="' . $wgScript . '/Special:WSps?action=backup">';
+			$btn_backup       .= '<input type="hidden" name="wsps-action" value="wsps-backup">';
+			$btn_backup       .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
+			$btn_backup       .= wfMessage( 'wsps-error_file_consistency_btn_backup' )->text();
+			$btn_backup       .= '"></form>';
+			$btn_convert      = '<form method="post" action="' . $wgScript . '/Special:WSps?action=convert">';
+			$btn_convert      .= '<input type="hidden" name="wsps-action" value="wsps-convert">';
+			$btn_convert      .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-small" value="';
+			$btn_convert      .= wfMessage( 'wsps-error_file_consistency_btn_convert' )->text();
+			$btn_convert      .= '"></form>';
 			$out->addHTML(
 				$render->renderCard(
 					$this->msg( 'wsps-error_file_consistency_0' ),
@@ -372,184 +459,7 @@ class WSpsSpecial extends SpecialPage {
 			return true;
 		}
 
-		// SMW Custom query
-		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "exportcustom" ) ) {
-			echo $render->loadResources();
-			$out->addHTML(
-				$render->renderMenu(
-					$this->url,
-					$this->logo,
-					$this->version,
-					3
-				)
-			);
-			$pAction = $this->getPost( 'wsps-action' );
-			$error   = '';
-
-			switch ( $pAction ) {
-				case "wsps-import-query" :
-					$query = $this->getPost( 'wsps-query' );
-
-					if ( $query === false ) {
-						$error = $this->makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
-					} else {
-						$query       = base64_decode( $query );
-						$listOfPages = $this->doAsk( $query );
-						//$title, $subTitle, $content, $footer, $width='-1-1', $type="default"
-						$nr    = count( $listOfPages );
-						$count = 1;
-						foreach ( $listOfPages as $page ) {
-							$pageId = WSpsHooks::getPageIdFromTitle( $page );
-							if ( $pageId === false ) {
-							} else {
-								$result = WSpsHooks::addFileForExport(
-									$pageId,
-									$usr
-								);
-								if ( $result['status'] === false ) {
-								}
-							}
-							$count++;
-						}
-						$content = '<h2>' . wfMessage( 'wsps-special_status_card_done' )->text() . '</h2>';
-						$content .= '<p>Added ' . ( $count - 1 ) . '/' . $nr . ' pages.</p>';
-						$out->addHTML( $content );
-
-						return true;
-					}
-					break;
-				case "doQuery" :
-					$query = $this->getPost( 'wsps-query' );
-
-					if ( $query === false ) {
-						$error = $this->makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
-					} else {
-						$result = $this->doAsk( $query );
-
-						$nr = count( $result );
-
-						$form       = $render->renderDoQueryForm( $query );
-						$html       = $form;
-						$bodyResult = $render->renderDoQueryBody( $result );
-						$html       .= $bodyResult['html'];
-
-						$header = wfMessage( 'wsps-special_custom_query_result' )->text();
-						$header .= '<p>' . wfMessage( 'wsps-special_custom_query' )->text(
-							) . '<span class="uk-text-warning">' . htmlspecialchars( $query ) . '</span></p>';
-						$header .= wfMessage(
-							'wsps-special_custom_query_result_text1',
-							$nr
-						)->text();
-						$header .= wfMessage(
-							'wsps-special_custom_query_result_text2',
-							$bodyResult['active']
-						)->text();
-						$html   = $header . $html;
-						$html   .= $form;
-						$out->addHTML( $style );
-						$out->addHTML( $html );
-
-						return true;
-					}
-					break;
-				case false :
-					break;
-			}
-
-			if ( $error !== '' ) {
-				echo $error;
-			}
-
-			$out->addHTML( $render->renderCustomQuery() );
-
-			return true;
-		}
-
-		if ( isset( $_GET['action'] ) && $_GET['action'] === strtolower( "delete" ) ) {
-			echo $render->loadResources();
-			$pAction = $this->getPost( 'wsps-action' );
-			$error   = '';
-			$out->addHTML(
-				$render->renderMenu(
-					$this->url,
-					$this->logo,
-					$this->version,
-					4
-				)
-			);
-			if ( $pAction === "wsps-delete" ) {
-				$files   = WSpsHooks::getFileIndex();
-				$nr      = count( $files );
-				$count   = 0;
-				$success = 0;
-				$fail    = 0;
-				foreach ( $files as $file => $title ) {
-					$f      = WSpsHooks::$config['exportPath'] . $file . '.wiki';
-					$f2     = WSpsHooks::$config['exportPath'] . $file . '.info';
-					$status = unlink( $f );
-					if ( $status === false ) {
-						$fail++;
-					} else {
-						$success++;
-					}
-					$status = unlink( $f2 );
-					if ( $status === false ) {
-						$fail++;
-					} else {
-						$success++;
-					}
-					$count++;
-				}
-				unlink( WSpsHooks::$config['filePath'] . 'export.index' );
-				$content = '<h2>' . wfMessage( 'wsps-special_status_card_done' )->text() . '</h2>';
-				$content .= '<p>' . wfMessage(
-						'wsps-special_delete_card_result',
-						$success,
-						$fail
-					)->text() . '</p>';
-				$out->addHTML( $content );
-				WSpsHooks::getFileIndex();
-
-				return true;
-			}
-
-			$data = WSpsHooks::getAllPageInfo();
-			$nr   = count( $data );
-
-			$form = '<form method="post">';
-			$form .= '<input type="hidden" name="wsps-action" value="wsps-delete">';
-			$form .= '<input type="submit" class="uk-button uk-button-primary uk-margin-small-bottom uk-text-large" value="';
-			$form .= wfMessage( 'wsps-special_delete_card_click_to_delete' )->text();
-			$form .= '">';
-
-			$form    .= '</form>';
-			$content = '<h3 class="uk-card-title uk-margin-remove-bottom">' . wfMessage(
-					'wsps-special_delete_card_header'
-				)->text() . '</h3>';
-			$content .= '<p class="uk-text-meta uk-margin-remove-top">' . wfMessage(
-					'wsps-special_delete_card_subheader'
-				)->text() . '</p>';
-			$content .= '<p>' . wfMessage(
-					'wsps-special_delete_card_current',
-					$nr
-				)->text() . '</p>';
-			$content .= $form;
-			$out->addHTML( $content );
-
-			return true;
-		}
-
-		global $wgScript;
-
-		$out->addHTML( $render->loadResources() );
-		$out->addHTML(
-			$render->renderMenu(
-				$this->url,
-				$this->logo,
-				$this->version,
-				0
-			)
-		);
+		// Render default main page
 
 		$data = WSpsHooks::getAllPageInfo();
 		$nr   = count( $data );

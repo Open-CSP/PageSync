@@ -1,4 +1,7 @@
-# WSPageSync
+WSPageSync
+
+<img alt="WSPageSync" width="300" src="https://gitlab.wikibase.nl/community/mw-wspagesync/-/raw/master/assets/images/wspagesync.png">
+
 Export and import wiki pages
 
 ## Installation
@@ -28,7 +31,13 @@ $wgWSPageSync['contentSlotsToBeSynced'] = ['main', 'my-content-slot'];
 ## Special page usage
 By default the special page shows a list of all Wiki pages set for syncing.
 
-Further actions can be found in the menu on the Special Page.
+From the Special page you can also create, restore and delete ZIP backups.
+To be able to use **ZIP Backups**, make sure ZIPArchive is installed on your PHP setup.
+
+The special page also allows for you to do a **Semantic MediaWiki Query** to quickly add
+certain pages to WSPageSync. This feature only works if you have SemanticMediaWiki extension installed.
+
+The actions can be found in the menu on the Special Page.
 
 ## Maintenance script
 Options:
@@ -45,6 +54,7 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+* 1alpha5 Created handlers classes and clean Special Page. Added requirements.
 * 1alpha4 Added consistency in maintenance script
 * 1alpha3 fixed on page save
 * 1.0ß2 Fixed weird username JavaScript error on one specific wiki

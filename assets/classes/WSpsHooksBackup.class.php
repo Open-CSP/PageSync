@@ -12,11 +12,12 @@ class WSpsHooksBackup {
 
 	/**
 	 * Delete a backup file
+	 *
 	 * @param string $backupFile
 	 *
 	 * @return bool
 	 */
-	public function deleteBackupFile( string $backupFile ): bool {
+	public function deleteBackupFile( string $backupFile ) : bool {
 		if ( WSpsHooks::$config !== false ) {
 			WSpsHooks::setConfig();
 		}
@@ -32,6 +33,7 @@ class WSpsHooksBackup {
 
 	/**
 	 * Remove files recursively
+	 *
 	 * @param string $dir
 	 * @param string $finalDir
 	 */
@@ -56,7 +58,7 @@ class WSpsHooksBackup {
 				}
 			}
 			if ( $dir !== $finalDir ) {
-				if($this->is_dir_empty( $dir ) ) {
+				if ( $this->is_dir_empty( $dir ) ) {
 					rmdir( $dir );
 				}
 			}
@@ -64,25 +66,28 @@ class WSpsHooksBackup {
 	}
 
 	private function is_dir_empty( string $dir ) {
-		$handle = opendir($dir);
-		while (false !== ($entry = readdir($handle))) {
-			if ($entry != "." && $entry != "..") {
-				closedir($handle);
+		$handle = opendir( $dir );
+		while ( false !== ( $entry = readdir( $handle ) ) ) {
+			if ( $entry != "." && $entry != ".." ) {
+				closedir( $handle );
+
 				return false;
 			}
 		}
-		closedir($handle);
+		closedir( $handle );
+
 		return true;
 	}
 
 
 	/**
 	 * Restore a backup
+	 *
 	 * @param string $backupFile
 	 *
 	 * @return bool
 	 */
-	public function restoreBackupFile( string $backupFile ): bool {
+	public function restoreBackupFile( string $backupFile ) : bool {
 		if ( WSpsHooks::$config !== false ) {
 			WSpsHooks::setConfig();
 		}
@@ -97,8 +102,11 @@ class WSpsHooksBackup {
 			WSpsHooks::setConfig(); // re-initiate deleted folder
 			$zip->extractTo( $indexPath );
 			$zip->close();
+
 			return true;
-		} else return false;
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -119,7 +127,7 @@ class WSpsHooksBackup {
 		$addUploadedFile = array();
 		foreach ( $allFileinfo as $fileToCheck ) {
 			if ( isset( $fileToCheck['isFile'] ) && $fileToCheck['isFile'] === true ) {
-				$addUploadedFile[] = $path .$fileToCheck['filestoredname'];
+				$addUploadedFile[] = $path . $fileToCheck['filestoredname'];
 			}
 		}
 		$infoFilesList = glob( $path . "*.info" );
@@ -162,9 +170,10 @@ class WSpsHooksBackup {
 
 	/**
 	 * Get a list of all backup files
+	 *
 	 * @return array
 	 */
-	public function getBackupList():array {
+	public function getBackupList() : array {
 		$data = array();
 		if ( WSpsHooks::$config !== false ) {
 			WSpsHooks::setConfig();
