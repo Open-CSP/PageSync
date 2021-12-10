@@ -37,7 +37,19 @@ To be able to use **ZIP Backups**, make sure ZIPArchive is installed on your PHP
 The special page also allows for you to do a **Semantic MediaWiki Query** to quickly add
 certain pages to WSPageSync. This feature only works if you have SemanticMediaWiki extension installed.
 
-The actions can be found in the menu on the Special Page.
+###Update to version 0.9.9.9+
+
+Since the structure of the files have changed as of version 0.9.9.9 to support Content Slots, some extra effort is needed if you are performing an upgrade.
+
+We have tried to make this very effortlessly.
+
+Once you have installed the 0.9.9.9+ update, visit the Wiki. You will notice the sync button in the admin menu has an exclamation mark. Click this and it will bring you to a Special page.
+
+Make sure you do not sync any pages to avoid possible failures.
+
+First thing you should do is use the new feature to create a backup. This will bring you to the backup tab and you can find your new backup file there.
+
+Click on the WSPageSync logo to go back to the convert page. Now click convert files preview. This will give you an overview of the files affected. Click on convert files to convert all the synced files to version 0.9.9.9.
 
 ## Maintenance script
 Options:
@@ -54,6 +66,7 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+* 1.0 release
 * 1alpha5 Created handlers classes and clean Special Page. Added requirements.
 * 1alpha4 Added consistency in maintenance script
 * 1alpha3 fixed on page save
