@@ -66,7 +66,8 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
-* 1.0 release
+* 1.0.1 Added support for different content types
+* 1.0.0 release
 * 1alpha5 Created handlers classes and clean Special Page. Added requirements.
 * 1alpha4 Added consistency in maintenance script
 * 1alpha3 fixed on page save

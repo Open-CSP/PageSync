@@ -1088,15 +1088,19 @@ class WSpsHooks {
 
 			$content_object = $latest_revision->getContent( $slot_role );
 
-			if ( $content_object === null || ! ( $content_object instanceof TextContent ) ) {
+			if ( $content_object === null ) {
 				continue;
 			}
 
-			$contentOfSLot = ContentHandler::getContentText( $content_object );
+			$content_handler = ContentHandler::getForContent( $content_object );
 
-			if( empty( $contentOfSLot ) && $slot_role !== 'main' ) continue;
+			$contentOfSLot = $content_handler->serializeContent( $content_object );
 
-			$slot_contents[ $slot_role ] = ContentHandler::getContentText( $content_object );
+			if ( empty( $contentOfSLot ) && $slot_role !== 'main' ) {
+				continue;
+			}
+
+			$slot_contents[$slot_role] = $contentOfSLot;
 		}
 
 		return $slot_contents;
