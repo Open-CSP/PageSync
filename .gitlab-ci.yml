@@ -14,7 +14,7 @@ composer_test:
   - key: composer-dev
     paths:
       - vendor/
-  image: composer:1
+  image: composer:2
   stage: test
   before_script:
     - composer install --ignore-platform-reqs

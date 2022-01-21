@@ -1,5 +1,8 @@
 <?php
 
+use MediaWiki\MediaWikiServices;
+use Wikimedia\ParamValidator\ParamValidator;
+
 /**
  * WSps API module
  *
@@ -8,41 +11,40 @@
  */
 class ApiWSps extends ApiBase {
 	/**
-	 * Main entry point.
+	 * @return bool
+	 * @throws ApiUsageException
+	 * @throws Exception
 	 */
-	public function execute() {
+	public function execute() : bool {
 		$user   = $this->getUser();
 		$params = $this->extractRequestParams();
 		$action = $params['what'];
 
 		// If the "what" param isn't present, we don't know what to do!
 		if ( ! $action || $action === null ) {
-			$this->dieUsageMsg( 'missingparam' );
+			$this->dieWithError( 'missingparam' );
 		}
 
 		// Need to have sufficient user rights to proceed...
-		$groups = $user->getGroups();
+		$groups = MediaWikiServices::getInstance()->getUserGroupManager()->getUserGroups( $user );
 
 		if ( ! in_array(
 			'sysop',
 			$groups
 		) ) {
-			$this->dieUsageMsg( 'badaccess-group0' );
+			$this->dieWithError( 'badaccess-group0' );
 		}
 
 		$pageId = $params['pageId'];
-		//$userName = $params['user'];
 		$userName = $user->getName();
 
 		WSpsHooks::setConfig();
 		if ( WSpsHooks::$config === false ) {
 			$output['status']  = wfMessage( 'wsps-api-error-no-config-title' )->text();
 			$output['message'] = wfMessage( 'wsps-api-error-no-config-body' )->text();
-			$this->getResult()->addValue(
-				null,
-				$this->getModuleName(),
-				array( 'result' => $output )
-			);
+			$this->getResult()->addValue( null,
+										  $this->getModuleName(),
+										  array( 'result' => $output ) );
 
 			return true;
 		}
@@ -63,15 +65,13 @@ class ApiWSps extends ApiBase {
 				$output = $this->setOutput( $result );
 				break;
 			default :
-				$this->dieUsageMsg( 'No recognized action' );
+				$this->dieWithError( 'No recognized action' );
 		}
 
 		// Top level
-		$this->getResult()->addValue(
-			null,
-			$this->getModuleName(),
-			array( 'result' => $output )
-		);
+		$this->getResult()->addValue( null,
+									  $this->getModuleName(),
+									  [ 'result' => $output ] );
 
 		return true;
 	}
@@ -82,7 +82,7 @@ class ApiWSps extends ApiBase {
 	 * @return array
 	 */
 	private function setOutput( array $result ) : array {
-		$output = array();
+		$output = [];
 		if ( $result['status'] === true ) {
 			$output['status'] = "ok";
 			$output['page']   = $result['info'];
@@ -108,26 +108,25 @@ class ApiWSps extends ApiBase {
 		return true;
 	}
 
-
 	/**
 	 * @return array
 	 */
 	public function getAllowedParams() : array {
-		return array(
-			'what'   => array(
-				ApiBase::PARAM_TYPE     => 'string',
-				ApiBase::PARAM_REQUIRED => true
-			),
-			'pageId' => array(
-				ApiBase::PARAM_TYPE     => 'integer',
-				ApiBase::PARAM_REQUIRED => true
-			),
-			'user'   => array(
-				ApiBase::PARAM_TYPE     => 'string',
-				ApiBase::PARAM_REQUIRED => true
-			)
+		return [
+			'what'   => [
+				ParamValidator::PARAM_TYPE     => 'string',
+				ParamValidator::PARAM_REQUIRED => true
+			],
+			'pageId' => [
+				ParamValidator::PARAM_TYPE     => 'integer',
+				ParamValidator::PARAM_REQUIRED => true
+			],
+			'user'   => [
+				ParamValidator::PARAM_TYPE     => 'string',
+				ParamValidator::PARAM_REQUIRED => true
+			]
 
-		);
+		];
 	}
 
 	/**
@@ -135,9 +134,9 @@ class ApiWSps extends ApiBase {
 	 * @see ApiBase::getExamplesMessages()
 	 */
 	protected function getExamplesMessages() : array {
-		return array(
+		return [
 			'action=wspagesync&what=add&pageId=666'    => 'apihelp-wsps-example-1',
 			'action=wspagesync&what=remove&pageId=666' => 'apihelp-wsps-example-2'
-		);
+		];
 	}
 }

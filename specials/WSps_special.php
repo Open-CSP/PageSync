@@ -11,6 +11,9 @@
  */
 class WSpsSpecial extends SpecialPage {
 
+	/**
+	 * @var string
+	 */
 	public $url, $version, $logo, $assets;
 
 	/**
@@ -20,13 +23,12 @@ class WSpsSpecial extends SpecialPage {
 		parent::__construct( 'WSps' );
 	}
 
-
 	/**
 	 * Special page group
 	 *
 	 * @return string
 	 */
-	function getGroupName() : string {
+	public function getGroupName() : string {
 		return 'Wikibase';
 	}
 
@@ -36,7 +38,7 @@ class WSpsSpecial extends SpecialPage {
 	 *
 	 * @return string
 	 */
-	function makeAlert( string $text, string $type = "danger" ) : string {
+	public function makeAlert( string $text, string $type = "danger" ) : string {
 		$ret = '<div class="uk-alert-' . $type . ' uk-margin-large-top" uk-alert>';
 		$ret .= '<a class="uk-alert-close" uk-close></a>';
 		$ret .= '<p>' . $text . '</p></div>';
@@ -58,11 +60,8 @@ class WSpsSpecial extends SpecialPage {
 				return false;
 			}
 		}
-		if ( isset( $_POST[$name] ) ) {
-			return $_POST[$name];
-		} else {
-			return false;
-		}
+
+		return $_POST[$name] ?? false;
 	}
 
 	/**
@@ -79,11 +78,8 @@ class WSpsSpecial extends SpecialPage {
 				return false;
 			}
 		}
-		if ( isset( $_GET[$name] ) ) {
-			return $_GET[$name];
-		} else {
-			return false;
-		}
+
+		return $_GET[$name] ?? false;
 	}
 
 	/**
@@ -92,7 +88,7 @@ class WSpsSpecial extends SpecialPage {
 	 *
 	 * @return string
 	 */
-	private function setResourcesAndMenu( WSpsRender $render, int $activeTab ) {
+	private function setResourcesAndMenu( WSpsRender $render, int $activeTab ) : string {
 		$ret = $render->loadResources();
 		$ret .= $render->renderMenu(
 			$this->url,
@@ -118,10 +114,10 @@ class WSpsSpecial extends SpecialPage {
 			new DerivativeRequest(
 				$this->getRequest(),
 				// Fallback upon $wgRequest if you can't access context
-				array(
+				[
 					'action' => 'ask',
 					'query'  => $query
-				),
+				],
 				true // treat this as a POST
 			),
 			false // not write.
@@ -151,6 +147,8 @@ class WSpsSpecial extends SpecialPage {
 	 * Show the page to the user
 	 *
 	 * @param string|null $sub The subpage string argument (if any).
+	 *
+	 * @throws Exception
 	 */
 	public function execute( $sub ) {
 		global $IP, $wgScript, $wgUser;
@@ -178,9 +176,10 @@ class WSpsSpecial extends SpecialPage {
 
 		$render = new WSpsRender();
 
-		$this->url     = rtrim(
-			$wgScript,
-			'index.php'
+		$this->url     = str_replace(
+			'index.php',
+			'',
+			$wgScript
 		);
 		$this->version = \ExtensionRegistry::getInstance()->getAllThings()["WSPageSync"]["version"];
 		$this->logo    = '/extensions/WSPageSync/assets/images/wspagesync.png';
@@ -240,9 +239,12 @@ class WSpsSpecial extends SpecialPage {
 				$backActionResult = false;
 
 				// check if we have zip extension
-				if( !extension_loaded( 'zip' ) ) {
-					$out->addHTML( $this->makeAlert( wfMessage( 'wsps-special_backup_we_need_zip_extension' )->text() ) );
+				if ( ! extension_loaded( 'zip' ) ) {
+					$out->addHTML(
+						$this->makeAlert( wfMessage( 'wsps-special_backup_we_need_zip_extension' )->text() )
+					);
 					$out->addHTML( $style );
+
 					return true;
 				}
 
@@ -317,7 +319,6 @@ class WSpsSpecial extends SpecialPage {
 				$out->addHTML( $html );
 
 				return true;
-				break;
 			case "exportcustom":
 				$out->addHTML(
 					$this->setResourcesAndMenu(
@@ -326,9 +327,10 @@ class WSpsSpecial extends SpecialPage {
 					)
 				);
 				// First check if we have SMW
-				if( ! ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' ) ) {
+				if ( ! ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' ) ) {
 					$out->addHTML( $this->makeAlert( wfMessage( 'wsps-special_custom_query_we_need_smw' )->text() ) );
 					$out->addHTML( $style );
+
 					return true;
 				}
 
@@ -348,14 +350,11 @@ class WSpsSpecial extends SpecialPage {
 							$count       = 1;
 							foreach ( $listOfPages as $page ) {
 								$pageId = WSpsHooks::getPageIdFromTitle( $page );
-								if ( $pageId === false ) {
-								} else {
+								if ( is_int( $pageId ) ) {
 									$result = WSpsHooks::addFileForExport(
 										$pageId,
 										$usr
 									);
-									if ( $result['status'] === false ) {
-									}
 								}
 								$count++;
 							}
@@ -411,7 +410,6 @@ class WSpsSpecial extends SpecialPage {
 				$out->addHTML( $render->renderCustomQuery() );
 
 				return true;
-				break;
 		}
 
 		// Render Main page

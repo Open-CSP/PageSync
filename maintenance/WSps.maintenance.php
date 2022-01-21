@@ -1,11 +1,7 @@
 <?php
 
-//error_reporting( -1 );
-//ini_set( 'display_errors', 1 );
-
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
-
 
 $IP = getenv( 'MW_INSTALL_PATH' );
 if ( $IP === false ) {
@@ -13,10 +9,15 @@ if ( $IP === false ) {
 }
 require_once "$IP/maintenance/Maintenance.php";
 
-
+/**
+ * Maintenance class to import PageSync pages
+ */
 class importPagesIntoWiki extends Maintenance {
 
-	var $filePath = '';
+	/**
+	 * @var string
+	 */
+	public $filePath = '';
 
 	public function __construct() {
 		parent::__construct();
@@ -53,7 +54,7 @@ class importPagesIntoWiki extends Maintenance {
 	 * @param string $summary
 	 * @param mixed $timestamp
 	 *
-	 * @return mixed
+	 * @return bool|string
 	 */
 	public function uploadFileToWiki(
 		string $filePath,
@@ -63,7 +64,6 @@ class importPagesIntoWiki extends Maintenance {
 		string $summary,
 		$timestamp
 	) {
-		$ret = array();
 		global $wgUser;
 		if ( ! file_exists( $filePath ) ) {
 			return 'Cannot find file';
@@ -83,7 +83,8 @@ class importPagesIntoWiki extends Maintenance {
 			return "{$base} could not be imported; a valid title cannot be produced";
 		}
 
-		$image          = wfLocalFile( $title );
+		$fileRepo       = MediaWikiServices::getInstance()->getRepoGroup()->getLocalRepo();
+		$image          = $fileRepo->newFile( $title );
 		$mwProps        = new MWFileProps( MediaWiki\MediaWikiServices::getInstance()->getMimeAnalyzer() );
 		$props          = $mwProps->getPropsFromPath(
 			$filePath,
@@ -93,7 +94,7 @@ class importPagesIntoWiki extends Maintenance {
 		$publishOptions = [];
 		$handler        = MediaHandler::getHandler( $props['mime'] );
 		if ( $handler ) {
-			$metadata = Wikimedia\quietCall(
+			$metadata = \Wikimedia\AtEase\AtEase::quietCall(
 				'unserialize',
 				$props['metadata']
 			);
@@ -115,10 +116,12 @@ class importPagesIntoWiki extends Maintenance {
 				'en'
 			);
 		}
-		$image->recordUpload2(
+
+		$image->recordUpload3(
 			$archive->value,
 			$summary,
 			$content,
+			$user,
 			$props,
 			$timestamp
 		);
@@ -126,12 +129,14 @@ class importPagesIntoWiki extends Maintenance {
 		return true;
 	}
 
+	/**
+	 * @throws MWContentSerializationException
+	 * @throws MWException
+	 */
 	public function execute() {
 		if ( wfReadOnly() ) {
 			$this->fatalError( "Wiki is in read-only mode; you'll need to disable it for import to work." );
 		}
-		$autoDelete = false;
-		$bot        = false;
 
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
@@ -157,14 +162,14 @@ class importPagesIntoWiki extends Maintenance {
 		}
 
 
-		if( WSpsHooks::checkFileConsistency() === false ) {
+		if ( WSpsHooks::checkFileConsistency() === false ) {
 			$this->fatalError( "\n\e[41mConsistency check failed. Please read instructions on converting old file formats to new."  . "\e[0m\n" );
 			return;
 		}
 
 		if ( $this->hasOption( 'rebuild-index' ) ) {
 			// We need to rebuild the index file here.
-			if( $this->hasOption('force-rebuild-index') === false ) {
+			if ( $this->hasOption('force-rebuild-index') === false ) {
 				echo "\n[Rebuilding index file from file structure]\n";
 				$answer = strtolower( readline( "Are you sure (y/n)" ) );
 				if ( $answer !== "y" ) {
@@ -178,8 +183,8 @@ class importPagesIntoWiki extends Maintenance {
 			$path          = WSpsHooks::$config['exportPath'];
 			$infoFilesList = glob( $path . "*.info" );
 			$cnt           = 0;
-			$index = array();
-			foreach( $infoFilesList as $infoFile ){
+			$index = [];
+			foreach ( $infoFilesList as $infoFile ) {
 				$content = json_decode( file_get_contents( $infoFile ), true );
 				$fName = $content['filename'];
 				$fTitle = $content['pagetitle'];
@@ -227,7 +232,7 @@ class importPagesIntoWiki extends Maintenance {
 
 
 		foreach ( $data as $page ) {
-			$content = array();
+			$content = [];
 			if ( isset( $page['isFile'] ) && $page['isFile'] === true ) {
 				$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
 				$text  = WSpsHooks::getFileContent(
@@ -274,7 +279,7 @@ class importPagesIntoWiki extends Maintenance {
 				$exit = true;
 				continue;
 			}
-			if ( is_null( $wikiPageObject ) ) {
+			if ( $wikiPageObject === null ) {
 				echo "Could not create a WikiPage Object from Article Id. Title: " . $title->getText();
 				$failCount++;
 				$exit = true;
@@ -295,7 +300,7 @@ class importPagesIntoWiki extends Maintenance {
 					unset( $content[$slot] );
 				}
 			}
-			$result  = WSpsHooks::editSlots(
+			$result = WSpsHooks::editSlots(
 				$user,
 				$wikiPageObject,
 				$content,
@@ -304,12 +309,11 @@ class importPagesIntoWiki extends Maintenance {
 			if ( false === $result['result'] ) {
 				list( $result, $errors ) = $result;
 				$failCount++;
-				foreach( $errors as $error ) {
+				foreach ( $errors as $error ) {
 					$this->output(
 						"\n\e[41mFailed " . $page['pagetitle'] . " with. Message:" . $error . "\e[0m\n"
 					);
 				}
-				//echo "\n$message\n";
 			} else {
 				if ( $result['changed'] === false ) {
 					$successCount++;

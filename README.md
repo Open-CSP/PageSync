@@ -66,6 +66,7 @@ SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenanc
 
 #### Development
 
+* 1.1.0 Rewrote deprecated 1.35.1+ code. Unchanged pages will no longer updates sync files
 * 1.0.1 Added support for different content types
 * 1.0.0 release
 * 1alpha5 Created handlers classes and clean Special Page. Added requirements.

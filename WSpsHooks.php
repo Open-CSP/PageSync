@@ -7,25 +7,23 @@
  * @ingroup Extensions
  */
 
-
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\SlotRecord;
+use MediaWiki\Storage\EditResult;
+use MediaWiki\User\UserIdentity;
 
 class WSpsHooks {
 
 	public static $config = false;
 
 	/**
-	 * Hook from MW at first call to extension
-	 *
 	 * @param Parser $parser
+	 *
+	 * @throws MWException
 	 */
 	public static function onParserFirstCallInit( Parser &$parser ) {
 		global $wgOut;
-		$parser->setFunctionHook(
-			'wsps',
-			'WSpsHooks::wsps'
-		);
 		$wgOut->getOutput()->addModules( 'ext.WSPageSync.scripts' );
 		self::setConfig();
 	}
@@ -47,7 +45,7 @@ class WSpsHooks {
 			if ( ! isset( $wgWSPageSync['fileNameSpaces'] ) && ! is_array( $wgWSPageSync['fileNameSpaces'] ) ) {
 				self::$config['fileNameSpaces'] = [
 					6,
-					- 2
+					-2
 				];
 			} else {
 				self::$config['fileNameSpaces'] = $wgWSPageSync['fileNameSpaces'];
@@ -67,18 +65,16 @@ class WSpsHooks {
 			}
 
 			if ( isset( $wgWSPageSync['filePath'] ) && ! empty( $wgWSPageSync['filePath'] ) ) {
-				$filePath               = rtrim(
+				$filePath   = rtrim(
 					$wgWSPageSync['filePath'],
 					'/'
 				);
-				$filePath               .= '/';
-				$exportPath             = $filePath . 'export/';
-				$currentPermissionsPath = $filePath;
+				$filePath   .= '/';
+				$exportPath = $filePath . 'export/';
 
 				if ( ! file_exists( $filePath ) ) {
 					mkdir(
-						$filePath,
-						0777
+						$filePath
 					);
 					chmod(
 						$filePath,
@@ -88,8 +84,7 @@ class WSpsHooks {
 
 				if ( ! file_exists( $exportPath ) ) {
 					mkdir(
-						$exportPath,
-						0777
+						$exportPath
 					);
 					chmod(
 						$exportPath,
@@ -98,9 +93,8 @@ class WSpsHooks {
 				}
 				self::$config['filePath']   = $filePath;
 				self::$config['exportPath'] = $exportPath;
-
-
 			}
+
 			return;
 		}
 		self::setDefaultConfig();
@@ -116,12 +110,10 @@ class WSpsHooks {
 		self::$config['maintenance']['restoreFrom']            = '';
 		self::$config['filePath']                              = $IP . '/extensions/WSPageSync/files/';
 		self::$config['exportPath']                            = self::$config['filePath'] . 'export/';
-		$currentPermissionsPath                                = self::$config['filePath'];
-		//$permissions            = substr( sprintf( '%o', fileperms( $currentPermissionsPath ) ), - 4 );
+
 		if ( ! file_exists( self::$config['filePath'] ) ) {
 			mkdir(
-				self::$config['filePath'],
-				0777
+				self::$config['filePath']
 			);
 			chmod(
 				self::$config['filePath'],
@@ -130,64 +122,12 @@ class WSpsHooks {
 		}
 		if ( ! file_exists( self::$config['exportPath'] ) ) {
 			mkdir(
-				self::$config['exportPath'],
-				0777
+				self::$config['exportPath']
 			);
 			chmod(
 				self::$config['exportPath'],
 				0777
 			);
-		}
-	}
-
-
-	/**
-	 * [not used as yet]
-	 *
-	 * @param Parser $parser [description]
-	 *
-	 * @return [type]         [description]
-	 */
-	public static function wsps( Parser &$parser ) {
-		$options = WSgetContentHooks::extractOptions(
-			array_slice(
-				func_get_args(),
-				1
-			)
-		);
-		global $wgOut;
-		if ( isset( $options['id'] ) && $options['id'] != '' ) {
-			$artikel = Article::newFromId( $options['id'] );
-			if ( $artikel !== false || $artikel !== null ) {
-				$content   = $artikel->fetchContent();
-				$getridoff = array(
-					'{{',
-					'}}'
-				);
-				$content   = str_replace(
-					$getridoff,
-					'',
-					$content
-				);
-				$details   = explode(
-					"|",
-					$content
-				);
-				unset( $details[0] );
-				$back = "";
-				foreach ( $details as $d ) {
-					$back .= $d . ';;';
-				}
-				$back = rtrim(
-					$back,
-					';;'
-				);
-
-				return array(
-					$back,
-					'noparse' => false
-				);
-			}
 		}
 	}
 
@@ -199,17 +139,15 @@ class WSpsHooks {
 	 */
 	public static function getFileIndex() {
 		if ( self::$config === false ) {
-			//echo wfMessage( 'wsps-api-error-no-config-body' )->text();
-
 			return false;
 		}
 
 		$indexFile = self::$config['filePath'] . 'export.index';
 		if ( ! file_exists( $indexFile ) ) {
 			file_put_contents( $indexFile,
-				array() );
+							   [] );
 
-			return array();
+			return [];
 		}
 
 		return json_decode(
@@ -220,11 +158,11 @@ class WSpsHooks {
 
 
 	/**
-	 * @param $fname string original filename
+	 * @param string $fname
 	 *
 	 * @return string cleaned filename, replacing not valid character with an _
 	 */
-	public static function cleanFileName( string $fname ): string {
+	public static function cleanFileName( string $fname ) : string {
 		return preg_replace(
 			'/[^a-z0-9]+/',
 			'_',
@@ -239,14 +177,12 @@ class WSpsHooks {
 	 */
 	public static function getAllPageInfo() {
 		if ( self::$config === false ) {
-			//echo wfMessage( 'wsps-api-error-no-config-body' )->text();
-
 			return false;
 		}
 		$filesPath = self::$config['exportPath'];
-		$fList     = WSpsHooks::getFileIndex();
-		$data      = array();
-		if ( false !== $fList && ! empty( $fList ) ) {
+		$fList     = self::getFileIndex();
+		$data      = [];
+		if ( $fList !== false && ! empty( $fList ) ) {
 			foreach ( $fList as $k => $v ) {
 				$infoFile = $filesPath . $k . '.info';
 				if ( file_exists( $infoFile ) ) {
@@ -269,17 +205,15 @@ class WSpsHooks {
 	 *
 	 * @return string
 	 */
-	private static function getFileSlotNameWiki( string $fName, string $slotName ) {
+	private static function getFileSlotNameWiki( string $fName, string $slotName ) : string {
 		return $fName . '_slot_' . $slotName . '.wiki';
 	}
 
 	/**
-	 * Get the content of one specific file
+	 * @param string $fname
+	 * @param string $slotName
 	 *
-	 * @param $fname string filename
-	 * @param $slotName string filename
-	 *
-	 * @return bool|false|string false when not found, otherwise the content of the file.
+	 * @return false|string
 	 */
 	public static function getFileContent( string $fname, string $slotName ) {
 		$fileAndPath = self::$config['exportPath'] . self::getFileSlotNameWiki(
@@ -298,15 +232,23 @@ class WSpsHooks {
 	/**
 	 * Get a Page ID from a given Page Title
 	 *
-	 * @param $title string Titlename
+	 * @param string $title
 	 *
-	 * @return bool|integer Either false or the id of the Page
+	 * @return false|int
 	 */
 	public static function getPageIdFromTitle( string $title ) {
-		$t          = Title::newFromText( $title );
-		$wikiObject = WikiPage::factory( $t );
-		if ( $wikiObject !== false || $wikiObject !== null ) {
-			return $wikiObject->getId();
+		$t = Title::newFromText( $title );
+		if ( $t !== null ) {
+			try {
+				$wikiObject = WikiPage::factory( $t );
+			} catch ( MWException $e ) {
+				return false;
+			}
+			if ( $wikiObject instanceof WikiPage ) {
+				return $wikiObject->getId();
+			} else {
+				return false;
+			}
 		} else {
 			return false;
 		}
@@ -314,10 +256,11 @@ class WSpsHooks {
 
 	/**
 	 * @param string $fname
+	 * @param string $slotName
 	 *
 	 * @return string
 	 */
-	private static function setWikiName( string $fname, string $slotName ) {
+	private static function setWikiName( string $fname, string $slotName ) : string {
 		return self::$config['exportPath'] . $fname . '_slot_' . $slotName . '.wiki';
 	}
 
@@ -326,7 +269,7 @@ class WSpsHooks {
 	 *
 	 * @return string
 	 */
-	private static function setInfoName( string $fname ) {
+	private static function setInfoName( string $fname ) : string {
 		return self::$config['exportPath'] . $fname . '.info';
 	}
 
@@ -356,44 +299,42 @@ class WSpsHooks {
 	 */
 	private static function addOrUpdateToFileIndex( string $fname, string $title ) {
 		// get current indexfile
-		$index = WSpsHooks::getFileIndex();
+		$index = self::getFileIndex();
 
 		// add or replace page
-		$index[ $fname ] = $title;
+		$index[$fname] = $title;
 
 		return self::saveFileIndex( $index );
 	}
 
 	/**
-	 * @param User $user The user that performs the edit
-	 * @param WikiPage $wikipage_object The page to edit
-	 * @param array $text $key is slotname and value is the text to insert/append
-	 * @param string $slot_name The slot to edit
-	 * @param string $summary The summary to use
+	 * @param User $user
+	 * @param WikiPage $wikipage_object
+	 * @param array $text
+	 * @param string $summary
 	 *
-	 * @return true|array True on success, and an error message with an error code otherwise
-	 *
-	 * @throws \MWContentSerializationException Should not happen
-	 * @throws \MWException Should not happen
+	 * @return array
+	 * @throws MWContentSerializationException
+	 * @throws MWException
 	 */
 	public static function editSlots(
 		User $user,
 		WikiPage $wikipage_object,
 		array $text,
 		string $summary
-	) {
-		$status = true;
-		$errors = array();
+	) : array {
+		$status              = true;
+		$errors              = [];
 		$title_object        = $wikipage_object->getTitle();
 		$page_updater        = $wikipage_object->newPageUpdater( $user );
 		$old_revision_record = $wikipage_object->getRevisionRecord();
 		$slot_role_registry  = MediaWikiServices::getInstance()->getSlotRoleRegistry();
 
-		foreach( $text as $slot_name => $content ) {
+		foreach ( $text as $slot_name => $content ) {
 			echo "\nWorking with $slot_name";
 			// Make sure the slot we are editing exists
 			if ( ! $slot_role_registry->isDefinedRole( $slot_name ) ) {
-				$status = false;
+				$status   = false;
 				$errors[] = wfMessage(
 					"wsslots-apierror-unknownslot",
 					$slot_name
@@ -408,7 +349,8 @@ class WSpsHooks {
 			} else {
 				// Set the content for the slot we want to edit
 				if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
-					$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()->getModelID();
+					$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()
+													->getModelID();
 				} else {
 					$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
 				}
@@ -428,9 +370,10 @@ class WSpsHooks {
 			}
 		}
 
-		if ( $old_revision_record === null && !isset( $text[SlotRecord::MAIN] ) ) {
+		if ( $old_revision_record === null && ! isset( $text[SlotRecord::MAIN] ) ) {
 			// The 'main' content slot MUST be set when creating a new page
-			echo "\nWe have no older revision for this page and we do not have a main record. So creating an empty Main.";
+			echo "\nWe have no older revision for this page and we do not have a main record.";
+			echo " So creating an empty Main.";
 			$main_content = ContentHandler::makeContent(
 				"",
 				$title_object
@@ -447,32 +390,29 @@ class WSpsHooks {
 			EDIT_INTERNAL
 		);
 
-		if( true === $status ) {
-			return array(
+		if ( $status === true ) {
+			return [
 				"result"  => true,
 				"changed" => $page_updater->isUnchanged()
-			);
+			];
 		} else {
-			return array(
+			return [
 				'result' => false,
 				'errors' => $errors
-			);
+			];
 		}
-
 	}
 
-
 	/**
-	 * @param User $user The user that performs the edit
-	 * @param WikiPage $wikipage_object The page to edit
-	 * @param string $text The text to insert/append
-	 * @param string $slot_name The slot to edit
-	 * @param string $summary The summary to use
+	 * @param User $user
+	 * @param WikiPage $wikipage_object
+	 * @param string $text
+	 * @param string $slot_name
+	 * @param string $summary
 	 *
-	 * @return true|array True on success, and an error message with an error code otherwise
-	 *
-	 * @throws \MWContentSerializationException Should not happen
-	 * @throws \MWException Should not happen
+	 * @return array
+	 * @throws MWContentSerializationException
+	 * @throws MWException
 	 */
 	public static function editSlot(
 		User $user,
@@ -480,7 +420,7 @@ class WSpsHooks {
 		string $text,
 		string $slot_name,
 		string $summary
-	) {
+	) : array {
 		$title_object        = $wikipage_object->getTitle();
 		$page_updater        = $wikipage_object->newPageUpdater( $user );
 		$old_revision_record = $wikipage_object->getRevisionRecord();
@@ -503,7 +443,8 @@ class WSpsHooks {
 		} else {
 			// Set the content for the slot we want to edit
 			if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
-				$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()->getModelID();
+				$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()->getModelID(
+				);
 			} else {
 				$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
 			}
@@ -541,10 +482,10 @@ class WSpsHooks {
 			EDIT_INTERNAL
 		);
 
-		return array(
+		return [
 			"result"  => true,
 			"changed" => $page_updater->isUnchanged()
-		);
+		];
 	}
 
 	/**
@@ -556,27 +497,23 @@ class WSpsHooks {
 	 * @return false|int|void
 	 */
 	private static function removeFileFromIndex( string $fName, string $title ) {
-		$index = WSpsHooks::getFileIndex();
-		if ( isset( $index[ $fName ] ) && $index[ $fName ] === $title ) {
-			unset( $index[ $fName ] );
+		$index = self::getFileIndex();
+		if ( isset( $index[$fName] ) && $index[$fName] === $title ) {
+			unset( $index[$fName] );
 
 			return self::saveFileIndex( $index );
 		}
 	}
 
-
 	/**
-	 * Save the specific file details and content and add to Index
+	 * @param string $fname
+	 * @param string $title
+	 * @param array $slotsContents
+	 * @param string $uname
+	 * @param int $id
+	 * @param $isFile
 	 *
-	 * @param $fname string filename
-	 * @param $title string page title
-	 * @param $content string page content
-	 * @param $uname string username
-	 * @param $isFile bool|array false if not, array with info if yes
-	 * @param $id int PageID
-	 *
-	 * @return array result from the @WSpsHooks::makeMessage function
-	 * @throws Exception
+	 * @return array
 	 */
 	public static function putFileIndex(
 		string $fname,
@@ -585,15 +522,12 @@ class WSpsHooks {
 		string $uname,
 		int $id,
 		$isFile
-	): array {
+	) : array {
 		// get current indexfile
-		$index = WSpsHooks::getFileIndex();
+		$index = self::getFileIndex();
 
 		// add or replace page
-		$index[ $fname ] = $title;
-
-		$filesPath = self::$config['filePath'];
-		$indexFile = $filesPath . 'export.index';
+		$index[$fname] = $title;
 
 		//wiki export folder
 		$exportFolder = self::$config['exportPath'];
@@ -607,16 +541,15 @@ class WSpsHooks {
 			$title
 		);
 
-
 		if ( $result === false ) {
-			return WSpsHooks::makeMessage(
+			return self::makeMessage(
 				false,
 				wfMessage( 'wsps-error_index_file' )->text()
 			);
 		}
 		//Set content for info file
 
-		$slots = array();
+		$slots = [];
 		foreach ( $slotsContents as $k => $v ) {
 			$slots[] = $k;
 		}
@@ -644,13 +577,13 @@ class WSpsHooks {
 			json_encode( $infoContent )
 		);
 		if ( $result === false ) {
-			return WSpsHooks::makeMessage(
+			return self::makeMessage(
 				false,
 				wfMessage( 'wsps-error_info_file' )->text()
 			);
 		}
 		//set wiki filenames
-		$storeResults = array();
+		$storeResults = [];
 		foreach ( $slotsContents as $slotName => $slotContent ) {
 			$wikiFile = self::setWikiName(
 				$fname,
@@ -667,7 +600,7 @@ class WSpsHooks {
 		}
 
 		if ( ! empty( $storeResults ) ) {
-			return WSpsHooks::makeMessage(
+			return self::makeMessage(
 				false,
 				wfMessage( 'wsps-error_content_file' )->text() . ': ' . implode(
 					',',
@@ -676,7 +609,7 @@ class WSpsHooks {
 			);
 		}
 
-		return WSpsHooks::makeMessage(
+		return self::makeMessage(
 			true,
 			''
 		);
@@ -715,14 +648,14 @@ class WSpsHooks {
 		array $slots,
 		$isFile,
 		$changed = false
-	) {
+	) : array {
 		if ( $changed === false ) {
 			$datetime = new DateTime();
 			$date     = $datetime->format( 'd-m-Y H:i:s' );
 		} else {
 			$date = $changed;
 		}
-		$infoContent              = array();
+		$infoContent              = [];
 		$infoContent['filename']  = $fname;
 		$infoContent['pagetitle'] = $title;
 		$infoContent['username']  = $uname;
@@ -754,8 +687,8 @@ class WSpsHooks {
 	 *
 	 * @return array
 	 */
-	public static function makeMessage( $type, $result ): array {
-		$data           = array();
+	public static function makeMessage( $type, $result ) : array {
+		$data           = [];
 		$data['status'] = $type;
 		$data['info']   = $result;
 
@@ -769,58 +702,59 @@ class WSpsHooks {
 	 *
 	 * @return string
 	 */
-	private static function makeDataStoreName( string $fname ) {
+	private static function makeDataStoreName( string $fname ) : string {
 		return $fname . '.data';
 	}
 
 	/**
-	 * @param int $id
+	 * @param mixed $id
 	 * @param string $uname
-	 * @param false|array $module
 	 *
 	 * @return array
+	 * @throws Exception
 	 */
-	public static function addFileForExport( $id, string $uname, $module = false ): array {
+	public static function addFileForExport( $id, string $uname ) : array {
 		$isFile = false;
 		if ( $id === null || $id === 0 ) {
-			return WSpsHooks::makeMessage(
+			return self::makeMessage(
 				false,
 				wfMessage( 'wsps-error_no_page_id' )->text()
 			);
 		}
-		$title = WSpsHooks::getPageTitle( $id );
+		$title = self::getPageTitle( $id );
 		if ( $title === false || $title === null ) {
-			return WSpsHooks::makeMessage(
+			return self::makeMessage(
 				false,
 				wfMessage( 'wsps-error_page_not_found' )->text()
 			);
 		}
-		$fname = WSpsHooks::cleanFileName( $title );
-		if ( WSpsHooks::isFile( $id ) !== false ) {
+		$fname = self::cleanFileName( $title );
+		if ( self::isFile( $id ) !== false ) {
 			// we are dealing with a file or image
-			$f            = wfFindFile( WSpsHooks::isFile( $id ) );
+			$repoGroup    = MediaWikiServices::getInstance()->getRepoGroup();
+			$f            = $repoGroup->findFile( self::isFile( $id ) );
 			$canonicalURL = $f->getLocalRefPath();
 			if ( $canonicalURL === false ) {
-				$canonicalURL = $f->getCanonicalUr();
+				$canonicalURL = $f->getCanonicalUrl();
 			}
 			$baseName  = $f->getName();
 			$fileOwner = $f->getUser();
-			$isFile    = array(
+			$isFile    = [
 				'url'        => $canonicalURL,
 				'name'       => $baseName,
 				'owner'      => $fileOwner,
 				'storedfile' => self::makeDataStoreName( $fname )
-			);
+			];
 		}
-		$slotContent = WSpsHooks::getSlotsContentForPage( $id );
+		$slotContent = self::getSlotsContentForPage( $id );
 		if ( $slotContent === false || empty( $slotContent ) ) {
-			return WSpsHooks::makeMessage(
+			return self::makeMessage(
 				false,
 				wfMessage( 'wsps-error_page_not_retrievable' )->text()
 			);
 		}
 
-		$result = WSpsHooks::putFileIndex(
+		$result = self::putFileIndex(
 			$fname,
 			$title,
 			$slotContent,
@@ -829,16 +763,16 @@ class WSpsHooks {
 			$isFile
 		);
 		if ( $result['status'] !== true ) {
-			return WSpsHooks::makeMessage(
+			return self::makeMessage(
 				false,
 				$result['info']
 			);
 		}
-		$ret          = array();
+		$ret          = [];
 		$ret['fname'] = $fname;
 		$ret['title'] = $title;
 
-		return WSpsHooks::makeMessage(
+		return self::makeMessage(
 			true,
 			$ret
 		);
@@ -846,17 +780,16 @@ class WSpsHooks {
 
 	/**
 	 * @param string $title
-	 * @param false|array $module
 	 *
 	 * @return false|mixed
 	 */
 	public static function isTitleInIndex( string $title ) {
-		$index = WSpsHooks::getFileIndex();
+		$index = self::getFileIndex();
 		if ( in_array(
 			$title,
 			$index
 		) ) {
-			$fname    = WSpsHooks::cleanFileName( $title );
+			$fname    = self::cleanFileName( $title );
 			$infoFile = self::setInfoName( $fname );
 			if ( file_exists( $infoFile ) ) {
 				$info = json_decode(
@@ -876,25 +809,23 @@ class WSpsHooks {
 	/**
 	 * @param int $id
 	 * @param string $uname
-	 * @param false|array $module
 	 *
 	 * @return array
 	 */
-	public static function removeFileForExport( int $id, string $uname, $module = false ): array {
-		$title = WSpsHooks::getPageTitle( $id );
+	public static function removeFileForExport( int $id, string $uname ) : array {
+		$title = self::getPageTitle( $id );
 		if ( $title === false ) {
-			return WSpsHooks::makeMessage(
+			return self::makeMessage(
 				false,
 				wfMessage( 'wsps-error_page_not_found' )->text()
 			);
 		}
 
-		$fname = WSpsHooks::cleanFileName( $title );
+		$fname = self::cleanFileName( $title );
 
-		$index = WSpsHooks::getFileIndex();
-		if ( isset( $index[ $fname ] ) && $index[ $fname ] === $title ) {
-			unset( $index[ $fname ] );
-			$indexFile = self::$config['filePath'] . 'export.index';
+		$index = self::getFileIndex();
+		if ( isset( $index[$fname] ) && $index[$fname] === $title ) {
+			unset( $index[$fname] );
 
 			// save index file
 			$result = self::removeFileFromIndex(
@@ -902,7 +833,7 @@ class WSpsHooks {
 				$title
 			);
 			if ( $result === false ) {
-				return WSpsHooks::makeMessage(
+				return self::makeMessage(
 					false,
 					wfMessage( 'wsps-error_index_file' )->text()
 				);
@@ -935,7 +866,7 @@ class WSpsHooks {
 			}
 		}
 
-		return WSpsHooks::makeMessage(
+		return self::makeMessage(
 			true,
 			''
 		);
@@ -943,45 +874,39 @@ class WSpsHooks {
 
 
 	/**
-	 * onPageSaveHook
-	 *
 	 * @param WikiPage $article
-	 * @param $user
-	 * @param $content
-	 * @param $summary
-	 * @param $isMinor
-	 * @param $isWatch
-	 * @param $section
-	 * @param $flags
-	 * @param $revision
-	 * @param $status
-	 * @param $baseRevId
+	 * @param UserIdentity $user
+	 * @param string $summary
+	 * @param int $flags
+	 * @param RevisionRecord $revisionRecord
+	 * @param EditResult $editResult
 	 *
 	 * @return bool
 	 * @throws Exception
 	 */
-	static function pageSaved(
-		$article,
-		$user,
-		$content,
-		$summary,
-		$isMinor,
-		$isWatch,
-		$section,
-		$flags,
-		$revision,
-		$status,
-		$baseRevId
-	) {
+	public static function pageSaved(
+		WikiPage $article,
+		MediaWiki\User\UserIdentity $user,
+		string $summary,
+		int $flags,
+		MediaWiki\Revision\RevisionRecord $revisionRecord,
+		MediaWiki\Storage\EditResult $editResult
+	) : bool {
+		if ( $editResult->isNullEdit() ) {
+			return true;
+		}
 		$t_title  = $article->getTitle();
 		$id       = $article->getId();
 		$title    = $t_title->getFullText();
-		$fname    = WSpsHooks::cleanFileName( $title );
+		$fName    = self::cleanFileName( $title );
 		$username = $user->getName();
-		$index    = WSpsHooks::getFileIndex();
+		$index    = self::getFileIndex();
 
-		if ( isset( $index[ $fname ] ) && $index[ $fname ] === $title ) {
-			$result = self::addFileForExport( $id, $username );
+		if ( isset( $index[$fName] ) && $index[$fName] === $title ) {
+			$result = self::addFileForExport(
+				$id,
+				$username
+			);
 		}
 
 		return true;
@@ -990,16 +915,16 @@ class WSpsHooks {
 	/**
 	 * Check to see if we are dealing with a file page
 	 *
-	 * @param $id
+	 * @param int $id
 	 *
-	 * @return mixed Either Title of false
+	 * @return false|Title Either Title of false
 	 */
-	public static function isFile( $id ) {
+	public static function isFile( int $id ) {
 		$title = Title::newFromId( $id );
 
-		if ( ! is_null( $title ) && $title !== false ) {
+		if ( $title !== null ) {
 			$ns = $title->getNamespace();
-			if ( $ns === 6 || $ns === - 2 ) {
+			if ( $ns === 6 || $ns === -2 ) {
 				return $title;
 			}
 		}
@@ -1008,28 +933,16 @@ class WSpsHooks {
 	}
 
 	/**
-	 * @param $id
+	 * @param int $id
 	 *
-	 * @return mixed Either Title as string or false
+	 * @return false|string Either Title as string or false
 	 */
-	public static function getPageTitle( $id ) {
-		$id      = (int) ( $id );
-		$artikel = WikiPage::newFromId( $id );
-		if ( $artikel !== false || $artikel !== null ) {
-			$t = $artikel->getTitle();
+	public static function getPageTitle( int $id ) {
+		$article = WikiPage::newFromId( $id );
+		if ( $article instanceof WikiPage ) {
+			$t = $article->getTitle();
 
 			return $t->getFullText();
-		} else {
-			return false;
-		}
-	}
-
-	// Not used
-	public static function getPageLastTimeStamp( $id ) {
-		$id      = (int) ( $id );
-		$artikel = WikiPage::newFromId( $id );
-		if ( $artikel !== false || $artikel !== null ) {
-			return $artikel->getTimestamp();
 		} else {
 			return false;
 		}
@@ -1040,8 +953,7 @@ class WSpsHooks {
 	 *
 	 * @return array|false
 	 */
-	private static function getSlotNamesForPageAndRevision( $id ) {
-		$id   = (int) ( $id );
+	private static function getSlotNamesForPageAndRevision( int $id ) {
 		$page = WikiPage::newFromId( $id );
 		if ( $page === false || $page === null ) {
 			return false;
@@ -1051,18 +963,20 @@ class WSpsHooks {
 			return false;
 		}
 
-		return array(
+		return [
 			"slots"           => $latest_revision->getSlotRoles(),
 			"latest_revision" => $latest_revision
-		);
+		];
 	}
 
 	/**
 	 * @param int $id
 	 *
-	 * @return array|false|null
+	 * @return array|false
+	 * @throws MWException
+	 * @throws MWUnknownContentModelException
 	 */
-	public static function getSlotsContentForPage( $id ) {
+	public static function getSlotsContentForPage( int $id ) {
 		$slot_result = self::getSlotNamesForPageAndRevision( $id );
 		if ( $slot_result === false ) {
 			return false;
@@ -1073,7 +987,6 @@ class WSpsHooks {
 		$slot_contents = [];
 
 		foreach ( $slot_roles as $slot_role ) {
-			//echo "\ngetSlotsContentForPage for slot : $slot_role";
 			if ( strtolower( self::$config['contentSlotsToBeSynced'] ) !== 'all' ) {
 				if ( ! array_key_exists(
 					$slot_role,
@@ -1091,8 +1004,9 @@ class WSpsHooks {
 			if ( $content_object === null ) {
 				continue;
 			}
-
-			$content_handler = ContentHandler::getForContent( $content_object );
+			$content_handler = MediaWikiServices::getInstance()->getContentHandlerFactory()->getContentHandler(
+				$content_object->getModel()
+			);
 
 			$contentOfSLot = $content_handler->serializeContent( $content_object );
 
@@ -1104,28 +1018,7 @@ class WSpsHooks {
 		}
 
 		return $slot_contents;
-
 	}
-
-	/**
-	 * @param int $id
-	 *
-	 * @return mixed
-	 */
-	public static function getPageContent( int $id ) {
-		$id      = (int) ( $id );
-		$artikel = WikiPage::newFromId( $id );
-		if ( $artikel !== false || $artikel !== null ) {
-			$revision = $artikel->getRevision();
-			$content  = $revision->getContent( Revision::RAW );
-			$text     = ContentHandler::getContentText( $content );
-
-			return $text;
-		} else {
-			return false;
-		}
-	}
-
 
 	/**
 	 * Convert .info content to version 0.9.9.9+
@@ -1140,17 +1033,13 @@ class WSpsHooks {
 			true
 		);
 		if ( ! isset( $json['slots'] ) ) {
-			$json['slots'] = array( 'main' );
+			$json['slots'] = [ 'main' ];
 		}
-		//$infoContent['isFile']           = true;
-		//			$infoContent['fileurl']          = $isFile['url'];
-		//			$infoContent['fileoriginalname'] = $isFile['name'];
-		//			$infoContent['fileowner']        = $isFile['owner'];
 		if ( isset( $json['isFile'] ) && $json['isFile'] !== false ) {
 			$json['isFile']['isFile'] = true;
 			$json['isFile']['url']    = $json['fileurl'];
-			$json['isFile']['name']   = $json['fileoriginalname'];;
-			$json['isFile']['owner'] = $json['fileowner'];;
+			$json['isFile']['name']   = $json['fileoriginalname'];
+			$json['isFile']['owner']  = $json['fileowner'];
 		}
 		if ( ! isset( $json['isFile'] ) ) {
 			$json['isFile'] = false;
@@ -1174,7 +1063,7 @@ class WSpsHooks {
 	 *
 	 * @return array
 	 */
-	public static function convertFilesTov0999(): array {
+	public static function convertFilesTov0999() : array {
 		if ( self::$config !== false ) {
 			self::setConfig();
 		}
@@ -1184,23 +1073,19 @@ class WSpsHooks {
 		$converted = 0;
 		foreach ( $indexList as $file => $title ) {
 			$convertedFile = false;
-			//echo "<p>Working on $title</p>";
-			$wikiFileList = glob( $path . $file . "*.wiki" );
-			//echo "<p>Checking File:" . $path . $file . '.wiki</p>';
+			$wikiFileList  = glob( $path . $file . "*.wiki" );
 			if ( file_exists( $path . $file . '.wiki' ) && count( $wikiFileList ) <= 1 ) {
 				// we have an old version here
-				//echo "<p>we have an old version here</p>";
 				$newFileName = $path . $file . '_slot_main' . '.wiki';
 				file_put_contents(
 					$newFileName,
 					file_get_contents( $path . $file . '.wiki' )
 				);
 				unlink( $path . $file . '.wiki' );
-				$converted ++;
+				$converted++;
 				$convertedFile = true;
 			} elseif ( file_exists( $path . $file . '.wiki' ) && count( $wikiFileList ) > 1 ) {
 				// we have some new files, but it looks the main slot is still the old version.
-				//echo "<p>we have some new files, but it looks the main slot is still the old version</p>";
 				$newFileName = $path . $file . '_slot_main' . '.wiki';
 				if ( in_array(
 					$file . '_slot_main' . '.wiki',
@@ -1214,13 +1099,12 @@ class WSpsHooks {
 						file_get_contents( $path . $file . '.wiki' )
 					);
 					unlink( $path . $file . '.wiki' );
-					$converted ++;
+					$converted++;
 					$convertedFile = true;
 				}
 			}
 			if ( $convertedFile === true ) {
 				$infoFile = $path . $file . ".info";
-				//echo "<p>Working on $infoFile</p>";
 				if ( file_exists( $infoFile ) ) {
 					file_put_contents(
 						$infoFile,
@@ -1228,15 +1112,14 @@ class WSpsHooks {
 					);
 				}
 			}
-			$cnt ++;
+			$cnt++;
 		}
 
-		return array(
+		return [
 			'total'     => $cnt,
 			'converted' => $converted
-		);
+		];
 	}
-
 
 	/**
 	 * @param bool $returnCnt
@@ -1253,10 +1136,8 @@ class WSpsHooks {
 		$path          = self::$config['exportPath'];
 		$infoFilesList = glob( $path . "*.info" );
 		$cnt           = 0;
-		$markedFiles   = array();
-		if ( empty( $infoFilesList ) ) {
-			$flag = true;
-		} else {
+		$markedFiles   = [];
+		if ( ! empty( $infoFilesList ) ) {
 			foreach ( $infoFilesList as $infoFile ) {
 				$fileContent = json_decode(
 					file_get_contents( $infoFile ),
@@ -1265,7 +1146,7 @@ class WSpsHooks {
 				if ( ! isset( $fileContent['slots'] ) ) {
 					$flag          = false;
 					$markedFiles[] = $fileContent['pagetitle'];
-					$cnt ++;
+					$cnt++;
 				}
 			}
 		}
@@ -1288,15 +1169,16 @@ class WSpsHooks {
 	 */
 	public static function nav( SkinTemplate &$sktemplate, array &$links ) {
 		global $wgUser, $wgScript;
-		$url    = rtrim(
-			$wgScript,
-			'index.php'
+		$title = null;
+		$url   = str_replace(
+			'index.php',
+			'',
+			$wgScript
 		);
-		$assets = $url . 'extensions/WSPageSync/assets/images/';
 		// If not sysop.. return
 		if ( ! in_array(
 			'sysop',
-			$wgUser->getEffectiveGroups()
+			MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $wgUser )
 		) ) {
 			return;
 		}
@@ -1306,8 +1188,9 @@ class WSpsHooks {
 			'getTitle'
 		) ) {
 			$title = $sktemplate->getTitle();
-		} else {
-			$title = $sktemplate->mTitle;
+		}
+		if ( $title === null ) {
+			return;
 		}
 
 		$articleId = $title->getArticleID();
@@ -1320,7 +1203,7 @@ class WSpsHooks {
 				$wgArticlePath
 			);
 			$class                  = "wsps-notice";
-			$links['views']['wsps'] = array(
+			$links['views']['wsps'] = [
 				"class"     => $class,
 				"text"      => "",
 				"href"      => $url,
@@ -1329,21 +1212,21 @@ class WSpsHooks {
 				'redundant' => '1',
 				'title'     => 'WSPageSync cannot be currently used. Please click this button to visit the Special page',
 				'rel'       => 'WSPageSync'
-			);
+			];
 
 			return true;
 		}
 
 		if ( $articleId !== 0 ) {
 			$class  = "wsps-toggle";
-			$fIndex = WSpsHooks::getFileIndex();
+			$fIndex = self::getFileIndex();
 			if ( false !== $fIndex && in_array(
 					$title,
 					$fIndex
 				) ) {
 				$class .= ' wsps-active';
 			}
-			$links['views']['wsps'] = array(
+			$links['views']['wsps'] = [
 				"class"     => $class,
 				"text"      => "",
 				"href"      => '#',
@@ -1352,10 +1235,10 @@ class WSpsHooks {
 				'redundant' => '1',
 				'title'     => 'WSPageSync',
 				'rel'       => 'WSPageSync'
-			);
+			];
 		} else {
 			$class                  = "wsps-error";
-			$links['views']['wsps'] = array(
+			$links['views']['wsps'] = [
 				"class"     => $class,
 				"text"      => "",
 				"href"      => '#',
@@ -1364,7 +1247,7 @@ class WSpsHooks {
 				'redundant' => '1',
 				'title'     => 'WSPageSync - Not syncable',
 				'rel'       => 'WSPageSync'
-			);
+			];
 		}
 
 		return true;
@@ -1379,8 +1262,8 @@ class WSpsHooks {
 	 *
 	 * @return array $results
 	 */
-	public static function extractOptions( array $options ): array {
-		$results = array();
+	public static function extractOptions( array $options ) : array {
+		$results = [];
 		foreach ( $options as $option ) {
 			$pair = explode(
 				'=',
@@ -1388,19 +1271,18 @@ class WSpsHooks {
 				2
 			);
 			if ( count( $pair ) === 2 ) {
-				$name             = trim( $pair[0] );
-				$value            = trim( $pair[1] );
-				$results[ $name ] = $value;
+				$name           = trim( $pair[0] );
+				$value          = trim( $pair[1] );
+				$results[$name] = $value;
 			}
 			if ( count( $pair ) === 1 ) {
-				$name             = trim( $pair[0] );
-				$results[ $name ] = true;
+				$name           = trim( $pair[0] );
+				$results[$name] = true;
 			}
 		}
 
 		return $results;
 	}
-
 
 	/**
 	 * Implements AdminLinks hook from Extension:Admin_Links.
@@ -1409,10 +1291,10 @@ class WSpsHooks {
 	 *
 	 * @return bool
 	 */
-	public static function addToAdminLinks( ALTree &$adminLinksTree ) {
+	public static function addToAdminLinks( ALTree &$adminLinksTree ) : bool {
 		global $wgServer;
 		$wsSection = $adminLinksTree->getSection( 'WikiBase Solutions' );
-		if ( is_null( $wsSection ) ) {
+		if ( $wsSection === null ) {
 			$section = new ALSection( 'WikiBase Solutions' );
 			$adminLinksTree->addSection(
 				$section,
@@ -1425,7 +1307,7 @@ class WSpsHooks {
 
 		$extensionsRow = $wsSection->getRow( 'extensions' );
 
-		if ( is_null( $extensionsRow ) ) {
+		if ( $extensionsRow === null ) {
 			$extensionsRow = new ALRow( 'extensions' );
 			$wsSection->addRow( $extensionsRow );
 		}
@@ -1439,4 +1321,3 @@ class WSpsHooks {
 		return true;
 	}
 }
-
