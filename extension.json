@@ -1,87 +1,86 @@
 {
-	"name": "WSPageSync",
-	"version": "1.0.1",
-	"author": [
-		"Sen-Sai"
-	],
-	"url": "https://www.mediawiki.org/wiki/Extension:WSPageSync",
-	"descriptionmsg": "wsps-desc",
-	"license-name": "GPL v2",
-	"type": "other",
-	"requires": {
-		"MediaWiki": ">= 1.35.1",
-		"platform": {
-			"php": ">= 7.1",
-			"ext-zip": "*"
-		}
-	},
-	"AutoloadClasses": {
-		"ApiWSps": "WSps.api.php",
-		"WSpsHooks": "WSps.php",
-		"WSpsSpecial": "specials/WSps_special.php",
-		"WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php",
-		"WSpsBackupHandler": "specials/handlers/WSpsBackupHandler.php",
-		"WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php"
-	},
-	"ExtensionMessagesFiles": {
-		"WSpsAlias": "WSps.i18n.alias.php",
-		"WSpsMagic": "WSps.i18n.magic.php"
-	},
-	"APIModules": {
-		"wsps": "ApiWSps"
-	},
-	"Hooks": {
-		"ParserFirstCallInit": [
-			"WSpsHooks::onParserFirstCallInit"
-		],
-		"AdminLinks": [
-			"WSpsHooks::addToAdminLinks"
-		],
-		"PageContentSaveComplete": [
-			"WSpsHooks::pageSaved"
-		],
-		"SkinTemplateNavigation::Universal": [
-			"WSpsHooks::nav"
-		]
-	},
-	"MessagesDirs": {
-		"WSPageSync": [
-			"i18n"
-		]
-	},
-	"ResourceFileModulePaths": {
-		"localBasePath": "",
-		"remoteExtPath": "WSPageSync"
-	},
-	"SpecialPages": {
-		"WSps": "WSpsSpecial"
-	},
-	"config": {
-		"WSPageSync": {
-			"filePath" : "",
-			"fileNameSpaces" : [
-				6
-			],
-			"contentSlotsToBeSynced" : "all",
-			"maintenance" : {
-				"doNotRestoreThesePages" : [],
-				"restoreFrom" : ""
-			}
-		}
-	},
-	"ResourceModules": {
-		"ext.WSPageSync.scripts": {
-			"scripts": "wsps.js",
-			"styles": "assets/images/style.css",
-			"position": "top",
-			"messages": [
-				"wsps-page-added",
-				"wsps-page-removed",
-				"wsps-javascript_restore_backup_text",
-				"wsps-javascript_delete_backup_text"
-			]
-		}
-	},
-	
-	"manifest_version": 1
+  "name": "WSPageSync",
+  "version": "1.1.0",
+  "author": [
+    "Sen-Sai"
+  ],
+  "url": "https://www.mediawiki.org/wiki/Extension:WSPageSync",
+  "descriptionmsg": "wsps-desc",
+  "license-name": "GPL v2",
+  "type": "other",
+  "requires": {
+    "MediaWiki": ">= 1.35.1",
+    "platform": {
+      "php": ">= 7.1",
+      "ext-zip": "*"
+    }
+  },
+  "AutoloadClasses": {
+    "ApiWSps": "ApiWSps.php",
+    "WSpsHooks": "WSpsHooks.php",
+    "WSpsSpecial": "specials/WSps_special.php",
+    "WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php",
+    "WSpsBackupHandler": "specials/handlers/WSpsBackupHandler.php",
+    "WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php"
+  },
+  "ExtensionMessagesFiles": {
+    "WSpsAlias": "WSps.i18n.alias.php",
+    "WSpsMagic": "WSps.i18n.magic.php"
+  },
+  "APIModules": {
+    "wsps": "ApiWSps"
+  },
+  "Hooks": {
+    "ParserFirstCallInit": [
+      "WSpsHooks::onParserFirstCallInit"
+    ],
+    "AdminLinks": [
+      "WSpsHooks::addToAdminLinks"
+    ],
+    "PageSaveComplete": [
+      "WSpsHooks::pageSaved"
+    ],
+    "SkinTemplateNavigation::Universal": [
+      "WSpsHooks::nav"
+    ]
+  },
+  "MessagesDirs": {
+    "WSPageSync": [
+      "i18n"
+    ]
+  },
+  "ResourceFileModulePaths": {
+    "localBasePath": "",
+    "remoteExtPath": "WSPageSync"
+  },
+  "SpecialPages": {
+    "WSps": "WSpsSpecial"
+  },
+  "config": {
+    "WSPageSync": {
+      "filePath": "",
+      "fileNameSpaces": [
+        6
+      ],
+      "contentSlotsToBeSynced": "all",
+      "maintenance": {
+        "doNotRestoreThesePages": [],
+        "restoreFrom": ""
+      }
+    }
+  },
+  "ResourceModules": {
+    "ext.WSPageSync.scripts": {
+      "scripts": "wsps.js",
+      "styles": "assets/images/style.css",
+      "position": "top",
+      "messages": [
+        "wsps-page-added",
+        "wsps-page-removed",
+        "wsps-javascript_restore_backup_text",
+        "wsps-javascript_delete_backup_text"
+      ]
+    }
+  },
+  "manifest_version": 1
 }

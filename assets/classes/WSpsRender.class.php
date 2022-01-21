@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by  : Designburo.nl
+ * Created by  : Wikibase Solution
  * Project     : i
  * Filename    : render.class.php
  * Description :

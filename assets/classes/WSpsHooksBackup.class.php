@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Created by  : Designburo.nl
+ * Created by  : Wikibase Solution
  * Project     : csp
  * Filename    : WSpsHooksBackup.class.php
  * Description :
@@ -58,14 +58,19 @@ class WSpsHooksBackup {
 				}
 			}
 			if ( $dir !== $finalDir ) {
-				if ( $this->is_dir_empty( $dir ) ) {
+				if ( $this->isDirEmpty( $dir ) ) {
 					rmdir( $dir );
 				}
 			}
 		}
 	}
 
-	private function is_dir_empty( string $dir ) {
+	/**
+	 * @param string $dir
+	 *
+	 * @return bool
+	 */
+	private function isDirEmpty( string $dir ): bool {
 		$handle = opendir( $dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
 			if ( $entry != "." && $entry != ".." ) {
@@ -78,7 +83,6 @@ class WSpsHooksBackup {
 
 		return true;
 	}
-
 
 	/**
 	 * Restore a backup
@@ -124,7 +128,7 @@ class WSpsHooksBackup {
 			( WSpsHooks::$config['version'] )
 		);
 		$allFileinfo     = WSpsHooks::getAllPageInfo();
-		$addUploadedFile = array();
+		$addUploadedFile = [];
 		foreach ( $allFileinfo as $fileToCheck ) {
 			if ( isset( $fileToCheck['isFile'] ) && $fileToCheck['isFile'] === true ) {
 				$addUploadedFile[] = $path . $fileToCheck['filestoredname'];
@@ -174,7 +178,7 @@ class WSpsHooksBackup {
 	 * @return array
 	 */
 	public function getBackupList() : array {
-		$data = array();
+		$data =[];
 		if ( WSpsHooks::$config !== false ) {
 			WSpsHooks::setConfig();
 		}
