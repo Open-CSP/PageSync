@@ -1,10 +1,10 @@
 {
-  "name": "WSPageSync",
-  "version": "1.1.0",
+  "name": "PageSync",
+  "version": "1.2.0",
   "author": [
     "Sen-Sai"
   ],
-  "url": "https://www.mediawiki.org/wiki/Extension:WSPageSync",
+  "url": "https://www.mediawiki.org/wiki/Extension:PageSync",
   "descriptionmsg": "wsps-desc",
   "license-name": "GPL v2",
   "type": "other",
@@ -51,13 +51,13 @@
   },
   "ResourceFileModulePaths": {
     "localBasePath": "",
-    "remoteExtPath": "WSPageSync"
+    "remoteExtPath": "PageSync"
   },
   "SpecialPages": {
     "WSps": "WSpsSpecial"
   },
   "config": {
-    "WSPageSync": {
+    "PageSync": {
       "filePath": "",
       "fileNameSpaces": [
         6
@@ -75,10 +75,12 @@
       "styles": "assets/images/style.css",
       "position": "top",
       "messages": [
+        "wsps",
         "wsps-page-added",
         "wsps-page-removed",
         "wsps-javascript_restore_backup_text",
-        "wsps-javascript_delete_backup_text"
+        "wsps-javascript_delete_backup_text",
+        "wsps-api-error-no-config-title"
       ]
     }
   },

@@ -4,7 +4,7 @@
   "description": "import and export wiki pages",
   "keywords": [
     "mediawiki",
-    "wspagesync",
+    "pagesync",
     "extension",
     "import",
     "export"

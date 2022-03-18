@@ -20,7 +20,7 @@ class WSpsRender {
 			$wgScript,
 			'index.php'
 		);
-		$dir = $url . 'extensions/WSPageSync/assets/';
+		$dir = $url . 'extensions/PageSync/assets/';
 
 		return '<link rel="stylesheet" href="' . $dir . 'css/uikit.min.css" /><script src="' . $dir . 'js/uikit.min.js"></script><script src="' . $dir . 'js/uikit-icons.min.js"></script>';
 	}
@@ -32,7 +32,7 @@ class WSpsRender {
 	 */
 	function getTemplate( string $name ) {
 		global $IP;
-		$file = $IP . '/extensions/WSPageSync/assets/templates/' . $name . '.html';
+		$file = $IP . '/extensions/PageSync/assets/templates/' . $name . '.html';
 		if ( file_exists( $file ) ) {
 			return file_get_contents( $file );
 		} else {

@@ -35,12 +35,12 @@ class WSpsHooks {
 		global $IP;
 		$config                  = MediaWikiServices::getInstance()->getMainConfig();
 		$json                    = json_decode(
-			file_get_contents( $IP . '/extensions/WSPageSync/extension.json' ),
+			file_get_contents( $IP . '/extensions/PageSync/extension.json' ),
 			true
 		);
 		self::$config['version'] = $json['version'];
-		if ( $config->has( "WSPageSync" ) ) {
-			$wgWSPageSync = $config->get( "WSPageSync" );
+		if ( $config->has( "PageSync" ) ) {
+			$wgWSPageSync = $config->get( "PageSync" );
 
 			if ( ! isset( $wgWSPageSync['fileNameSpaces'] ) && ! is_array( $wgWSPageSync['fileNameSpaces'] ) ) {
 				self::$config['fileNameSpaces'] = [
@@ -101,14 +101,14 @@ class WSpsHooks {
 	}
 
 	/**
-	 * old behaviour. Set export inside WSPageSync folder
+	 * old behaviour. Set export inside PageSync folder
 	 */
 	private static function setDefaultConfig() {
 		global $IP;
 		self::$config['contentSlotsToBeSynced']                = 'all';
 		self::$config['maintenance']['doNotRestoreThesePages'] = [];
 		self::$config['maintenance']['restoreFrom']            = '';
-		self::$config['filePath']                              = $IP . '/extensions/WSPageSync/files/';
+		self::$config['filePath']                              = $IP . '/extensions/PageSync/files/';
 		self::$config['exportPath']                            = self::$config['filePath'] . 'export/';
 
 		if ( ! file_exists( self::$config['filePath'] ) ) {
@@ -1199,7 +1199,7 @@ class WSpsHooks {
 			global $wgArticlePath;
 			$url                    = str_replace(
 				'$1',
-				'Special:WSPageSync',
+				'Special:PageSync',
 				$wgArticlePath
 			);
 			$class                  = "wsps-notice";
@@ -1210,8 +1210,8 @@ class WSpsHooks {
 				"exists"    => '1',
 				"primary"   => '1',
 				'redundant' => '1',
-				'title'     => 'WSPageSync cannot be currently used. Please click this button to visit the Special page',
-				'rel'       => 'WSPageSync'
+				'title'     => 'PageSync cannot be currently used. Please click this button to visit the Special page',
+				'rel'       => 'PageSync'
 			];
 
 			return true;
@@ -1233,8 +1233,8 @@ class WSpsHooks {
 				"exists"    => '1',
 				"primary"   => '1',
 				'redundant' => '1',
-				'title'     => 'WSPageSync',
-				'rel'       => 'WSPageSync'
+				'title'     => 'PageSync',
+				'rel'       => 'PageSync'
 			];
 		} else {
 			$class                  = "wsps-error";
@@ -1245,8 +1245,8 @@ class WSpsHooks {
 				"exists"    => '1',
 				"primary"   => '1',
 				'redundant' => '1',
-				'title'     => 'WSPageSync - Not syncable',
-				'rel'       => 'WSPageSync'
+				'title'     => 'PageSync - Not syncable',
+				'rel'       => 'PageSync'
 			];
 		}
 
@@ -1314,7 +1314,7 @@ class WSpsHooks {
 		$extensionsRow->addItem(
 			ALItem::newFromExternalLink(
 				$wgServer . '/index.php/Special:WSps',
-				'WS PageSync'
+				'PageSync'
 			)
 		);
 

@@ -21,7 +21,7 @@ class importPagesIntoWiki extends Maintenance {
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Import pages into Wiki that have been set to sync by the WSPageSync extension.\n";
+		$this->mDescription = "Import pages into Wiki that have been set to sync by the PageSync extension.\n";
 		$this->addOption(
 			'summary',
 			'Additional text that will be added to the files imported History. [optional]',
@@ -150,10 +150,10 @@ class importPagesIntoWiki extends Maintenance {
 		}
 		echo "\n\n\n";
 		echo "********************************************************************\n";
-		echo str_pad( "** WSPageSync version \e[36m$versionCurrent\e[0m", 75 ) . "**\n";
+		echo str_pad( "** PageSync version \e[36m$versionCurrent\e[0m", 75 ) . "**\n";
 		echo "** /WSps/maintenance/WSps.maintenance.php                         **\n";
 		echo "********************************************************************\n";
-		echo "** Import pages that have been synced by the WSPageSync extension **\n";
+		echo "** Import pages that have been synced by the PageSync extension **\n";
 		echo "********************************************************************\n";
 
 		if ( $this->hasOption( 'autodelete' ) && strtolower( $this->getOption( 'autodelete' ) ) === 'true' ) {
@@ -198,7 +198,7 @@ class importPagesIntoWiki extends Maintenance {
 
 		$summary = $this->getOption(
 			'summary',
-			'Imported by WSPageSync'
+			'Imported by PageSync'
 		);
 
 		if ( $this->hasOption( 'user' ) ) {

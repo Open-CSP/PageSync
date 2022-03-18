@@ -172,7 +172,7 @@ class WSpsSpecial extends SpecialPage {
 			return true;
 		}
 
-		include( $IP . '/extensions/WSPageSync/assets/classes/WSpsRender.class.php' );
+		include( $IP . '/extensions/PageSync/assets/classes/WSpsRender.class.php' );
 
 		$render = new WSpsRender();
 
@@ -181,9 +181,9 @@ class WSpsSpecial extends SpecialPage {
 			'',
 			$wgScript
 		);
-		$this->version = \ExtensionRegistry::getInstance()->getAllThings()["WSPageSync"]["version"];
-		$this->logo    = '/extensions/WSPageSync/assets/images/wspagesync.png';
-		$this->assets  = '/extensions/WSPageSync/assets/images/';
+		$this->version = \ExtensionRegistry::getInstance()->getAllThings()["PageSync"]["version"];
+		$this->logo    = '/extensions/PageSync/assets/images/wspagesync.png';
+		$this->assets  = '/extensions/PageSync/assets/images/';
 		$style         = $render->getStyle( $this->assets );
 
 		$wspsAction = $this->getGet( 'action' );
