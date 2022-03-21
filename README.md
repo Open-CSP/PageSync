@@ -1,19 +1,19 @@
-WSPageSync
+PageSync
 
-<img alt="WSPageSync" width="300" src="https://gitlab.wikibase.nl/community/mw-wspagesync/-/raw/master/assets/images/wspagesync.png">
+<img alt="PageSync" width="300" src="assets/images/pagesync.png">
 
 Export and import wiki pages
 
 ## Installation
-Grab an instance from the Wikibase Gitlab repository. Create a "WSPageSync" folder in your Wiki extensions folder and extract the files there.
+Grab an instance from the Wikibase Gitlab repository. Create a "PageSync" folder in your Wiki extensions folder and extract the files there.
 
 ## Setup
-WSPS needs a full path to a directory to store the file that can be synced. e.g. $IP/wspsFiles
+PS needs a full path to a directory to store the file that can be synced. e.g. $IP/wspsFiles
 This can be set in the LocalSettings as  : 
 ```php
-$wgWSPageSync['filePath'] =  $IP . '/wspsFiles';
+$wgPageSync['filePath'] =  $IP . '/wspsFiles';
 ```
-Make sure the map has the correct right for WSPageSync to store files
+Make sure the map has the correct right for PageSync to store files
 It is also a good practice to store these files outside of your html folder.
 
 Files from the File namespace will also be synced.
@@ -21,11 +21,11 @@ Files from the File namespace will also be synced.
 You can define what slots you want to sync. Default value is all.
 If you change this value, make sure to add "main" for the main content-slot.
 ```php
-$wgWSPageSync['contentSlotsToBeSynced'] = "all";
+$wgPageSync['contentSlotsToBeSynced'] = "all";
 ```
 or
 ```php
-$wgWSPageSync['contentSlotsToBeSynced'] = ['main', 'my-content-slot'];
+$wgPageSync['contentSlotsToBeSynced'] = ['main', 'my-content-slot'];
 ```
 
 ## Special page usage
@@ -35,7 +35,7 @@ From the Special page you can also create, restore and delete ZIP backups.
 To be able to use **ZIP Backups**, make sure ZIPArchive is installed on your PHP setup.
 
 The special page also allows for you to do a **Semantic MediaWiki Query** to quickly add
-certain pages to WSPageSync. This feature only works if you have SemanticMediaWiki extension installed.
+certain pages to PageSync. This feature only works if you have SemanticMediaWiki extension installed.
 
 ###Update to version 0.9.9.9+
 
@@ -49,7 +49,7 @@ Make sure you do not sync any pages to avoid possible failures.
 
 First thing you should do is use the new feature to create a backup. This will bring you to the backup tab and you can find your new backup file there.
 
-Click on the WSPageSync logo to go back to the convert page. Now click convert files preview. This will give you an overview of the files affected. Click on convert files to convert all the synced files to version 0.9.9.9.
+Click on the PageSync logo to go back to the convert page. Now click convert files preview. This will give you an overview of the files affected. Click on convert files to convert all the synced files to version 0.9.9.9.
 
 ## Maintenance script
 Options:
@@ -61,11 +61,12 @@ Options:
 
 Example:
 ```bash
-SERVER_NAME=<myservername> php extensions/WSPageSync/maintenance/WSps.maintenance.php --user 'Maintenance script' --summary 'Fill database'
+SERVER_NAME=<myservername> php extensions/PageSync/maintenance/WSps.maintenance.php --user 'Maintenance script' --summary 'Fill database'
 ```
 
 #### Development
 
+* 1.2.0 Rename WSPageSync to PageSync and move from gitlab to github.
 * 1.1.0 Rewrote deprecated 1.35.1+ code. Unchanged pages will no longer updates sync files
 * 1.0.1 Added support for different content types
 * 1.0.0 release
