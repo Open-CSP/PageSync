@@ -96,7 +96,7 @@ class PSShare {
 	 *
 	 * @return string
 	 */
-	public function renderDownloadUrlForm( $returnSubmit = false ): string {
+	public function renderDownloadUrlForm( bool $returnSubmit = false ): string {
 		if ( !$returnSubmit ) {
 			$downloadForm = '<input type="hidden" name="wsps-action" value="wsps-share-downloadurl">';
 			$downloadForm .= '<div class="uk-margin"><div class="uk-inline  uk-width-1-1"><a class="uk-form-icon uk-form-icon-flip" href="#" uk-icon="icon: link"></a>';

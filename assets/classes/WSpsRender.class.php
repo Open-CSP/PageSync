@@ -21,8 +21,13 @@ class WSpsRender {
 			'index.php'
 		);
 		$dir = $url . 'extensions/PageSync/assets/';
+		$resources = '<link rel="stylesheet" href="' . $dir . 'css/uikit.min.css" />';
+		$resources .= '<script src="' . $dir . 'js/uikit.min.js"></script>';
+		$resources .= '<script src="' . $dir . 'js/uikit-icons.min.js"></script>';
+		$resources .= '<link rel="stylesheet" href="' . $dir . 'css/select2.min.css" />';
+		$resources .= '<script src="' . $dir . 'js/select2/select2.min.js"></script>';
+		return $resources;
 
-		return '<link rel="stylesheet" href="' . $dir . 'css/uikit.min.css" /><script src="' . $dir . 'js/uikit.min.js"></script><script src="' . $dir . 'js/uikit-icons.min.js"></script>';
 	}
 
 	/**
@@ -65,11 +70,14 @@ class WSpsRender {
 	 * @return string
 	 */
 	function renderIndexPage( $data, string $wgScript ) : string {
+		global $wgScript;
+		$formHeader = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=edit">';
 		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_slots' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_user' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
+		$html .= '<th class="uk-text-center">' . wfMessage( 'wsps-special_table_header_edit' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
 		$row  = 1;
 		foreach ( $data as $page ) {
@@ -82,6 +90,12 @@ class WSpsRender {
 			}
 			$html   .= '<td class="wsps-td">' . $page['username'] . '</td>';
 			$html   .= '<td class="wsps-td">' . $page['changed'] . '</td>';
+			$button = $formHeader . '<input type="hidden" name="wsps-action" value="wsps-edit">';
+			$button .= '<input type="hidden" name="id" value="' . $page['pageid'] . '">';
+			$button .= '<button style="border:none;" type="submit" class="uk-button uk-button-default"><span class="uk-icon-button" uk-icon="pencil" title="' . wfMessage(
+					'wsps-special_table_header_edit'
+				)->text() . '"></span></button> ';
+			$html   .= '<td class="wsps-td">' . $button . '</td>';
 			$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $page['pageid'] . '"></a>';
 			$html   .= '<td class="wsps-td">' . $button . '</td>';
 			$html   .= '</tr>';

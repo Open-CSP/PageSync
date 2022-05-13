@@ -525,6 +525,25 @@ class WSpsHooks {
 	}
 
 	/**
+	 * @param int $id
+	 *
+	 * @return array
+	 */
+	public static function getInfoFileFromPageID( int $id ): array {
+		$title = self::getPageTitle( $id );
+		if ( $title === false || $title === null ) {
+			return self::makeMessage(
+				false,
+				wfMessage( 'wsps-error_page_not_found' )->text()
+			);
+		}
+		return self::makeMessage(
+			true,
+			self::setInfoName( self::cleanFileName( $title ) )
+		);
+	}
+
+	/**
 	 * @param string $fname
 	 * @param string $title
 	 * @param array $slotsContents
@@ -572,6 +591,21 @@ class WSpsHooks {
 		foreach ( $slotsContents as $k => $v ) {
 			$slots[] = $k;
 		}
+		$description = '';
+		$tags = '';
+		$date = false;
+		if ( file_exists( $infoFile ) ) {
+			$oldFileInfo = json_decode( file_get_contents( $infoFile ), true );
+			if ( isset( $oldFileInfo['description'] ) ) {
+				$description = $oldFileInfo['description'];
+			}
+			if ( isset( $oldFileInfo['tags'] ) ) {
+				$tags = $oldFileInfo['tags'];
+			}
+			if ( isset( $oldFileInfo['changed'] ) ) {
+				$date = $oldFileInfo['changed'];
+			}
+		}
 
 		$infoContent = self::setInfoContent(
 			$fname,
@@ -579,7 +613,10 @@ class WSpsHooks {
 			$uname,
 			$id,
 			$slots,
-			$isFile
+			$isFile,
+			$date,
+			$description,
+			$tags
 		);
 
 		if ( $isFile !== false ) {
@@ -589,6 +626,7 @@ class WSpsHooks {
 				$isFile['url']
 			);
 		}
+
 
 		// save the info file
 		$result = file_put_contents(
@@ -649,6 +687,42 @@ class WSpsHooks {
 	}
 
 	/**
+	 * @param string $infoFile
+	 * @param string $description
+	 * @param string $tags
+	 *
+	 * @return array
+	 */
+	public static function updateInfoFile( string $infoFile, string $description, string $tags ): array {
+		if ( file_exists( $infoFile ) ) {
+			$oldFileInfo = json_decode( file_get_contents( $infoFile ), true );
+			$oldFileInfo['description'] = $description;
+			$oldFileInfo['tags'] = $tags;
+		} else {
+			return self::makeMessage(
+				false,
+				wfMessage( 'wsps-error_info_file_read' )->text()
+			);
+		}
+		// save the info file
+		$result = file_put_contents(
+			$infoFile,
+			json_encode( $oldFileInfo )
+		);
+		if ( $result === false ) {
+			return self::makeMessage(
+				false,
+				wfMessage( 'wsps-error_info_file' )->text()
+			);
+		} else {
+			return self::makeMessage(
+				true,
+				"ok"
+			);
+		}
+	}
+
+	/**
 	 * @param string $fname
 	 * @param string $title
 	 * @param string $uname
@@ -656,6 +730,8 @@ class WSpsHooks {
 	 * @param array $slots
 	 * @param bool|array $isFile
 	 * @param false|string $changed
+	 * @param string $description
+	 * @param string $tags
 	 *
 	 * @return array
 	 */
@@ -666,7 +742,9 @@ class WSpsHooks {
 		int $id,
 		array $slots,
 		$isFile,
-		$changed = false
+		$changed = false,
+		string $description = "",
+		string $tags = ""
 	) : array {
 		if ( $changed === false ) {
 			$datetime = new DateTime();
@@ -694,6 +772,8 @@ class WSpsHooks {
 		} else {
 			$infoContent['isFile'] = false;
 		}
+		$infoContent['description'] = $description;
+		$infoContent['tags']    	= $tags;
 
 		return $infoContent;
 	}
@@ -1063,6 +1143,12 @@ class WSpsHooks {
 		if ( ! isset( $json['isFile'] ) ) {
 			$json['isFile'] = false;
 		}
+		if ( !isset( $json['description'] ) ) {
+			$json['description'] = '';
+		}
+		if ( !isset( $json['tags'] ) ) {
+			$json['tags'] = '';
+		}
 
 		return json_encode(
 			self::setInfoContent(
@@ -1072,7 +1158,9 @@ class WSpsHooks {
 				$json['pageid'],
 				$json['slots'],
 				$json['isFile'],
-				$json['changed']
+				$json['changed'],
+				$json['description'],
+				$json['tags']
 			)
 		);
 	}
