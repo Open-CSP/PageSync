@@ -64,7 +64,7 @@ class WSpsHooks {
 				self::$config['contentSlotsToBeSynced'] = $wgWSPageSync['contentSlotsToBeSynced'];
 			}
 
-			if ( isset( $wgWSPageSync['filePath'] ) && ! empty( $wgWSPageSync['filePath'] ) ) {
+			if ( isset( $wgWSPageSync['filePath'] ) && !empty( $wgWSPageSync['filePath'] ) ) {
 				$filePath   = rtrim(
 					$wgWSPageSync['filePath'],
 					'/'
@@ -72,7 +72,7 @@ class WSpsHooks {
 				$filePath   .= '/';
 				$exportPath = $filePath . 'export/';
 
-				if ( ! file_exists( $filePath ) ) {
+				if ( !file_exists( $filePath ) ) {
 					mkdir(
 						$filePath
 					);
@@ -82,7 +82,7 @@ class WSpsHooks {
 					);
 				}
 
-				if ( ! file_exists( $exportPath ) ) {
+				if ( !file_exists( $exportPath ) ) {
 					mkdir(
 						$exportPath
 					);
@@ -93,6 +93,25 @@ class WSpsHooks {
 				}
 				self::$config['filePath']   = $filePath;
 				self::$config['exportPath'] = $exportPath;
+			}
+			if ( isset( $wgWSPageSync['tempFilePath'] ) && !empty( $wgWSPageSync['tempFilePath'] ) ) {
+				$filePath   = rtrim(
+					$wgWSPageSync['tempFilePath'],
+					'/'
+				);
+				$filePath   .= '/';
+
+				if ( !file_exists( $filePath ) ) {
+					mkdir(
+						$filePath
+					);
+					chmod(
+						$filePath,
+						0777
+					);
+				}
+
+				self::$config['tempFilePath'] = $filePath;
 			}
 
 			return;
@@ -111,7 +130,7 @@ class WSpsHooks {
 		self::$config['filePath']                              = $IP . '/extensions/PageSync/files/';
 		self::$config['exportPath']                            = self::$config['filePath'] . 'export/';
 
-		if ( ! file_exists( self::$config['filePath'] ) ) {
+		if ( !file_exists( self::$config['filePath'] ) ) {
 			mkdir(
 				self::$config['filePath']
 			);
@@ -120,7 +139,7 @@ class WSpsHooks {
 				0777
 			);
 		}
-		if ( ! file_exists( self::$config['exportPath'] ) ) {
+		if ( !file_exists( self::$config['exportPath'] ) ) {
 			mkdir(
 				self::$config['exportPath']
 			);

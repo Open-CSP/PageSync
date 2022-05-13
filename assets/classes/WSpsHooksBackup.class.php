@@ -18,7 +18,7 @@ class WSpsHooksBackup {
 	 * @return bool
 	 */
 	public function deleteBackupFile( string $backupFile ) : bool {
-		if ( WSpsHooks::$config !== false ) {
+		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
 		$path = WSpsHooks::$config['exportPath'];
@@ -92,7 +92,7 @@ class WSpsHooksBackup {
 	 * @return bool
 	 */
 	public function restoreBackupFile( string $backupFile ) : bool {
-		if ( WSpsHooks::$config !== false ) {
+		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
 		$path      = \WSpsHooks::$config['exportPath'];
@@ -117,7 +117,7 @@ class WSpsHooksBackup {
 	 * Create a backup file
 	 */
 	public static function createZipFileBackup() {
-		if ( WSpsHooks::$config !== false ) {
+		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
 		$path            = WSpsHooks::$config['exportPath'];
@@ -179,7 +179,7 @@ class WSpsHooksBackup {
 	 */
 	public function getBackupList() : array {
 		$data =[];
-		if ( WSpsHooks::$config !== false ) {
+		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
 		$path       = WSpsHooks::$config['exportPath'];

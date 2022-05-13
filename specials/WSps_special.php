@@ -236,10 +236,20 @@ class WSpsSpecial extends SpecialPage {
 					)
 				);
 				$share = new PSShare();
-				$body = '<p>' . $this->msg('wsps-content_share_information' ) . '</p>';
+				//Handle any backup actions
+				$pAction = $this->getPost( 'wsps-action' );
+				switch ( $pAction ) {
+					case "wsps-share-install":
+						$body = $share->getFormHeader() . $share->renderDownloadUrlForm();
+						$footer = $share->renderDownloadUrlForm( true ) . '</form>';
+						$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"", $body, $footer ) );
+						return true;
+						break;
+				}
+				$body = '<p>' . $this->msg( 'wsps-content_share_information' ) . '</p>';
 				$footer = $share->renderChooseAction();
 
-				$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"", $body, $footer ) );
+				$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"Download Shared File", $body, $footer ) );
 				$out->addHTML( $style );
 				return true;
 				break;
