@@ -182,7 +182,7 @@ class WSpsSpecial extends SpecialPage {
 			$wgScript
 		);
 		$this->version = \ExtensionRegistry::getInstance()->getAllThings()["PageSync"]["version"];
-		$this->logo    = '/extensions/PageSync/assets/images/wspagesync.png';
+		$this->logo    = '/extensions/PageSync/assets/images/pagesync.png';
 		$this->assets  = '/extensions/PageSync/assets/images/';
 		$style         = $render->getStyle( $this->assets );
 

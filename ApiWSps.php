@@ -135,8 +135,8 @@ class ApiWSps extends ApiBase {
 	 */
 	protected function getExamplesMessages() : array {
 		return [
-			'action=wspagesync&what=add&pageId=666'    => 'apihelp-wsps-example-1',
-			'action=wspagesync&what=remove&pageId=666' => 'apihelp-wsps-example-2'
+			'action=pagesync&what=add&pageId=666'    => 'apihelp-wsps-example-1',
+			'action=pagesync&what=remove&pageId=666' => 'apihelp-wsps-example-2'
 		];
 	}
 }
