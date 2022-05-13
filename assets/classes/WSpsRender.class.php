@@ -255,7 +255,8 @@ class WSpsRender {
 			'%%item2class%%',
 			'%%item3class%%',
 			'%%wsps-special_menu_sync_custom_query%%',
-			'%%wsps-special_menu_backup_files%%'
+			'%%wsps-special_menu_backup_files%%',
+			'%%wsps-special_menu_share_files%%'
 		);
 		$replace = array(
 			$baseUrl,
@@ -264,7 +265,8 @@ class WSpsRender {
 			$item2class,
 			$item3class,
 			wfMessage( 'wsps-special_menu_sync_custom_query' )->text(),
-			wfMessage( 'wsps-special_menu_backup_files' )->text()
+			wfMessage( 'wsps-special_menu_backup_files' )->text(),
+			wfMessage( 'wsps-special_menu_share_files' )->text()
 		);
 
 		$ret = str_replace(
@@ -280,12 +282,16 @@ class WSpsRender {
 		return $ret;
 	}
 
-	function renderCard( string $title, string $subTitle, string $body, string $footer ) : string {
+	function renderCard( string $title, string $subTitle, string $body, string $footer = "" ) : string {
 		$content = '<div class="uk-card uk-card-default">';
 		$content .= '<div class="uk-card-header"><h3 class="uk-card-title uk-margin-remove-bottom">' . $title . '</h3>';
-		$content .= '<p class="uk-text-meta uk-margin-remove-top">' . $subTitle . '</p></div>';
-		$content .= '<div class="uk-card-body"><p class="uk-text-meta uk-margin-remove-top">' . $body . '</p></div>';
-		$content .= '<div class="uk-card-footer"><p>' . $footer . '</p></div>';
+		if( $subTitle !== "" ) {
+			$content .= '<p class="uk-text-meta uk-margin-remove-top">' . $subTitle . '</p>';
+		}
+		$content .= '</div><div class="uk-card-body"><p class="uk-text-meta uk-margin-remove-top">' . $body . '</p></div>';
+		if( $footer !== "" ) {
+			$content .= '<div class="uk-card-footer"><p>' . $footer . '</p></div>';
+		}
 		$content .= '</div>';
 
 		return $content;

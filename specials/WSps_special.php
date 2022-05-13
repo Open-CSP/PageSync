@@ -228,6 +228,21 @@ class WSpsSpecial extends SpecialPage {
 					return true;
 				}
 				break;
+			case "share":
+				$out->addHTML(
+					$this->setResourcesAndMenu(
+						$render,
+						3
+					)
+				);
+				$share = new PSShare();
+				$body = '<p>' . $this->msg('wsps-content_share_information' ) . '</p>';
+				$footer = $share->renderChooseAction();
+
+				$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"", $body, $footer ) );
+				$out->addHTML( $style );
+				return true;
+				break;
 			case "backup":
 				$out->addHTML(
 					$this->setResourcesAndMenu(

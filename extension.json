@@ -21,7 +21,8 @@
     "WSpsSpecial": "specials/WSps_special.php",
     "WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php",
     "WSpsBackupHandler": "specials/handlers/WSpsBackupHandler.php",
-    "WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php"
+    "WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php",
+    "PSShare": "assets/classes/PSShare.class.php"
   },
   "ExtensionMessagesFiles": {
     "WSpsAlias": "WSps.i18n.alias.php",
@@ -59,6 +60,7 @@
   "config": {
     "PageSync": {
       "filePath": "",
+      "tempFilePath": "",
       "fileNameSpaces": [
         6
       ],
