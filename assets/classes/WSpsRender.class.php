@@ -63,6 +63,16 @@ class WSpsRender {
 		return $form;
 	}
 
+	public function renderEditEntry( $pageInfo ){
+		global $wgScript;
+
+		$formHeader = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=edit">';
+		$html = '<input type="hidden" name="wsps-action" value="wsps-edit-information">';
+		$html .= '<input type="hidden" name="id" value="' . $pageInfo['id'] . '">';
+		$html .= '<textarea class="uk-textarea" name="description">' . $pageInfo['description'] . '</textarea>';
+
+	}
+
 	/**
 	 * @param $data
 	 * @param string $wgScript
@@ -95,7 +105,7 @@ class WSpsRender {
 			$button .= '<button style="border:none;" type="submit" class="uk-button uk-button-default"><span class="uk-icon-button" uk-icon="pencil" title="' . wfMessage(
 					'wsps-special_table_header_edit'
 				)->text() . '"></span></button> ';
-			$html   .= '<td class="wsps-td">' . $button . '</td>';
+			$html   .= '<td class="wsps-td uk-text-center">' . $button . '</td>';
 			$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $page['pageid'] . '"></a>';
 			$html   .= '<td class="wsps-td">' . $button . '</td>';
 			$html   .= '</tr>';
