@@ -302,9 +302,50 @@ class WSpsSpecial extends SpecialPage {
 				//Handle any backup actions
 				$pAction = $this->getPost( 'wsps-action' );
 				switch ( $pAction ) {
+					case "wsps-share-select-tags":
+						$tags = $this->getPost( "tags", false );
+						$type = $this->getPost( "wsps-select-type", true );
+						if ( $tags === false && $type !== 'ignore' ) {
+							$out->addHTML( 'No tags selected' );
+							break;
+						}
+						switch ( $type ) {
+							case "ignore":
+								$pages = WSpsHooks::getAllPageInfo();
+								break;
+							case "all":
+								$pages = $share->returnPagesWithAllTage( $tags );
+								break;
+							case "one":
+								$pages = $share->returnPagesWithAtLeastOneTag( $tags );
+								break;
+							default:
+								$out->addHTML( 'No type select recognized' );
+								break;
+						}
+						$body =  $render->renderIndexPage( $pages, $wgScript );
+						$body .= $share->getFormHeader( false ) . $share->agreeSelectionShareFooter( 'body' );
+						if ( count( $pages ) === 1 ) {
+							$title = count( $pages ) . " page to be shared";
+						} else {
+							$title = count( $pages ) . " pages to be shared";
+						}
+						$footer = $share->agreeSelectionShareFooter( 'agreebtn' );
+						$footer .= '</form>';
+						$footer .= $share->agreeSelectionShareFooter( 'cancelbtn' );
+						$out->addHTML( $render->renderCard( $title, "Agree or cancel", $body, $footer ) );
+						return true;
+
+						break;
 					case "wsps-share-install":
 						$body = $share->getFormHeader() . $share->renderDownloadUrlForm();
 						$footer = $share->renderDownloadUrlForm( true ) . '</form>';
+						$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"", $body, $footer ) );
+						return true;
+						break;
+					case "wsps-share-create":
+						$body = $share->getFormHeader() . $share->renderCreateSelectTagsForm();
+						$footer = $share->renderCreateSelectTagsForm( true ) . '</form>';
 						$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"", $body, $footer ) );
 						return true;
 						break;

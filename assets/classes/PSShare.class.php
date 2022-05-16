@@ -86,9 +86,136 @@ class PSShare {
 	/**
 	 * @return string
 	 */
-	public function getFormHeader(): string {
+	public function getFormHeader( $inline = false ): string {
 		global $wgScript;
-		return '<form method="post" action="' . $wgScript . '/Special:WSps?action=share">';
+		if ( $inline ) {
+			return '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=share">';
+		} else {
+			return '<form method="post" action="' . $wgScript . '/Special:WSps?action=share">';
+		}
+	}
+
+	/**
+	 * @param array $tags
+	 *
+	 * @return array
+	 */
+	public function returnPagesWithAtLeastOneTag( array $tags ): array {
+		$allPages = WSpsHooks::getAllPageInfo();
+		$correctPages = [];
+		foreach ( $allPages as $page ) {
+			$tagCount = 0;
+			if ( isset( $page['tags'] ) ) {
+				$pTags = explode( ',', $page['tags'] );
+				foreach ( $pTags as $sTag ) {
+					if ( in_array(
+						$sTag,
+						$tags
+					) ) {
+						$tagCount++;
+					}
+				}
+				if ( $tagCount === 0 ) {
+					continue;
+				}
+				$correctPages[] = $page;
+			}
+		}
+		return $correctPages;
+	}
+
+	/**
+	 * @param array $tags
+	 *
+	 * @return array
+	 */
+	public function returnPagesWithAllTage( array $tags ): array {
+		$allPages = WSpsHooks::getAllPageInfo();
+		$correctPages = [];
+		$nrOfTags = count( $tags );
+		foreach ( $allPages as $k => $page ) {
+			$tagCount = 0;
+			if ( isset( $page['tags'] ) ) {
+				$pTags = explode( ',', $page['tags'] );
+				foreach ( $pTags as $sTag ) {
+					if ( in_array(
+						$sTag,
+						$tags
+					) ) {
+						$tagCount++;
+					}
+				}
+				if ( $nrOfTags !== $tagCount ) {
+					continue;
+				}
+				$correctPages[] = $page;
+			}
+		}
+		return $correctPages;
+	}
+
+	public function agreeSelectionShareFooter( string $action ): string {
+		global $wgScript;
+		switch ( $action ) {
+			case "agreebtn":
+				$doShareForm = '<input type="submit" style="display:inline-block;" class="uk-button uk-width-1-2 uk-button-primary" ';
+				$doShareForm .= 'value="CREATE SHARE FILE" >';
+				break;
+			case "cancelbtn":
+				$doShareForm = $this->getFormHeader( false );
+				$doShareForm .= '<input type="hidden" name="wsps-action" value="wsps-share-docancel">';
+				$doShareForm .= '<input type="submit" style="display:inline-block;" class="uk-button uk-width-1-2 uk-button-primary" value="';
+				$doShareForm .= "CANCEL";
+				$doShareForm .= '"></form>';
+				break;
+			case "body":
+			default:
+				$doShareForm = '<input type="hidden" name="wsps-action" value="wsps-share-doshare">';
+				$doShareForm .= '<label class="uk-form-label">Disclaimer<sup>*</sup></label>';
+				$doShareForm .= '<textarea required="required" class="uk-textarea uk-width-1-1" rows="5" name="disclaimer" ></textarea>';
+				$doShareForm .= '<label class="uk-form-label">Project</label>';
+				$doShareForm .= '<input type="text"" required="required" class="uk-input uk-width-1-1" name="project" >';
+				$doShareForm .= '<label class="uk-form-label">Company</label>';
+				$doShareForm .= '<input type="text"" required="required" class="uk-input uk-width-1-1" name="company" >';
+				$doShareForm .= '<label class="uk-form-label">Your name</label>';
+				$doShareForm .= '<input type="text"" required="required" class="uk-input uk-width-1-1" name="name" >';
+				break;
+		}
+		return $doShareForm;
+		//return '<div class="uk-align-center">' . $btn_create . $btn_install . '</div>';
+	}
+
+	/**
+	 * @param bool $returnSubmit
+	 *
+	 * @return string
+	 */
+	public function renderCreateSelectTagsForm( bool $returnSubmit = false ): string {
+		global $IP;
+		if ( !$returnSubmit ) {
+			$selectTagsForm = '<input type="hidden" name="wsps-action" value="wsps-share-select-tags">';
+			$selectTagsForm .= '<label class="uk-form-label">Choose pages based on tags</label>';
+			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
+			$tags       = WSpsHooks::getAllTags();
+			foreach ( $tags as $tag ) {
+				if ( !empty( $tag ) ) {
+					$selectTagsForm .= '<option selected="selected" value="' . $tag . '">' . $tag . '</option>';
+				}
+			}
+			$selectTagsForm .= '</select>';
+			$selectTagsForm .= '<p><input type="radio" id="ws-all" class="uk-radio" name="wsps-select-type" checked="checked" value="all">';
+			$selectTagsForm .= ' <label for="ws-all" class="uk-form-label">Pages must have all chosen tags</label><br>';
+			$selectTagsForm .= '<input type="radio" id="ws-one" class="uk-radio" name="wsps-select-type" value="one">';
+			$selectTagsForm .= ' <label for="ws-one" class="uk-form-label">Pages must have at least one chosen tag</label><br>';
+			$selectTagsForm .= '<input type="radio" id="ws-all-pages" class="uk-radio" name="wsps-select-type" value="ignore">';
+			$selectTagsForm .= ' <label for="ws-all-pages" class="uk-form-label">Ignore tags and select all synced pages</label></p>';
+			$selectTagsForm .= '<script>' . file_get_contents( $IP . '/extensions/PageSync/assets/js/loadSelect2.js' ) . '</script>';;
+		} else {
+			$selectTagsForm = '<input type="submit" class="uk-button uk-width-1-1 uk-button-primary" value="';
+			$selectTagsForm .= "Select and preview pages";
+			$selectTagsForm .= '">';
+		}
+		return $selectTagsForm;
 	}
 
 	/**
@@ -109,7 +236,6 @@ class PSShare {
 		}
 		return $downloadForm;
 	}
-
 
 	/**
 	 * @return string

@@ -201,6 +201,21 @@ class WSpsHooks {
 	}
 
 	/**
+	 * @param mixed $arr
+	 * @param mixed $col
+	 * @param mixed $dir
+	 *
+	 * @return void
+	 */
+	public static function arraySortByColumn( &$arr, $col, $dir = SORT_ASC ) {
+		$sort_col = [];
+		foreach ( $arr as $key => $row ) {
+			$sort_col[$key] = $row[$col];
+		}
+		array_multisort( $sort_col, $dir, $arr );
+	}
+
+	/**
 	 * Get all pages and their detailed info
 	 *
 	 * @return array|false all pages and their detailed info
@@ -212,7 +227,7 @@ class WSpsHooks {
 		$filesPath = self::$config['exportPath'];
 		$fList     = self::getFileIndex();
 		$data      = [];
-		if ( $fList !== false && ! empty( $fList ) ) {
+		if ( $fList !== false && !empty( $fList ) ) {
 			foreach ( $fList as $k => $v ) {
 				$infoFile = $filesPath . $k . '.info';
 				if ( file_exists( $infoFile ) ) {
@@ -223,6 +238,10 @@ class WSpsHooks {
 				}
 			}
 		}
+
+		array_multisort( array_map( 'strtotime', array_column( $data, 'changed' ) ),
+						SORT_DESC,
+						$data );
 
 		return $data;
 	}
