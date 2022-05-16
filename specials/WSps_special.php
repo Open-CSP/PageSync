@@ -206,30 +206,63 @@ class WSpsSpecial extends SpecialPage {
 			case "pedit":
 
 				$pAction = $this->getPost( 'wsps-action' );
-				if( $pAction === 'wsps-edit' ) {
-					$pageId = $this->getPost( 'id' );
-					if( $pageId !== false ) {
-						$pagePath = WSpsHooks::getInfoFileFromPageID( $pageId );
-						if ( $pagePath['status'] === false ) {
-							$out->addHTML('page not found: ' . $pageId );
+				switch ( $pAction ) {
+					case "wsps-edit-information":
+						$description = $this->getPost( 'description', false );
+						$tags = $this->getPost( 'tags', false );
+						$pageId = $this->getPost( 'id' );
+						if ( $description === false || $tags === false || $pageId === false ) {
 							break;
 						}
-						$out->addHTML(
-							$this->setResourcesAndMenu(
-								$render,
-								3
-							)
-						);
-						$pageInfo = json_decode( file_get_contents( $pagePath['info'] ), true );
-
-						$body = $render->renderEditEntry( $pageInfo );
-						$title = WSpsHooks::getPageTitle( $pageId );
-						$footer = $render->renderEditEntry( $pageInfo, true );
-						$out->addHTML( $render->renderCard( $this->msg( 'wsps-special_table_header_edit' ) . ' ' . $title,"", $body, $footer ) );
-						return true;
+						$pagePath = WSpsHooks::getInfoFileFromPageID( $pageId );
+						if ( $pagePath['status'] === false ) {
+							$out->addHTML( $pagePath['info'] );
+							break;
+						}
+						$result = WSpsHooks::updateInfoFile( $pagePath['info'], $description, implode( ',', $tags ) );
+						if ( $result['status'] === false ) {
+							$out->addHTML( $pagePath['info'] );
+							break;
+						}
 						break;
-					}
 
+					case "wsps-edit":
+						$pageId = $this->getPost( 'id' );
+						if ( $pageId !== false ) {
+							$pagePath = WSpsHooks::getInfoFileFromPageID( $pageId );
+							if ( $pagePath['status'] === false ) {
+								$out->addHTML( 'page not found: ' . $pageId );
+								break;
+							}
+							$out->addHTML(
+								$this->setResourcesAndMenu(
+									$render,
+									3
+								)
+							);
+							$pageInfo = json_decode(
+								file_get_contents( $pagePath['info'] ),
+								true
+							);
+
+							$body   = $render->renderEditEntry( $pageInfo );
+							$title  = WSpsHooks::getPageTitle( $pageId );
+							$footer = $render->renderEditEntry(
+								$pageInfo,
+								true
+							);
+							$out->addHTML(
+								$render->renderCard(
+									$this->msg( 'wsps-special_table_header_edit' ),
+									$title,
+									$body,
+									$footer
+								)
+							);
+
+							return true;
+							break;
+						}
 				}
 				break;
 			case "convert":

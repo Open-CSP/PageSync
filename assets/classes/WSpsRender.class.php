@@ -25,9 +25,7 @@ class WSpsRender {
 		$resources .= '<script src="' . $dir . 'js/uikit.min.js"></script>';
 		$resources .= '<script src="' . $dir . 'js/uikit-icons.min.js"></script>';
 		$resources .= '<link rel="stylesheet" href="' . $dir . 'css/select2.min.css" />';
-		$resources .= '<script src="' . $dir . 'js/select2/select2.min.js"></script>';
 		return $resources;
-
 	}
 
 	/**
@@ -63,22 +61,44 @@ class WSpsRender {
 		return $form;
 	}
 
-	public function renderEditEntry( $pageInfo, $renderBottom = false ){
-		global $wgScript;
+	/**
+	 * @param array $pageInfo
+	 * @param bool $renderBottom
+	 *
+	 * @return string
+	 */
+	public function renderEditEntry( array $pageInfo, bool $renderBottom = false ): string {
+		global $wgScript, $IP;
 
 		//https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=share
 		//https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=edit
-		if( !$renderBottom ) {
-			$html       = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=pedit">';
+		if ( !$renderBottom ) {
+			$html       = '<form method="post" action="' . $wgScript . '/Special:WSps?action=pedit">';
 			$html       .= '<input type="hidden" name="wsps-action" value="wsps-edit-information">';
 			$html       .= '<input type="hidden" name="id" value="' . $pageInfo['pageid'] . '">';
-			$html       .= '<textarea class="uk-textarea" name="description">' . $pageInfo['description'] . '</textarea>';
-			$html       .= '<select id="ps-tags" name="tags">';
+			$description = '';
+			if( isset( $pageInfo['description'] ) ) {
+				$description = $pageInfo['description'];
+			}
+			if( isset( $pageInfo['tags'] ) ) {
+				$tagsFile = explode( ',', $pageInfo['tags'] );
+			} else {
+				$tagsFile = [];
+			}
+			$html       .= '<label class="uk-form-label">Description</label>';
+			$html       .= '<textarea class="uk-textarea uk-width-1-1" rows="5" name="description">' . $description . '</textarea>';
+			$html       .= '<label class="uk-form-label">Tags</label>';
+			$html       .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
 			$tags       = WSpsHooks::getAllTags();
 			foreach ( $tags as $tag ) {
-				$html .= '<option value="' . $tag . '">' . $tag . '</option>';
+				if ( in_array( $tag, $tagsFile ) ) {
+					$html .= '<option selected="selected" value="' . $tag . '">' . $tag . '</option>';
+				} else {
+					$html .= '<option value="' . $tag . '">' . $tag . '</option>';
+				}
 			}
 			$html .= '</select>';
+			$html .= '<script>' . file_get_contents( $IP . '/extensions/PageSync/assets/js/loadSelect2.js' ) . '</script>';
 		} else {
 			$html = '<input type="submit" class="uk-button uk-button-primary uk-width-1-1 uk-margin-small-bottom uk-text-large" value="' . wfMessage(
 					'wsps-special_table_header_edit'
@@ -103,6 +123,7 @@ class WSpsRender {
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_slots' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_user' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
+		$html .= '<th class="uk-text-center">' . wfMessage( 'wsps-special_table_header_tags' )->text() . '</th>';
 		$html .= '<th class="uk-text-center">' . wfMessage( 'wsps-special_table_header_edit' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
 		$row  = 1;
@@ -117,6 +138,25 @@ class WSpsRender {
 			}
 			$html   .= '<td class="wsps-td">' . $page['username'] . '</td>';
 			$html   .= '<td class="wsps-td">' . $page['changed'] . '</td>';
+
+			if ( isset( $page['tags'] ) ) {
+				$tags = explode( ',', $page['tags'] );
+			} else {
+				$tags = [];
+			}
+			$htmlTags = '';
+			if ( !empty( $tags ) ) {
+				if ( is_array( $tags ) ) {
+					foreach ( $tags as $tag ) {
+						if ( !empty( $tag ) ) {
+							$htmlTags .= '<span class="uk-badge">' . $tag . '</span>';
+						}
+					}
+				} else {
+					$htmlTags .= '<span class="uk-badge">' . $tags . '</span>';
+				}
+			}
+			$html   .= '<td class="wsps-td uk-text-center">' . $htmlTags . '</td>';
 			$button = $formHeader . '<input type="hidden" name="wsps-action" value="wsps-edit">';
 			$button .= '<input type="hidden" name="id" value="' . $page['pageid'] . '">';
 			$button .= '<button style="border:none;" type="submit" class="uk-button uk-button-default"><span class="uk-icon-button" uk-icon="pencil" title="' . wfMessage(
