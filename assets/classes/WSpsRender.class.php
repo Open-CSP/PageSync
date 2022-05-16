@@ -63,13 +63,29 @@ class WSpsRender {
 		return $form;
 	}
 
-	public function renderEditEntry( $pageInfo ){
+	public function renderEditEntry( $pageInfo, $renderBottom = false ){
 		global $wgScript;
 
-		$formHeader = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=edit">';
-		$html = '<input type="hidden" name="wsps-action" value="wsps-edit-information">';
-		$html .= '<input type="hidden" name="id" value="' . $pageInfo['id'] . '">';
-		$html .= '<textarea class="uk-textarea" name="description">' . $pageInfo['description'] . '</textarea>';
+		//https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=share
+		//https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=edit
+		if( !$renderBottom ) {
+			$html       = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=pedit">';
+			$html       .= '<input type="hidden" name="wsps-action" value="wsps-edit-information">';
+			$html       .= '<input type="hidden" name="id" value="' . $pageInfo['pageid'] . '">';
+			$html       .= '<textarea class="uk-textarea" name="description">' . $pageInfo['description'] . '</textarea>';
+			$html       .= '<select id="ps-tags" name="tags">';
+			$tags       = WSpsHooks::getAllTags();
+			foreach ( $tags as $tag ) {
+				$html .= '<option value="' . $tag . '">' . $tag . '</option>';
+			}
+			$html .= '</select>';
+		} else {
+			$html = '<input type="submit" class="uk-button uk-button-primary uk-width-1-1 uk-margin-small-bottom uk-text-large" value="' . wfMessage(
+					'wsps-special_table_header_edit'
+				)->text() . '">';
+			$html .= '</form>';
+		}
+		return $html;
 
 	}
 
@@ -81,7 +97,7 @@ class WSpsRender {
 	 */
 	function renderIndexPage( $data, string $wgScript ) : string {
 		global $wgScript;
-		$formHeader = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=edit">';
+		$formHeader = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=pedit">';
 		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_slots' )->text() . '</th>';
@@ -91,6 +107,7 @@ class WSpsRender {
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
 		$row  = 1;
 		foreach ( $data as $page ) {
+
 			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
 			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
 			if ( isset( $page['slots'] ) ) {
@@ -104,7 +121,7 @@ class WSpsRender {
 			$button .= '<input type="hidden" name="id" value="' . $page['pageid'] . '">';
 			$button .= '<button style="border:none;" type="submit" class="uk-button uk-button-default"><span class="uk-icon-button" uk-icon="pencil" title="' . wfMessage(
 					'wsps-special_table_header_edit'
-				)->text() . '"></span></button> ';
+				)->text() . '"></span></button></form> ';
 			$html   .= '<td class="wsps-td uk-text-center">' . $button . '</td>';
 			$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $page['pageid'] . '"></a>';
 			$html   .= '<td class="wsps-td">' . $button . '</td>';

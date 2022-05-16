@@ -321,6 +321,14 @@ class importPagesIntoWiki extends Maintenance {
 						"\n\e[42mSuccessfully changed " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
 					);
 				} else {
+					$infoPath = WSpsHooks::getInfoFileFromPageID( $wikiPageObject->getId() );
+					if ( $infoPath['status'] !== false ) {
+						$pageInfo = json_decode( file_get_contents( $infoPath['info'] ), true );
+						$pageInfo['pageid'] = $wikiPageObject->getId();
+						file_put_contents( $infoPath['info'], json_encode( $pageInfo ) );
+					}
+
+
 					$skipCount++;
 					$this->output(
 						"\n\e[42mSkipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"

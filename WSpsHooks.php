@@ -112,6 +112,17 @@ class WSpsHooks {
 				}
 
 				self::$config['tempFilePath'] = $filePath;
+			} else {
+				self::$config['tempFilePath'] = $IP . '/extensions/PageSync/Temp/';
+				if ( !file_exists( self::$config['tempFilePath'] ) ) {
+					mkdir(
+						self::$config['tempFilePath']
+					);
+					chmod(
+						self::$config['tempFilePath'],
+						0777
+					);
+				}
 			}
 
 			return;
@@ -522,6 +533,23 @@ class WSpsHooks {
 
 			return self::saveFileIndex( $index );
 		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function getAllTags(): array {
+		$pages = self::getAllPageInfo();
+		$tags = [];
+		foreach( $pages as $page ) {
+			if ( isset( $page['tags'] ) ) {
+				$temp = explode( ',', $page['tags'] );
+				foreach( $temp as $single ) {
+					$tags[] = $single;
+				}
+			}
+		}
+		return array_unique( $tags );
 	}
 
 	/**
