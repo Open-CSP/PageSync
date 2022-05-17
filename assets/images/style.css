@@ -9,6 +9,17 @@
     padding: 0px 4px 4px 0px !important;
 }
 
+.wspst-toggle {
+    width: 15px !important;
+    display: inline-block;
+    vertical-align: middle;
+    background-image: url(tag-off.png) !important;
+    background-size: contain;
+    background-position: center center !important;
+    background-repeat: no-repeat;
+    padding: 0px 4px 4px 0px !important;
+}
+
 .wsps-error {
     width: 23px !important;
     display: inline-block;
@@ -40,5 +51,10 @@
 
 .wsps-active {
     background-image: url(on.png) !important;
+
+}
+
+.wspst-active {
+    background-image: url(tag-on.png) !important;
 
 }

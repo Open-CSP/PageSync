@@ -78,6 +78,8 @@ $(function () {
 			wspsPost(id, user, 'add')
 		}
 	})
+
+
 	/**
 	 * When sysop clicks slider on the Special Page
 	 */

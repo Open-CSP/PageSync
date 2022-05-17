@@ -555,6 +555,23 @@ class WSpsHooks {
 	}
 
 	/**
+	 * @param int $id
+	 *
+	 * @return array|false|string[]
+	 */
+	public static function getTagsFromPage( int $id ) {
+		$file = self::getInfoFileFromPageID( $id );
+		$tags = [];
+		if ( $file['status'] ) {
+			$infoContent = json_decode( file_get_contents( $file['info'] ), true );
+			if ( isset( $infoContent['tags'] ) && !empty( $infoContent['tags'] ) ) {
+				$tags = explode( ',', $infoContent['tags'] );
+			}
+		}
+		return array_filter( $tags, 'strlen' );
+	}
+
+	/**
 	 * @return array
 	 */
 	public static function getAllTags(): array {
@@ -1371,14 +1388,22 @@ class WSpsHooks {
 			return true;
 		}
 
+		$fIndex = self::getFileIndex();
+		$tags = [];
+		$inSync = false;
 		if ( $articleId !== 0 ) {
-			$class  = "wsps-toggle";
-			$fIndex = self::getFileIndex();
+			$class = "wsps-toggle";
 			if ( false !== $fIndex && in_array(
 					$title,
 					$fIndex
 				) ) {
+				$inSync = true;
+				$tags = self::getTagsFromPage( $articleId );
 				$class .= ' wsps-active';
+				$classt = "wspst-toggle";
+				if ( !empty( $tags ) ) {
+					$classt .= ' wspst-active';
+				}
 			}
 			$links['views']['wsps'] = [
 				"class"     => $class,
@@ -1390,6 +1415,18 @@ class WSpsHooks {
 				'title'     => 'PageSync',
 				'rel'       => 'PageSync'
 			];
+			if ( $inSync ) {
+				$links['views']['wspst'] = [
+					"class"     => $classt,
+					"text"      => "",
+					"href"      => '#',
+					"exists"    => '1',
+					"primary"   => '1',
+					'redundant' => '1',
+					'title'     => 'PageSync Tags',
+					'rel'       => 'PageSync Tags'
+				];
+			}
 		} else {
 			$class                  = "wsps-error";
 			$links['views']['wsps'] = [
