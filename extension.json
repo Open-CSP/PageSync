@@ -74,6 +74,11 @@
   "ResourceModules": {
     "ext.WSPageSync.scripts": {
       "scripts": "wsps.js",
+      "dependencies": [
+        "oojs-ui-core",
+        "oojs-ui-windows",
+        "oojs-ui-widgets"
+      ],
       "styles": "assets/images/style.css",
       "position": "top",
       "messages": [

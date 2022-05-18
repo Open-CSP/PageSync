@@ -36,6 +36,11 @@ class ApiWSps extends ApiBase {
 		}
 
 		$pageId = $params['pageId'];
+		if ( isset( $params['tags'] ) ) {
+			$tags = $params['tags'];
+		} else {
+			$tags = false;
+		}
 		$userName = $user->getName();
 
 		WSpsHooks::setConfig();
@@ -64,6 +69,26 @@ class ApiWSps extends ApiBase {
 				);
 				$output = $this->setOutput( $result );
 				break;
+			case "updatetags" :
+				if ( $tags !== false ) {
+					$result = WSpsHooks::updateTags(
+						$pageId,
+						$tags,
+						$userName
+					);
+					$output = $this->setOutput( $result );
+				}
+				break;
+			case "gettags" :
+				$result = WSpsHooks::getTagsFromPage(
+					$pageId
+				);
+				if ( empty( $result ) ) {
+					$output = $this->setOutput( [ 'status' => false, 'info' => "no tags" ], true );
+				} else {
+					$output = $this->setOutput( [ 'status' => true, 'info' => $result ], true );
+				}
+				break;
 			default :
 				$this->dieWithError( 'No recognized action' );
 		}
@@ -81,11 +106,15 @@ class ApiWSps extends ApiBase {
 	 *
 	 * @return array
 	 */
-	private function setOutput( array $result ) : array {
+	private function setOutput( array $result, $tags = false ) : array {
 		$output = [];
 		if ( $result['status'] === true ) {
 			$output['status'] = "ok";
-			$output['page']   = $result['info'];
+			if ( !$tags ) {
+				$output['page'] = $result['info'];
+			} else {
+				$output['tags'] = $result['info'];
+			}
 		} else {
 			$output['status']  = "error";
 			$output['message'] = $result['info'];
@@ -124,19 +153,25 @@ class ApiWSps extends ApiBase {
 			'user'   => [
 				ParamValidator::PARAM_TYPE     => 'string',
 				ParamValidator::PARAM_REQUIRED => true
+			],
+			'tags'   => [
+				ParamValidator::PARAM_TYPE     => 'string',
+				ParamValidator::PARAM_REQUIRED => false
 			]
 
 		];
 	}
-
+// $tags = self::getTagsFromPage( $articleId );
 	/**
 	 * @return string[]
 	 * @see ApiBase::getExamplesMessages()
 	 */
 	protected function getExamplesMessages() : array {
 		return [
-			'action=pagesync&what=add&pageId=666'    => 'apihelp-wsps-example-1',
-			'action=pagesync&what=remove&pageId=666' => 'apihelp-wsps-example-2'
+			'action=pagesync&what=add&pageId=666'       => 'apihelp-wsps-example-1',
+			'action=pagesync&what=remove&pageId=666'    => 'apihelp-wsps-example-2',
+			'action=pagesync&what=gettags&pageId=666'    => 'apihelp-wsps-example-3',
+			'action=pagesync&what=updatetags&pageId=666' => 'apihelp-wsps-example-4'
 		];
 	}
 }

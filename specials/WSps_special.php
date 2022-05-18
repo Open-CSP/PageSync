@@ -305,6 +305,19 @@ class WSpsSpecial extends SpecialPage {
 					case "wsps-share-select-tags":
 						$tags = $this->getPost( "tags", false );
 						$type = $this->getPost( "wsps-select-type", true );
+						$query = $this->getPost( 'wsps-query' );
+						if( $query !== false ) {
+							$result = $this->doAsk( $query );
+
+							$nr = count( $result );
+
+							$form       = $render->renderDoQueryForm( $query );
+							$html       = $form;
+							$bodyResult = $render->renderDoQueryBody( $result );
+							$html       .= $bodyResult['html'];
+							$out->addHTML( $html );
+							return true;
+						}
 						if ( $tags === false && $type !== 'ignore' ) {
 							$out->addHTML( 'No tags selected' );
 							break;

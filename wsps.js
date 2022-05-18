@@ -73,8 +73,29 @@ $(function () {
 		if (button.hasClass('wsps-active')) {
 			wspsPost(id, user, 'remove')
 			button.removeClass('wsps-active ')
+			$('#ca-wspst').addClass('wspst-hide');
 		} else {
 			button.addClass('wsps-active ')
+			$('#ca-wspst').removeClass('wspst-hide');
+			wspsPost(id, user, 'add')
+		}
+	})
+
+	/**
+	 * When sysop clicks slider on top of a page
+	 */
+	$('.wspst-toggle').click(function (e) {
+		e.stopPropagation()
+		var button = $(this)
+		var id = mw.config.get('wgArticleId')
+		var user = getUserName()
+		if (button.hasClass('wsps-active')) {
+			wspsPost(id, user, 'remove')
+			button.removeClass('wsps-active ')
+			$('#ca-wspst').addClass('wspst-hide');
+		} else {
+			button.addClass('wsps-active ')
+			$('#ca-wspst').removeClass('wspst-hide');
 			wspsPost(id, user, 'add')
 		}
 	})

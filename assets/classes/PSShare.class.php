@@ -192,9 +192,33 @@ class PSShare {
 	 */
 	public function renderCreateSelectTagsForm( bool $returnSubmit = false ): string {
 		global $IP;
+		$smw = ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' );
 		if ( !$returnSubmit ) {
 			$selectTagsForm = '<input type="hidden" name="wsps-action" value="wsps-share-select-tags">';
-			$selectTagsForm .= '<label class="uk-form-label">Choose pages based on tags</label>';
+			$selectTagsForm .= '<div class="uk-grid-small" uk-grid>';
+			if ( $smw ) {
+				$selectTagsForm .= '<div class="uk-width-1-2">';
+				$selectTagsForm .= '<fieldset class="uk-fieldset uk-margin">';
+				$selectTagsForm .= '<legend class="uk-legend">' . wfMessage(
+						'wsps-special_custom_query_card_subheader'
+					)->text() . '</legend>';
+				$selectTagsForm .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
+				$selectTagsForm .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
+				$selectTagsForm .= '</label>';
+				$selectTagsForm .= '<div class="uk-form-controls">';
+				$selectTagsForm .= '<input class="uk-input" name="wsps-query" type="text" placeholder="';
+				$selectTagsForm .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
+				$selectTagsForm .= '">';
+				$selectTagsForm .= '</div></fieldset></div><div class="uk-width-1-2">';
+			} else {
+				$selectTagsForm .= '<div class="uk-width-1-1">';
+			}
+			$selectTagsForm .= '<fieldset class="uk-fieldse uk-margin">';
+			if ( $smw ) {
+				$selectTagsForm .= '<legend class="uk-legend">Or choose pages based on tags</legend>';
+			} else {
+				$selectTagsForm .= '<legend class="uk-legend">Choose pages based on tags</legend>';
+			}
 			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
 			$tags       = WSpsHooks::getAllTags();
 			foreach ( $tags as $tag ) {
@@ -208,7 +232,7 @@ class PSShare {
 			$selectTagsForm .= '<input type="radio" id="ws-one" class="uk-radio" name="wsps-select-type" value="one">';
 			$selectTagsForm .= ' <label for="ws-one" class="uk-form-label">Pages must have at least one chosen tag</label><br>';
 			$selectTagsForm .= '<input type="radio" id="ws-all-pages" class="uk-radio" name="wsps-select-type" value="ignore">';
-			$selectTagsForm .= ' <label for="ws-all-pages" class="uk-form-label">Ignore tags and select all synced pages</label></p>';
+			$selectTagsForm .= ' <label for="ws-all-pages" class="uk-form-label">Ignore tags and select all synced pages</label></p></fieldset></div>';
 			$selectTagsForm .= '<script>' . file_get_contents( $IP . '/extensions/PageSync/assets/js/loadSelect2.js' ) . '</script>';;
 		} else {
 			$selectTagsForm = '<input type="submit" class="uk-button uk-width-1-1 uk-button-primary" value="';

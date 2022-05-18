@@ -563,9 +563,11 @@ class WSpsHooks {
 		$file = self::getInfoFileFromPageID( $id );
 		$tags = [];
 		if ( $file['status'] ) {
-			$infoContent = json_decode( file_get_contents( $file['info'] ), true );
-			if ( isset( $infoContent['tags'] ) && !empty( $infoContent['tags'] ) ) {
-				$tags = explode( ',', $infoContent['tags'] );
+			if ( file_exists( $file['info'] ) ) {
+				$infoContent = json_decode( file_get_contents( $file['info'] ), true );
+				if ( isset( $infoContent['tags'] ) && ! empty( $infoContent['tags'] ) ) {
+					$tags = explode( ',', $infoContent['tags'] );
+				}
 			}
 		}
 		return array_filter( $tags, 'strlen' );
@@ -747,6 +749,46 @@ class WSpsHooks {
 		file_put_contents(
 			$exportFolder . $fName,
 			file_get_contents( $fUrl )
+		);
+	}
+
+	/**
+	 * @param int $pageId
+	 * @param string $tags
+	 * @param string $userName
+	 *
+	 * @return array
+	 */
+	public static function updateTags( int $pageId, string $tags, string $userName ): array {
+		$infoFile = self::getInfoFileFromPageID( $pageId );
+		if ( $infoFile['status'] ) {
+			if ( file_exists( $infoFile['info'] ) ) {
+				$fileInfo = json_decode( file_get_contents( $infoFile['info'] ), true );
+				$fileInfo['tags'] = $tags;
+				$fileInfo['username'] = $userName;
+				$datetime = new DateTime();
+				$fileInfo['changes'] = $datetime->format( 'd-m-Y H:i:s' );;
+				// save the info file
+				$result = file_put_contents(
+					$infoFile['info'],
+					json_encode( $fileInfo )
+				);
+				if ( $result === false ) {
+					return self::makeMessage(
+						false,
+						wfMessage( 'wsps-error_info_file' )->text()
+					);
+				} else {
+					return self::makeMessage(
+						true,
+						"ok"
+					);
+				}
+			}
+		}
+		return self::makeMessage(
+			false,
+			wfMessage( 'wsps-error_info_file' )->text()
 		);
 	}
 
@@ -1390,20 +1432,20 @@ class WSpsHooks {
 
 		$fIndex = self::getFileIndex();
 		$tags = [];
-		$inSync = false;
 		if ( $articleId !== 0 ) {
 			$class = "wsps-toggle";
+			$classt = "wspst-toggle";
 			if ( false !== $fIndex && in_array(
 					$title,
 					$fIndex
 				) ) {
-				$inSync = true;
 				$tags = self::getTagsFromPage( $articleId );
 				$class .= ' wsps-active';
-				$classt = "wspst-toggle";
 				if ( !empty( $tags ) ) {
 					$classt .= ' wspst-active';
 				}
+			} else {
+				$classt .= ' wspst-hide';
 			}
 			$links['views']['wsps'] = [
 				"class"     => $class,
@@ -1415,18 +1457,16 @@ class WSpsHooks {
 				'title'     => 'PageSync',
 				'rel'       => 'PageSync'
 			];
-			if ( $inSync ) {
-				$links['views']['wspst'] = [
-					"class"     => $classt,
-					"text"      => "",
-					"href"      => '#',
-					"exists"    => '1',
-					"primary"   => '1',
-					'redundant' => '1',
-					'title'     => 'PageSync Tags',
-					'rel'       => 'PageSync Tags'
-				];
-			}
+			$links['views']['wspst'] = [
+				"class"     => $classt,
+				"text"      => "",
+				"href"      => '#',
+				"exists"    => '1',
+				"primary"   => '1',
+				'redundant' => '1',
+				'title'     => 'PageSync Tags',
+				'rel'       => 'PageSync Tags'
+			];
 		} else {
 			$class                  = "wsps-error";
 			$links['views']['wsps'] = [

@@ -20,6 +20,10 @@
     padding: 0px 4px 4px 0px !important;
 }
 
+.wspst-hide {
+    display:none;
+}
+
 .wsps-error {
     width: 23px !important;
     display: inline-block;
