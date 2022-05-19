@@ -89,6 +89,14 @@ class ApiWSps extends ApiBase {
 					$output = $this->setOutput( [ 'status' => true, 'info' => $result ], true );
 				}
 				break;
+			case "getalltags" :
+				$result = WSpsHooks::getAllTags();
+				if ( empty( $result ) ) {
+					$output = $this->setOutput( [ 'status' => false, 'info' => "no tags" ], true );
+				} else {
+					$output = $this->setOutput( [ 'status' => true, 'info' => $result ], true );
+				}
+				break;
 			default :
 				$this->dieWithError( 'No recognized action' );
 		}

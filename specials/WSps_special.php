@@ -211,13 +211,19 @@ class WSpsSpecial extends SpecialPage {
 						$description = $this->getPost( 'description', false );
 						$tags = $this->getPost( 'tags', false );
 						$pageId = $this->getPost( 'id' );
-						if ( $description === false || $tags === false || $pageId === false ) {
+						if ( $pageId === false ) {
 							break;
+						}
+						if ( $description === false ) {
+							$description = '';
 						}
 						$pagePath = WSpsHooks::getInfoFileFromPageID( $pageId );
 						if ( $pagePath['status'] === false ) {
 							$out->addHTML( $pagePath['info'] );
 							break;
+						}
+						if ( $tags === false ) {
+							$tags = [];
 						}
 						$result = WSpsHooks::updateInfoFile( $pagePath['info'], $description, implode( ',', $tags ) );
 						if ( $result['status'] === false ) {

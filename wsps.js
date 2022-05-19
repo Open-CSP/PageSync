@@ -176,7 +176,6 @@ $(function () {
 			}
 
 			wspsTags(mw.config.get('wgArticleId'), getUserName(), 'updatetags', newTags.join(',')).done(function(data) {
-				console.log(data);
 				if ( data.wsps.result.status === 'ok') {
 					mw.notify('tags are updated!', { 'title': mw.msg('wsps'), 'type': 'success' });
 					windowManager.closeWindow(tagsDialog);
