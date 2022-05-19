@@ -93,12 +93,16 @@ $(function () {
 		var user = getUserName()
 
 		// open modal and get the tags
-		wspsTags(id, user, 'gettags').done(function(data) {
-			if (data.wsps.result.status === 'ok') {
-				const { tags } = data.wsps.result;
-				createDialogForTags(tags);
+		wspsTags( id, user, 'gettags' ).done( function( data ) {
+			console.log( data );
+			if ( data.wsps.result.status === 'ok' ) {
+				const { tags } = data.wsps.result.tags.pagetags;
+				const { allTags } = data.wsps.result.tags.alltags;
+				createDialogForTags( tags, allTags );
 			} else {
-				createDialogForTags([]);
+				const { tags } = [];
+				const { allTags } = data.wsps.result.tags.alltags;
+				createDialogForTags( tags, allTags );
 			}
 		});
 	});
@@ -154,10 +158,16 @@ $(function () {
 	}
 
 
-	function createDialogForTags (tags) {
+	function createDialogForTags ( tags, allTags ) {
 		$(tagsDialog.content.$element[0]).html('');
-
+		console.log( tags, allTags );
+		var options = [];
+		$(allTags).each( function( k, v ){
+			options.push({ data: v, label: v, icon: 'tag' });
+		});
+		console.log( options );
 		let comboBox = new OO.ui.MenuTagMultiselectWidget({
+			options: options,
 			selected: tags,
 			allowArbitrary: true,
 			inputPosition: 'outline',

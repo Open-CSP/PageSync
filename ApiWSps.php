@@ -83,18 +83,12 @@ class ApiWSps extends ApiBase {
 				$result = WSpsHooks::getTagsFromPage(
 					$pageId
 				);
+				$allTags = WSpsHooks::getAllTags();
+				$ret = [ 'pagetags' => $result, 'alltags' => $allTags ];
 				if ( empty( $result ) ) {
-					$output = $this->setOutput( [ 'status' => false, 'info' => "no tags" ], true );
+					$output = $this->setOutput( [ 'status' => false, 'info' => $ret ], true );
 				} else {
-					$output = $this->setOutput( [ 'status' => true, 'info' => $result ], true );
-				}
-				break;
-			case "getalltags" :
-				$result = WSpsHooks::getAllTags();
-				if ( empty( $result ) ) {
-					$output = $this->setOutput( [ 'status' => false, 'info' => "no tags" ], true );
-				} else {
-					$output = $this->setOutput( [ 'status' => true, 'info' => $result ], true );
+					$output = $this->setOutput( [ 'status' => true, 'info' => $ret ], true );
 				}
 				break;
 			default :
@@ -124,10 +118,13 @@ class ApiWSps extends ApiBase {
 				$output['tags'] = $result['info'];
 			}
 		} else {
-			$output['status']  = "error";
-			$output['message'] = $result['info'];
+			if ( !$tags ) {
+				$output['message'] = $result['info'];
+			} else {
+				$output['tags'] = $result['info'];
+			}
+			$output['status'] = "error";
 		}
-
 		return $output;
 	}
 

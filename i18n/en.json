@@ -108,7 +108,7 @@
   "wsps-special_status_card_done": "All done!",
   "apihelp-wsps-description": "PageSync API module",
   "apihelp-wsps-summary": "PageSync API module",
-  "apihelp-wsps-param-what": "Action to take; valid values are 'add', 'remove', 'gettags', 'updatetags' and 'getalltags'",
+  "apihelp-wsps-param-what": "Action to take; valid values are 'add', 'remove', 'gettags' and 'updatetags'",
   "apihelp-wsps-param-pageId": "Page ID of the page to add or remove",
   "apihelp-wsps-param-user": "Username making the changes",
   "apihelp-wsps-param-tags": "When updating tags, this should be a comma seperated string holding all the tags",
