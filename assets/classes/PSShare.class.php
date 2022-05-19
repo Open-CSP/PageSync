@@ -154,7 +154,77 @@ class PSShare {
 		return $correctPages;
 	}
 
-	public function agreeSelectionShareFooter( string $action ): string {
+	/**
+	 * Create a backup file
+	 */
+	public function createShareFile( $pages ) {
+		if ( WSpsHooks::$config === false ) {
+			WSpsHooks::setConfig();
+		}
+		$path            = WSpsHooks::$config['exportPath'];
+		$version         = str_replace(
+			'.',
+			'-',
+			( WSpsHooks::$config['version'] )
+		);
+		$addUploadedFile = [];
+		$infoFilesList = [];
+		$wikiFilesList = [];
+		foreach ( $pages as $fileToCheck ) {
+			if ( isset( $fileToCheck['isFile'] ) && $fileToCheck['isFile'] === true ) {
+				$addUploadedFile[] = $path . $fileToCheck['filestoredname'];
+			}
+			$infoFilesList[] = $path . $fileToCheck['filename'] . '.info';
+			$wikiFilesList[] = glob( $path . $fileToCheck['filename'] . "*.wiki" );
+		}
+		$datetime      = new DateTime();
+		$date          = $datetime->format( 'd-m-Y-H-i-s' );
+		echo "<pre>";
+		print_r( $addUploadedFile );
+		print_r( $infoFilesList );
+		print_r( $wikiFilesList );
+		echo "<pre>";
+		return;
+		$zip           = new ZipArchive();
+		if ( $zip->open(
+				$path . 'backup_' . $date . '_' . $version . '.zip',
+				zipArchive::CREATE
+			) !== true ) {
+			die( "cannot create " . $path . 'backup_' . $date );
+		}
+		$zip->addFile(
+			$indexFile,
+			basename( $indexFile )
+		);
+		$zip->addemptyDir( 'export' );
+		foreach ( $infoFilesList as $infoFile ) {
+			$zip->addFile(
+				$infoFile,
+				'export/' . basename( $infoFile )
+			);
+		}
+		foreach ( $wikiFilesList as $wikiFile ) {
+			$zip->addFile(
+				$wikiFile,
+				'export/' . basename( $wikiFile )
+			);
+		}
+		foreach ( $addUploadedFile as $sepFile ) {
+			$zip->addFile(
+				$sepFile,
+				'export/' . basename( $sepFile )
+			);
+		}
+		$zip->close();
+	}
+
+	/**
+	 * @param string $action
+	 * @param mixed $selection
+	 *
+	 * @return string
+	 */
+	public function agreeSelectionShareFooter( string $action, $selection = [] ): string {
 		global $wgScript;
 		switch ( $action ) {
 			case "agreebtn":
@@ -170,15 +240,20 @@ class PSShare {
 				break;
 			case "body":
 			default:
+				$tags = base64_encode( $selection['tags'] );
+				$type = base64_encode( $selection['type'] );
 				$doShareForm = '<input type="hidden" name="wsps-action" value="wsps-share-doshare">';
-				$doShareForm .= '<label class="uk-form-label">Disclaimer<sup>*</sup></label>';
-				$doShareForm .= '<textarea required="required" class="uk-textarea uk-width-1-1" rows="5" name="disclaimer" ></textarea>';
-				$doShareForm .= '<label class="uk-form-label">Project</label>';
-				$doShareForm .= '<input type="text"" required="required" class="uk-input uk-width-1-1" name="project" >';
-				$doShareForm .= '<label class="uk-form-label">Company</label>';
-				$doShareForm .= '<input type="text"" required="required" class="uk-input uk-width-1-1" name="company" >';
-				$doShareForm .= '<label class="uk-form-label">Your name</label>';
-				$doShareForm .= '<input type="text"" required="required" class="uk-input uk-width-1-1" name="name" >';
+				$doShareForm .= '<input type="hidden" name="wsps-type" value="' . $tags . '">';
+				$doShareForm .= '<input type="hidden" name="wsps-tags" value="' . $type . '">';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_disclaimer' )->text() . '<sup>*</sup></label>';
+				$doShareForm .= '<textarea required="required" class="uk-textarea uk-width-1-1" rows="5" name="disclaimer" >';
+				$doShareForm .= wfMessage( 'wsps-special_share_default_disclaimer' )->text() . '</textarea>';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_project' )->text() . '</label>';
+				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="project" >';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_company' )->text() . '</label>';
+				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="company" >';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_name' )->text() . '</label>';
+				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="name" >';
 				break;
 		}
 		return $doShareForm;
@@ -192,7 +267,9 @@ class PSShare {
 	 */
 	public function renderCreateSelectTagsForm( bool $returnSubmit = false ): string {
 		global $IP;
-		$smw = ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' );
+
+		//$smw = ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' );
+		$smw = false;
 		if ( !$returnSubmit ) {
 			$selectTagsForm = '<input type="hidden" name="wsps-action" value="wsps-share-select-tags">';
 			$selectTagsForm .= '<div class="uk-grid-small" uk-grid>';
@@ -217,7 +294,8 @@ class PSShare {
 			if ( $smw ) {
 				$selectTagsForm .= '<legend class="uk-legend">Or choose pages based on tags</legend>';
 			} else {
-				$selectTagsForm .= '<legend class="uk-legend">Choose pages based on tags</legend>';
+				$selectTagsForm .= '<legend class="uk-legend">';
+				$selectTagsForm .= wfMessage( 'wsps-special_share_choose_tags' )->text() . '</legend>';
 			}
 			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
 			$tags       = WSpsHooks::getAllTags();
@@ -228,15 +306,18 @@ class PSShare {
 			}
 			$selectTagsForm .= '</select>';
 			$selectTagsForm .= '<p><input type="radio" id="ws-all" class="uk-radio" name="wsps-select-type" checked="checked" value="all">';
-			$selectTagsForm .= ' <label for="ws-all" class="uk-form-label">Pages must have all chosen tags</label><br>';
+			$selectTagsForm .= ' <label for="ws-all" class="uk-form-label">';
+			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_options1' )->text() . '</label><br>';
 			$selectTagsForm .= '<input type="radio" id="ws-one" class="uk-radio" name="wsps-select-type" value="one">';
-			$selectTagsForm .= ' <label for="ws-one" class="uk-form-label">Pages must have at least one chosen tag</label><br>';
+			$selectTagsForm .= ' <label for="ws-one" class="uk-form-label">';
+			$selectTagsForm .=  wfMessage( 'wsps-special_share_choose_options2' )->text() . '</label><br>';
 			$selectTagsForm .= '<input type="radio" id="ws-all-pages" class="uk-radio" name="wsps-select-type" value="ignore">';
-			$selectTagsForm .= ' <label for="ws-all-pages" class="uk-form-label">Ignore tags and select all synced pages</label></p></fieldset></div>';
+			$selectTagsForm .= ' <label for="ws-all-pages" class="uk-form-label">';
+			$selectTagsForm .=  wfMessage( 'wsps-special_share_choose_options3' )->text() . '</label></p></fieldset></div>';
 			$selectTagsForm .= '<script>' . file_get_contents( $IP . '/extensions/PageSync/assets/js/loadSelect2.js' ) . '</script>';;
 		} else {
 			$selectTagsForm = '<input type="submit" class="uk-button uk-width-1-1 uk-button-primary" value="';
-			$selectTagsForm .= "Select and preview pages";
+			$selectTagsForm .= wfMessage( 'wsps-special_share_submit_and_preview' )->text();
 			$selectTagsForm .= '">';
 		}
 		return $selectTagsForm;

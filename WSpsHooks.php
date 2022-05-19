@@ -616,6 +616,7 @@ class WSpsHooks {
 	 * @param string $uname
 	 * @param int $id
 	 * @param $isFile
+	 * @param mixed $nTags
 	 *
 	 * @return array
 	 */
@@ -625,7 +626,8 @@ class WSpsHooks {
 		array $slotsContents,
 		string $uname,
 		int $id,
-		$isFile
+		$isFile,
+		$nTags = false
 	) : array {
 		// get current indexfile
 		$index = self::getFileIndex();
@@ -658,15 +660,21 @@ class WSpsHooks {
 			$slots[] = $k;
 		}
 		$description = '';
-		$tags = '';
+		if ( !$nTags ) {
+			$tags = '';
+		} else {
+			$tags = $nTags;
+		}
 		$date = false;
 		if ( file_exists( $infoFile ) ) {
 			$oldFileInfo = json_decode( file_get_contents( $infoFile ), true );
 			if ( isset( $oldFileInfo['description'] ) ) {
 				$description = $oldFileInfo['description'];
 			}
-			if ( isset( $oldFileInfo['tags'] ) ) {
-				$tags = $oldFileInfo['tags'];
+			if( !$nTags ) {
+				if ( isset( $oldFileInfo['tags'] ) ) {
+					$tags = $oldFileInfo['tags'];
+				}
 			}
 			if ( isset( $oldFileInfo['changed'] ) ) {
 				$date = $oldFileInfo['changed'];
@@ -914,11 +922,12 @@ class WSpsHooks {
 	/**
 	 * @param mixed $id
 	 * @param string $uname
+	 * @param mixed $tags
 	 *
 	 * @return array
 	 * @throws Exception
 	 */
-	public static function addFileForExport( $id, string $uname ) : array {
+	public static function addFileForExport( $id, string $uname, $tags = false ) : array {
 		$isFile = false;
 		if ( $id === null || $id === 0 ) {
 			return self::makeMessage(
@@ -965,7 +974,8 @@ class WSpsHooks {
 			$slotContent,
 			$uname,
 			$id,
-			$isFile
+			$isFile,
+			$tags
 		);
 		if ( $result['status'] !== true ) {
 			return self::makeMessage(

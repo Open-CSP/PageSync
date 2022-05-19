@@ -298,14 +298,66 @@ class WSpsSpecial extends SpecialPage {
 						3
 					)
 				);
+				if ( ! extension_loaded( 'zip' ) ) {
+					$out->addHTML(
+						$this->makeAlert( wfMessage( 'wsps-special_backup_we_need_zip_extension' )->text() )
+					);
+					$out->addHTML( $style );
+
+					return true;
+				}
 				$share = new PSShare();
 				//Handle any backup actions
 				$pAction = $this->getPost( 'wsps-action' );
 				switch ( $pAction ) {
+					case "wsps-share-docancel":
+						break;
+					case "wsps-share-doshare":
+						$out->addHTML( "thanks!" );
+						echo "<pre>";
+						print_r( $_POST );
+
+						$project = $this->getPost( 'project' );
+						$company = $this->getPost( 'company' );
+						$name = $this->getPost( 'name' );
+						$disclaimer = $this->getPost( 'disclaimer' );
+						$uname = $usr;
+						$tagType = $this->getPost( 'wsps-type' );
+						$tags = $this->getPost( 'wsps-tags' );
+						if ( $tags === false || $tagType === false || $disclaimer === false ) {
+							$out->addHTML( $this->makeAlert( 'Missing elements' ) );
+							break;
+						}
+						$tags = explode( ',', base64_decode( $tags ) ) ;
+						var_dump( "tags", $tags );
+						var_dump("type", base64_decode( $tagType ) );
+						echo "</pre>";
+						$pages = [];
+						switch ( base64_decode( $tagType ) ) {
+							case "ignore":
+								$pages = WSpsHooks::getAllPageInfo();
+								break;
+							case "all":
+								$pages = $share->returnPagesWithAllTage( $tags );
+								break;
+							case "one":
+								$pages = $share->returnPagesWithAtLeastOneTag( $tags );
+								break;
+							default:
+								$out->addHTML( $this->makeAlert( 'No type select recognized' ) );
+								break;
+						}
+						if ( empty( $pages ) ) {
+							break;
+						}
+						$share->createShareFile( $pages );
+						return true;
+						break;
 					case "wsps-share-select-tags":
 						$tags = $this->getPost( "tags", false );
 						$type = $this->getPost( "wsps-select-type", true );
 						$query = $this->getPost( 'wsps-query' );
+						/* REMOVED FEATURE
 						if( $query !== false ) {
 							$result = $this->doAsk( $query );
 
@@ -318,10 +370,12 @@ class WSpsSpecial extends SpecialPage {
 							$out->addHTML( $html );
 							return true;
 						}
+						*/
 						if ( $tags === false && $type !== 'ignore' ) {
 							$out->addHTML( 'No tags selected' );
 							break;
 						}
+						$pages = [];
 						switch ( $type ) {
 							case "ignore":
 								$pages = WSpsHooks::getAllPageInfo();
@@ -333,11 +387,15 @@ class WSpsSpecial extends SpecialPage {
 								$pages = $share->returnPagesWithAtLeastOneTag( $tags );
 								break;
 							default:
-								$out->addHTML( 'No type select recognized' );
+								$out->addHTML( $this->makeAlert( 'No type select recognized' ) );
 								break;
 						}
+						if ( empty( $pages ) ) {
+							break;
+						}
 						$body =  $render->renderIndexPage( $pages, $wgScript );
-						$body .= $share->getFormHeader( false ) . $share->agreeSelectionShareFooter( 'body' );
+						$data = [ 'tags' => implode( ',', $tags ), 'type' => $type ];
+						$body .= $share->getFormHeader( false ) . $share->agreeSelectionShareFooter( 'body', $data );
 						if ( count( $pages ) === 1 ) {
 							$title = count( $pages ) . " page to be shared";
 						} else {
@@ -482,6 +540,10 @@ class WSpsSpecial extends SpecialPage {
 				switch ( $pAction ) {
 					case "wsps-import-query" :
 						$query = $this->getPost( 'wsps-query' );
+						$tags = $this->getPost( 'tags', false );
+						if ( $tags !== false && is_array( $tags ) ) {
+							$ntags = implode( ',', $tags );
+						}
 
 						if ( $query === false ) {
 							$error = $this->makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
@@ -491,14 +553,17 @@ class WSpsSpecial extends SpecialPage {
 							$nr          = count( $listOfPages );
 							$count       = 1;
 							foreach ( $listOfPages as $page ) {
-								$pageId = WSpsHooks::getPageIdFromTitle( $page );
-								if ( is_int( $pageId ) ) {
-									$result = WSpsHooks::addFileForExport(
-										$pageId,
-										$usr
-									);
+								if ( WSpsHooks::isTitleInIndex( $page ) === false ) {
+									$pageId = WSpsHooks::getPageIdFromTitle( $page );
+									if ( is_int( $pageId ) ) {
+										$result = WSpsHooks::addFileForExport(
+											$pageId,
+											$usr,
+											$ntags
+										);
+									}
+									$count ++;
 								}
-								$count++;
 							}
 							$content = '<h2>' . wfMessage( 'wsps-special_status_card_done' )->text() . '</h2>';
 							$content .= '<p>Added ' . ( $count - 1 ) . '/' . $nr . ' pages.</p>';
@@ -517,7 +582,7 @@ class WSpsSpecial extends SpecialPage {
 
 							$nr = count( $result );
 
-							$form       = $render->renderDoQueryForm( $query );
+							$form       = $render->renderDoQueryForm( $query, true );
 							$html       = $form;
 							$bodyResult = $render->renderDoQueryBody( $result );
 							$html       .= $bodyResult['html'];
@@ -534,7 +599,6 @@ class WSpsSpecial extends SpecialPage {
 								$bodyResult['active']
 							)->text();
 							$html   = $header . $html;
-							$html   .= $form;
 							$out->addHTML( $style );
 							$out->addHTML( $html );
 

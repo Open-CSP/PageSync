@@ -1,4 +1,6 @@
 $(function () {
+	let windowManager,
+		tagsDialog;
 
 	/**
 	 * on Special backup page download button has been pressed
@@ -89,16 +91,17 @@ $(function () {
 		var button = $(this)
 		var id = mw.config.get('wgArticleId')
 		var user = getUserName()
-		if (button.hasClass('wsps-active')) {
-			wspsPost(id, user, 'remove')
-			button.removeClass('wsps-active ')
-			$('#ca-wspst').addClass('wspst-hide');
-		} else {
-			button.addClass('wsps-active ')
-			$('#ca-wspst').removeClass('wspst-hide');
-			wspsPost(id, user, 'add')
-		}
-	})
+
+		// open modal and get the tags
+		wspsTags(id, user, 'gettags').done(function(data) {
+			if (data.wsps.result.status === 'ok') {
+				const { tags } = data.wsps.result;
+				createDialogForTags(tags);
+			} else {
+				createDialogForTags([]);
+			}
+		});
+	});
 
 
 	/**
@@ -116,7 +119,76 @@ $(function () {
 			button.addClass('wsps-active ')
 			wspsPost(id, user, 'add')
 		}
-	})
+	});
+
+	if ($('.wspst-toggle').length > 0) {
+		function MyDialog( config ) {
+			MyDialog.super.call( this, config );
+		}
+
+		OO.inheritClass( MyDialog, OO.ui.Dialog );
+		MyDialog.static.name = 'wspst-dialog';
+		MyDialog.static.title = 'WS PageSync tags dialog';
+
+		MyDialog.prototype.initialize = function() {
+			MyDialog.super.prototype.initialize.call( this );
+			this.content = new OO.ui.PanelLayout( {
+				padded: true,
+				expanded: false
+			});
+			this.$body.append(this.content.$element);
+		};
+
+		MyDialog.prototype.getBodyHeight = function() {
+			return '400px;';
+		};
+
+		tagsDialog = new MyDialog({
+			size: 'medium'
+		});
+
+		windowManager = new OO.ui.WindowManager();
+		$( document.body ).append( windowManager.$element );
+
+		windowManager.addWindows([tagsDialog]);
+	}
+
+
+	function createDialogForTags (tags) {
+		$(tagsDialog.content.$element[0]).html('');
+
+		let comboBox = new OO.ui.MenuTagMultiselectWidget({
+			selected: tags,
+			allowArbitrary: true,
+			inputPosition: 'outline',
+		});
+		let submitButton = new OO.ui.ButtonInputWidget({
+			label: 'submit',
+			flags: [
+				'primary',
+				'progressive'
+			]
+		});
+		$(submitButton.$element).click(function() {
+			let newTags = [];
+			for (let i = 0; i < comboBox.items.length; i++) {
+				newTags.push(comboBox.items[i].data);
+			}
+
+			wspsTags(mw.config.get('wgArticleId'), getUserName(), 'updatetags', newTags.join(',')).done(function(data) {
+				console.log(data);
+				if ( data.wsps.result.status === 'ok') {
+					mw.notify('tags are updated!', { 'title': mw.msg('wsps'), 'type': 'success' });
+					windowManager.closeWindow(tagsDialog);
+				} else {
+					mw.notify('something went wrong, when updating tags', { 'title': mw.msg('wsps'), 'type': 'error' });
+				}
+			});
+		});
+		$(tagsDialog.content.$element[0]).append(comboBox.$element);
+		$(tagsDialog.content.$element[0]).append(submitButton.$element);
+		windowManager.openWindow(tagsDialog);
+	}
 })
 
 function getUserName () {
@@ -148,3 +220,23 @@ function wspsPost (id, un, type) {
 		}
 	})
 }
+
+/**
+ *
+ * @param id {int}
+ * @param un {string}
+ * @param type {string}
+ * @param tags {string}
+ * @returns {Object}
+ */
+function wspsTags (id, un, type, tags = '') {
+	return new mw.Api().postWithToken('csrf', {
+		action: 'wsps',
+		format: 'json',
+		what: type,
+		pageId: id,
+		user: un,
+		tags: tags
+	});
+}
+

@@ -49,10 +49,24 @@ class WSpsRender {
 	 *
 	 * @return string
 	 */
-	function renderDoQueryForm( $query ) {
-		$form = '<form method="post">';
+	function renderDoQueryForm( $query, $addTagsOption = false ) {
+		global $IP;
+		$form = '<form method="post" class="uk-form-horizontal">';
 		$form .= '<input type="hidden" name="wsps-action" value="wsps-import-query">';
 		$form .= '<input type="hidden" name="wsps-query" value="' . base64_encode( $query ) . '">';
+		if( $addTagsOption ) {
+			$form       .= '<div class="uk-margin uk-align-right"><label class="uk-form-label" for="ps-tags">';
+			$form .= wfMessage( 'wsps-special_custom_query_add_tags')->text();
+			$form .= '</label>';
+			$form .= '<div class="uk-form-controls">';
+			$form       .= '<select id="ps-tags" class="uk-width-1-4" name="tags[]" multiple="multiple" >';
+			$tags       = WSpsHooks::getAllTags();
+			foreach ( $tags as $tag ) {
+				$form .= '<option value="' . $tag . '">' . $tag . '</option>';
+			}
+			$form .= '</select></div></div>';
+			$form .= '<script>' . file_get_contents( $IP . '/extensions/PageSync/assets/js/loadSelect2.js' ) . '</script>';
+		}
 		$form .= '<input type="submit" class="uk-button uk-button-primary uk-width-1-1 uk-margin-small-bottom uk-text-large" value="' . wfMessage(
 				'wsps-special_custom_query_add_results'
 			)->text() . '">';
@@ -91,7 +105,7 @@ class WSpsRender {
 			$html       .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
 			$tags       = WSpsHooks::getAllTags();
 			foreach ( $tags as $tag ) {
-				if ( in_array( $tag, $tagsFile ) ) {
+				if ( !empty ( $tag ) && in_array( $tag, $tagsFile ) ) {
 					$html .= '<option selected="selected" value="' . $tag . '">' . $tag . '</option>';
 				} else {
 					$html .= '<option value="' . $tag . '">' . $tag . '</option>';
