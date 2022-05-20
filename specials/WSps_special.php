@@ -320,9 +320,6 @@ class WSpsSpecial extends SpecialPage {
 						break;
 					case "wsps-share-doshare":
 						$out->addHTML( "thanks!" );
-						echo "<pre>";
-						print_r( $_POST );
-
 						$project = $this->getPost( 'project' );
 						$company = $this->getPost( 'company' );
 						$name = $this->getPost( 'name' );
@@ -334,10 +331,7 @@ class WSpsSpecial extends SpecialPage {
 							$out->addHTML( $this->makeAlert( 'Missing elements' ) );
 							break;
 						}
-						$tags = explode( ',', base64_decode( $tags ) ) ;
-						var_dump( "tags", $tags );
-						var_dump("type", base64_decode( $tagType ) );
-						echo "</pre>";
+						$tags = explode( ',', base64_decode( $tags ) );
 						$pages = [];
 						switch ( base64_decode( $tagType ) ) {
 							case "ignore":
@@ -356,7 +350,8 @@ class WSpsSpecial extends SpecialPage {
 						if ( empty( $pages ) ) {
 							break;
 						}
-						$share->createShareFile( $pages );
+						$nfoContent = $share->createNFOFile( $disclaimer, $project, $company, $name, $uname );
+						$share->createShareFile( $pages, $nfoContent );
 						return true;
 						break;
 					case "wsps-share-select-tags":

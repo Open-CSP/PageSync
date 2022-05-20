@@ -155,67 +155,98 @@ class PSShare {
 	}
 
 	/**
-	 * Create a backup file
+	 * @param string $disclaimer
+	 * @param string|null $project
+	 * @param string|null $company
+	 * @param string|null $name
+	 * @param string|null $uName
+	 *
+	 * @return array
 	 */
-	public function createShareFile( $pages ) {
+	public function createNFOFile(
+		string $disclaimer,
+		?string $project,
+		?string $company,
+		?string $name,
+		?string $uName
+	) : array {
+		global $wgSitename;
+		$ret               = [];
+		$ret['sitename']   = $wgSitename;
+		$ret['disclaimer'] = $disclaimer;
+		$ret['project']    = $project === null ? '' : $project;
+		$ret['company']    = $company === null ? '' : $company;
+		$ret['name']       = $name === null ? '' : $name;
+		$ret['uname']      = $name === null ? '' : $uName;
+		$datetime          = new DateTime();
+		$ret['date']       = $datetime->format( 'd-m-Y H:i:s' );
+
+		return $ret;
+	}
+
+	/**
+	 * @param array $pages
+	 * @param array $nfoContent
+	 *
+	 * @return void
+	 */
+	public function createShareFile( array $pages, array $nfoContent ) {
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
-		$path            = WSpsHooks::$config['exportPath'];
+		$path            = WSpsHooks::$config['tempFilePath'];
 		$version         = str_replace(
 			'.',
 			'-',
 			( WSpsHooks::$config['version'] )
 		);
+		$nfoContent['version'] = WSpsHooks::$config['version'];
+
 		$addUploadedFile = [];
 		$infoFilesList = [];
 		$wikiFilesList = [];
+		$t = 0;
 		foreach ( $pages as $fileToCheck ) {
 			if ( isset( $fileToCheck['isFile'] ) && $fileToCheck['isFile'] === true ) {
-				$addUploadedFile[] = $path . $fileToCheck['filestoredname'];
+				$addUploadedFile[$t] = $path . $fileToCheck['filestoredname'];
 			}
-			$infoFilesList[] = $path . $fileToCheck['filename'] . '.info';
-			$wikiFilesList[] = glob( $path . $fileToCheck['filename'] . "*.wiki" );
+			$infoFilesList[$t] = $path . $fileToCheck['filename'] . '.info';
+			$wikiFilesList[$t] = glob( $path . $fileToCheck['filename'] . "*.wiki" );
+			$t++;
 		}
-		$datetime      = new DateTime();
-		$date          = $datetime->format( 'd-m-Y-H-i-s' );
+		$wikiList = [];
+		foreach ( $wikiFilesList as $v ) {
+			$wikiList = array_merge( $wikiList, array_values( $v ) );
+		}
+		$fList    = array_merge( $addUploadedFile, $infoFilesList, $wikiList );
+		$datetime = DateTime::createFromFormat( 'U', strtotime( $nfoContent['date'] ) );
+		$date     = $datetime->format( 'd-m-Y-H-i-s' );
+		$nfoContent = json_encode( $nfoContent );
 		echo "<pre>";
 		print_r( $addUploadedFile );
 		print_r( $infoFilesList );
-		print_r( $wikiFilesList );
+		print_r( $wikiList );
+		print_r( $fList );
+		print_r( $nfoContent );
 		echo "<pre>";
-		return;
-		$zip           = new ZipArchive();
+		echo "<p>" . $path . 'PageSync_' . $date . '_' . $version . '.zip' . "</p>";
+		$zip = new ZipArchive();
 		if ( $zip->open(
-				$path . 'backup_' . $date . '_' . $version . '.zip',
+				$path . 'PageSync_' . $date . '_' . $version . '.zip',
 				zipArchive::CREATE
 			) !== true ) {
 			die( "cannot create " . $path . 'backup_' . $date );
 		}
-		$zip->addFile(
-			$indexFile,
-			basename( $indexFile )
-		);
-		$zip->addemptyDir( 'export' );
-		foreach ( $infoFilesList as $infoFile ) {
-			$zip->addFile(
-				$infoFile,
-				'export/' . basename( $infoFile )
-			);
+		if ( !$zip->setArchiveComment( base64_encode( $nfoContent ) ) ) {
+			die( "cannot create Zip comment." );
 		}
-		foreach ( $wikiFilesList as $wikiFile ) {
+		foreach ( $wikiList as $wikiFile ) {
 			$zip->addFile(
 				$wikiFile,
-				'export/' . basename( $wikiFile )
+				basename( $wikiFile )
 			);
 		}
-		foreach ( $addUploadedFile as $sepFile ) {
-			$zip->addFile(
-				$sepFile,
-				'export/' . basename( $sepFile )
-			);
-		}
-		$zip->close();
+		var_dump( $zip->close() );
 	}
 
 	/**
@@ -243,8 +274,8 @@ class PSShare {
 				$tags = base64_encode( $selection['tags'] );
 				$type = base64_encode( $selection['type'] );
 				$doShareForm = '<input type="hidden" name="wsps-action" value="wsps-share-doshare">';
-				$doShareForm .= '<input type="hidden" name="wsps-type" value="' . $tags . '">';
-				$doShareForm .= '<input type="hidden" name="wsps-tags" value="' . $type . '">';
+				$doShareForm .= '<input type="hidden" name="wsps-type" value="' . $type . '">';
+				$doShareForm .= '<input type="hidden" name="wsps-tags" value="' . $tags . '">';
 				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_disclaimer' )->text() . '<sup>*</sup></label>';
 				$doShareForm .= '<textarea required="required" class="uk-textarea uk-width-1-1" rows="5" name="disclaimer" >';
 				$doShareForm .= wfMessage( 'wsps-special_share_default_disclaimer' )->text() . '</textarea>';
