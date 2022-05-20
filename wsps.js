@@ -96,13 +96,13 @@ $(function () {
 		wspsTags( id, user, 'gettags' ).done( function( data ) {
 			console.log( data );
 			if ( data.wsps.result.status === 'ok' ) {
-				const { tags } = data.wsps.result.tags.pagetags;
-				const { allTags } = data.wsps.result.tags.alltags;
-				createDialogForTags( tags, allTags );
+				const { pagetags } = data.wsps.result.tags;
+				const { alltags } = data.wsps.result.tags;
+				createDialogForTags( pagetags, alltags );
 			} else {
-				const { tags } = [];
-				const { allTags } = data.wsps.result.tags.alltags;
-				createDialogForTags( tags, allTags );
+				const pagetags = [];
+				const { alltags } = data.wsps.result.tags;
+				createDialogForTags( pagetags, alltags );
 			}
 		});
 	});
@@ -144,7 +144,7 @@ $(function () {
 		};
 
 		MyDialog.prototype.getBodyHeight = function() {
-			return '400px;';
+			return 400;
 		};
 
 		tagsDialog = new MyDialog({
@@ -162,22 +162,38 @@ $(function () {
 		$(tagsDialog.content.$element[0]).html('');
 		console.log( tags, allTags );
 		var options = [];
-		$(allTags).each( function( k, v ){
-			options.push({ data: v, label: v, icon: 'tag' });
+		$.each(allTags, function( k, v ){
+			if (v) options.push({ data: v, label: v, icon: 'tag' });
 		});
 		console.log( options );
+		console.log( tags );
 		let comboBox = new OO.ui.MenuTagMultiselectWidget({
-			options: options,
-			selected: tags,
-			allowArbitrary: true,
 			inputPosition: 'outline',
+			options: options,
+			allowArbitrary: true,
 		});
+		comboBox.setValue(tags);
 		let submitButton = new OO.ui.ButtonInputWidget({
 			label: 'submit',
 			flags: [
 				'primary',
 				'progressive'
 			]
+		});
+
+		let cancelButton = new OO.ui.ButtonInputWidget({
+			label: 'cancel',
+			flags: [
+				'secondary'
+			]
+		});
+
+		$(cancelButton.$element).click(function() {
+			windowManager.closeWindow(tagsDialog);
+		});
+
+		let labelWidget = new OO.ui.LabelWidget({
+			label: mw.msg('wsps-page-tags-label')
 		});
 		$(submitButton.$element).click(function() {
 			let newTags = [];
@@ -187,14 +203,17 @@ $(function () {
 
 			wspsTags(mw.config.get('wgArticleId'), getUserName(), 'updatetags', newTags.join(',')).done(function(data) {
 				if ( data.wsps.result.status === 'ok') {
-					mw.notify('tags are updated!', { 'title': mw.msg('wsps'), 'type': 'success' });
+					mw.notify(mw.msg('wsps-page-tags-added'), { 'title': mw.msg('wsps'), 'type': 'success' });
 					windowManager.closeWindow(tagsDialog);
 				} else {
-					mw.notify('something went wrong, when updating tags', { 'title': mw.msg('wsps'), 'type': 'error' });
+					console.error(data.wsps.result.message);
+					mw.notify(mw.msg('wsps-page-tags-error-adding'), { 'title': mw.msg('wsps'), 'type': 'error' });
 				}
 			});
 		});
+		$(tagsDialog.content.$element[0]).append(labelWidget.$element);
 		$(tagsDialog.content.$element[0]).append(comboBox.$element);
+		$(tagsDialog.content.$element[0]).append(cancelButton.$element);
 		$(tagsDialog.content.$element[0]).append(submitButton.$element);
 		windowManager.openWindow(tagsDialog);
 	}

@@ -87,7 +87,11 @@
         "wsps-page-removed",
         "wsps-javascript_restore_backup_text",
         "wsps-javascript_delete_backup_text",
-        "wsps-api-error-no-config-title"
+        "wsps-api-error-no-config-title",
+        "wsps-page-tags-added",
+        "wsps-page-tags-removed",
+        "wsps-page-tags-error-adding",
+        "wsps-page-tags-label"
       ]
     }
   },
