@@ -319,7 +319,6 @@ class WSpsSpecial extends SpecialPage {
 					case "wsps-share-docancel":
 						break;
 					case "wsps-share-doshare":
-						$out->addHTML( "thanks!" );
 						$project = $this->getPost( 'project' );
 						$company = $this->getPost( 'company' );
 						$name = $this->getPost( 'name' );
@@ -351,8 +350,12 @@ class WSpsSpecial extends SpecialPage {
 							break;
 						}
 						$nfoContent = $share->createNFOFile( $disclaimer, $project, $company, $name, $uname );
-						$share->createShareFile( $pages, $nfoContent );
-						return true;
+						if ( $res = $share->createShareFile( $pages, $nfoContent ) !== true ) {
+							$out->addHTML( $res );
+						} else {
+							$out->addHTML( '<h3>Following files have been added</h3>' );
+							$out->addHTML( $render->renderListOfPages( $pages ) );
+						}
 						break;
 					case "wsps-share-select-tags":
 						$tags = $this->getPost( "tags", false );
@@ -394,7 +397,7 @@ class WSpsSpecial extends SpecialPage {
 						if ( empty( $pages ) ) {
 							break;
 						}
-						$body =  $render->renderIndexPage( $pages, $wgScript );
+						$body = $render->renderListOfPages( $pages );
 						$data = [ 'tags' => implode( ',', $tags ), 'type' => $type ];
 						$body .= $share->getFormHeader( false ) . $share->agreeSelectionShareFooter( 'body', $data );
 						if ( count( $pages ) === 1 ) {

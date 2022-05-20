@@ -184,17 +184,25 @@ class PSShare {
 		return $ret;
 	}
 
+	public function makeAlert( string $text, string $type = "danger" ) : string {
+		$ret = '<div class="uk-alert-' . $type . ' uk-margin-large-top" uk-alert>';
+		$ret .= '<a class="uk-alert-close" uk-close></a>';
+		$ret .= '<p>' . $text . '</p></div>';
+
+		return $ret;
+	}
 	/**
 	 * @param array $pages
 	 * @param array $nfoContent
 	 *
-	 * @return void
+	 * @return bool|string
 	 */
 	public function createShareFile( array $pages, array $nfoContent ) {
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
-		$path            = WSpsHooks::$config['tempFilePath'];
+		$path            = WSpsHooks::$config['exportPath']; //filePath :: tempFilePath
+		$tempPath		 = WSpsHooks::$config['exportPath'];
 		$version         = str_replace(
 			'.',
 			'-',
@@ -214,6 +222,7 @@ class PSShare {
 			$wikiFilesList[$t] = glob( $path . $fileToCheck['filename'] . "*.wiki" );
 			$t++;
 		}
+
 		$wikiList = [];
 		foreach ( $wikiFilesList as $v ) {
 			$wikiList = array_merge( $wikiList, array_values( $v ) );
@@ -222,31 +231,26 @@ class PSShare {
 		$datetime = DateTime::createFromFormat( 'U', strtotime( $nfoContent['date'] ) );
 		$date     = $datetime->format( 'd-m-Y-H-i-s' );
 		$nfoContent = json_encode( $nfoContent );
-		echo "<pre>";
-		print_r( $addUploadedFile );
-		print_r( $infoFilesList );
-		print_r( $wikiList );
-		print_r( $fList );
-		print_r( $nfoContent );
-		echo "<pre>";
-		echo "<p>" . $path . 'PageSync_' . $date . '_' . $version . '.zip' . "</p>";
 		$zip = new ZipArchive();
 		if ( $zip->open(
-				$path . 'PageSync_' . $date . '_' . $version . '.zip',
+				$tempPath . 'PageSync_' . $date . '_' . $version . '.zip',
 				zipArchive::CREATE
 			) !== true ) {
-			die( "cannot create " . $path . 'backup_' . $date );
+			return $this->makeAlert( "cannot create " . $tempPath . 'PageSync_' . $date );
 		}
+
 		if ( !$zip->setArchiveComment( base64_encode( $nfoContent ) ) ) {
-			die( "cannot create Zip comment." );
+			return $this->makeAlert( "cannot create Zip comment." );
 		}
-		foreach ( $wikiList as $wikiFile ) {
+
+		foreach ( $fList as $wikiFile ) {
 			$zip->addFile(
 				$wikiFile,
 				basename( $wikiFile )
 			);
 		}
-		var_dump( $zip->close() );
+		$zip->close();
+		return true;
 	}
 
 	/**

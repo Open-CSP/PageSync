@@ -120,9 +120,54 @@ class WSpsRender {
 			$html .= '</form>';
 		}
 		return $html;
-
 	}
 
+	/**
+	 * @param array $pages
+	 *
+	 * @return string
+	 */
+	public function renderListOfPages( array $pages ): string {
+		global $wgScript;
+		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
+		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_slots' )->text() . '</th>';
+		$html .= '<th class="uk-text-center">' . wfMessage( 'wsps-special_table_header_tags' )->text() . '</th>';
+		$row  = 1;
+		foreach ( $pages as $page ) {
+
+			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
+			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
+			if ( isset( $page['slots'] ) ) {
+				$html .= '<td class="wsps-td">' . $page['slots'] . '</td>';
+			} else {
+				$html .= '<td class="wsps-td">main</td>';
+			}
+			if ( isset( $page['tags'] ) ) {
+				$tags = explode( ',', $page['tags'] );
+			} else {
+				$tags = [];
+			}
+			$htmlTags = '';
+			if ( !empty( $tags ) ) {
+				if ( is_array( $tags ) ) {
+					foreach ( $tags as $tag ) {
+						if ( !empty( $tag ) ) {
+							$htmlTags .= '<span class="uk-badge">' . $tag . '</span>';
+						}
+					}
+				} else {
+					$htmlTags .= '<span class="uk-badge">' . $tags . '</span>';
+				}
+			}
+			$html   .= '<td class="wsps-td uk-text-center">' . $htmlTags . '</td>';
+			$html   .= '</tr>';
+			$row++;
+		}
+		$html .= '</table>';
+
+		return $html;
+	}
 	/**
 	 * @param $data
 	 * @param string $wgScript
