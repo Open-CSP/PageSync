@@ -155,6 +155,42 @@ class PSShare {
 	}
 
 	/**
+	 * Get a list of all backup files
+	 *
+	 * @return array
+	 */
+	public function getShareList() : array {
+		$data = [];
+		if ( WSpsHooks::$config === false ) {
+			WSpsHooks::setConfig();
+		}
+		$path       = WSpsHooks::$config['filePath'];
+		$shareList = glob( $path . "PageSync_*.zip" );
+		if ( empty( $shareList ) ) {
+			return $data;
+		}
+		$t = 0;
+		foreach ( $shareList as $shareFile ) {
+			$data[$t]['file'] = basename( $shareFile );
+			$zip       = new ZipArchive();
+			if ( $zip->open( $path . $shareFile ) === true ) {
+				$json = $zip->getArchiveComment();
+				if ( $json === null ) {
+					continue;
+				}
+				$json = json_decode( base64_decode( $json ), true );
+				$data[$t] = $json;
+				$zip->close();
+			} else {
+				$data[$t]['file'] = "error";
+			}
+			$t++;
+		}
+
+		return $data;
+	}
+
+	/**
 	 * @param string $disclaimer
 	 * @param string|null $project
 	 * @param string|null $company
@@ -201,8 +237,8 @@ class PSShare {
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
-		$path            = WSpsHooks::$config['exportPath']; //filePath :: tempFilePath
-		$tempPath		 = WSpsHooks::$config['exportPath'];
+		$path            = WSpsHooks::$config['filePath']; //filePath :: tempFilePath
+		$tempPath		 = WSpsHooks::$config['filePath'];
 		$version         = str_replace(
 			'.',
 			'-',
