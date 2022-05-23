@@ -21,6 +21,42 @@ $(function () {
 	})
 
 	/**
+	 * on Special Share page download button has been pressed
+	 */
+	$('.wsps-download-share').click(function (e) {
+		e.stopPropagation()
+		var lnk = $(this)
+
+		// download it!
+		var url = window.location.href
+		var backupFile = lnk.attr('data-id')
+		var form = $('<form action="' + url + '" method="post">' +
+			'<input type="hidden" name="wsps-action" value="download-share">' +
+			'<input type="hidden" name="ws-share-file" value="' + backupFile + '"></form>')
+		$('body').append(form)
+		form.submit()
+
+	})
+
+	/**
+	 * on Special Share page delete button has been pressed
+	 */
+	$('.wsps-delete-share').click(function (e) {
+		e.stopPropagation()
+		var lnk = $(this)
+		if (confirm(mw.msg('wsps-javascript_delete_share_text'))) {
+			// delete it!
+			var url = window.location.href
+			var backupFile = lnk.attr('data-id')
+			var form = $('<form action="' + url + '" method="post">' +
+				'<input type="hidden" name="wsps-action" value="delete-share">' +
+				'<input type="hidden" name="ws-share-file" value="' + backupFile + '"></form>')
+			$('body').append(form)
+			form.submit()
+		}
+	})
+
+	/**
 	 * on Special backup page delete button has been pressed
 	 */
 	$('.wsps-delete-backup').click(function (e) {

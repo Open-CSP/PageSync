@@ -1,6 +1,5 @@
 <?php
 
-
 class PSShare {
 
 	/**
@@ -9,7 +8,7 @@ class PSShare {
 	 * @return array
 	 */
 	public function downloadZipFile( string $url ) : array {
-		$fName = basename( $url );
+		$fName   = basename( $url );
 		$tmpPath = WSpsHooks::$config['tempFilePath'];
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
@@ -67,7 +66,7 @@ class PSShare {
 
 		$page = curl_exec( $ch );
 
-		if ( !$page ) {
+		if ( ! $page ) {
 			$result = WSpsHooks::makeMessage(
 				false,
 				curl_error( $ch )
@@ -86,7 +85,7 @@ class PSShare {
 	/**
 	 * @return string
 	 */
-	public function getFormHeader( $inline = false ): string {
+	public function getFormHeader( $inline = false ) : string {
 		global $wgScript;
 		if ( $inline ) {
 			return '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=share">';
@@ -100,13 +99,16 @@ class PSShare {
 	 *
 	 * @return array
 	 */
-	public function returnPagesWithAtLeastOneTag( array $tags ): array {
-		$allPages = WSpsHooks::getAllPageInfo();
+	public function returnPagesWithAtLeastOneTag( array $tags ) : array {
+		$allPages     = WSpsHooks::getAllPageInfo();
 		$correctPages = [];
 		foreach ( $allPages as $page ) {
 			$tagCount = 0;
 			if ( isset( $page['tags'] ) ) {
-				$pTags = explode( ',', $page['tags'] );
+				$pTags = explode(
+					',',
+					$page['tags']
+				);
 				foreach ( $pTags as $sTag ) {
 					if ( in_array(
 						$sTag,
@@ -121,6 +123,7 @@ class PSShare {
 				$correctPages[] = $page;
 			}
 		}
+
 		return $correctPages;
 	}
 
@@ -129,14 +132,17 @@ class PSShare {
 	 *
 	 * @return array
 	 */
-	public function returnPagesWithAllTage( array $tags ): array {
-		$allPages = WSpsHooks::getAllPageInfo();
+	public function returnPagesWithAllTage( array $tags ) : array {
+		$allPages     = WSpsHooks::getAllPageInfo();
 		$correctPages = [];
-		$nrOfTags = count( $tags );
+		$nrOfTags     = count( $tags );
 		foreach ( $allPages as $k => $page ) {
 			$tagCount = 0;
 			if ( isset( $page['tags'] ) ) {
-				$pTags = explode( ',', $page['tags'] );
+				$pTags = explode(
+					',',
+					$page['tags']
+				);
 				foreach ( $pTags as $sTag ) {
 					if ( in_array(
 						$sTag,
@@ -151,7 +157,29 @@ class PSShare {
 				$correctPages[] = $page;
 			}
 		}
+
 		return $correctPages;
+	}
+
+	/**
+	 * Delete a share file
+	 *
+	 * @param string $shareFile
+	 *
+	 * @return bool
+	 */
+	public function deleteBackupFile( string $shareFile ) : bool {
+		if ( WSpsHooks::$config === false ) {
+			WSpsHooks::setConfig();
+		}
+		$path = WSpsHooks::$config['filePath'];
+		if ( file_exists( $path . $shareFile ) ) {
+			unlink( $path . $shareFile );
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -164,7 +192,7 @@ class PSShare {
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
-		$path       = WSpsHooks::$config['filePath'];
+		$path      = WSpsHooks::$config['filePath'];
 		$shareList = glob( $path . "PageSync_*.zip" );
 		if ( empty( $shareList ) ) {
 			return $data;
@@ -172,14 +200,17 @@ class PSShare {
 		$t = 0;
 		foreach ( $shareList as $shareFile ) {
 			$data[$t]['file'] = basename( $shareFile );
-			$zip       = new ZipArchive();
+			$zip              = new ZipArchive();
 			if ( $zip->open( $shareFile ) === true ) {
 				$json = $zip->getArchiveComment();
 				if ( $json === null ) {
 					continue;
 				}
-				$json = json_decode( base64_decode( $json ), true );
-				$data[$t] = $json;
+				$json             = json_decode(
+					base64_decode( $json ),
+					true
+				);
+				$data[$t]['info'] = $json;
 				$zip->close();
 			} else {
 				$data[$t]['file'] = "error";
@@ -227,6 +258,7 @@ class PSShare {
 
 		return $ret;
 	}
+
 	/**
 	 * @param array $pages
 	 * @param array $nfoContent
@@ -237,9 +269,9 @@ class PSShare {
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
-		$path            = WSpsHooks::$config['exportPath']; //filePath :: tempFilePath
-		$tempPath		 = WSpsHooks::$config['filePath'];
-		$version         = str_replace(
+		$path                  = WSpsHooks::$config['exportPath']; //filePath :: tempFilePath
+		$tempPath              = WSpsHooks::$config['filePath'];
+		$version               = str_replace(
 			'.',
 			'-',
 			( WSpsHooks::$config['version'] )
@@ -247,9 +279,9 @@ class PSShare {
 		$nfoContent['version'] = WSpsHooks::$config['version'];
 
 		$addUploadedFile = [];
-		$infoFilesList = [];
-		$wikiFilesList = [];
-		$t = 0;
+		$infoFilesList   = [];
+		$wikiFilesList   = [];
+		$t               = 0;
 		foreach ( $pages as $fileToCheck ) {
 			if ( isset( $fileToCheck['isFile'] ) && $fileToCheck['isFile'] === true ) {
 				$addUploadedFile[$t] = $path . $fileToCheck['filestoredname'];
@@ -261,13 +293,23 @@ class PSShare {
 
 		$wikiList = [];
 		foreach ( $wikiFilesList as $v ) {
-			$wikiList = array_merge( $wikiList, array_values( $v ) );
+			$wikiList = array_merge(
+				$wikiList,
+				array_values( $v )
+			);
 		}
-		$fList    = array_merge( $addUploadedFile, $infoFilesList, $wikiList );
-		$datetime = DateTime::createFromFormat( 'U', strtotime( $nfoContent['date'] ) );
-		$date     = $datetime->format( 'd-m-Y-H-i-s' );
+		$fList      = array_merge(
+			$addUploadedFile,
+			$infoFilesList,
+			$wikiList
+		);
+		$datetime   = DateTime::createFromFormat(
+			'U',
+			strtotime( $nfoContent['date'] )
+		);
+		$date       = $datetime->format( 'd-m-Y-H-i-s' );
 		$nfoContent = json_encode( $nfoContent );
-		$zip = new ZipArchive();
+		$zip        = new ZipArchive();
 		if ( $zip->open(
 				$tempPath . 'PageSync_' . $date . '_' . $version . '.zip',
 				zipArchive::CREATE
@@ -275,7 +317,7 @@ class PSShare {
 			return $this->makeAlert( "cannot create " . $tempPath . 'PageSync_' . $date );
 		}
 
-		if ( !$zip->setArchiveComment( base64_encode( $nfoContent ) ) ) {
+		if ( ! $zip->setArchiveComment( base64_encode( $nfoContent ) ) ) {
 			return $this->makeAlert( "cannot create Zip comment." );
 		}
 
@@ -286,6 +328,7 @@ class PSShare {
 			);
 		}
 		$zip->close();
+
 		return true;
 	}
 
@@ -295,7 +338,7 @@ class PSShare {
 	 *
 	 * @return string
 	 */
-	public function agreeSelectionShareFooter( string $action, $selection = [] ): string {
+	public function agreeSelectionShareFooter( string $action, $selection = [] ) : string {
 		global $wgScript;
 		switch ( $action ) {
 			case "agreebtn":
@@ -311,22 +354,27 @@ class PSShare {
 				break;
 			case "body":
 			default:
-				$tags = base64_encode( $selection['tags'] );
-				$type = base64_encode( $selection['type'] );
+				$tags        = base64_encode( $selection['tags'] );
+				$type        = base64_encode( $selection['type'] );
 				$doShareForm = '<input type="hidden" name="wsps-action" value="wsps-share-doshare">';
 				$doShareForm .= '<input type="hidden" name="wsps-type" value="' . $type . '">';
 				$doShareForm .= '<input type="hidden" name="wsps-tags" value="' . $tags . '">';
-				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_disclaimer' )->text() . '<sup>*</sup></label>';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_disclaimer' )->text(
+					) . '<sup>*</sup></label>';
 				$doShareForm .= '<textarea required="required" class="uk-textarea uk-width-1-1" rows="5" name="disclaimer" >';
 				$doShareForm .= wfMessage( 'wsps-special_share_default_disclaimer' )->text() . '</textarea>';
-				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_project' )->text() . '</label>';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_project' )->text(
+					) . '</label>';
 				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="project" >';
-				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_company' )->text() . '</label>';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_company' )->text(
+					) . '</label>';
 				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="company" >';
-				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_name' )->text() . '</label>';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_name' )->text(
+					) . '</label>';
 				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="name" >';
 				break;
 		}
+
 		return $doShareForm;
 		//return '<div class="uk-align-center">' . $btn_create . $btn_install . '</div>';
 	}
@@ -336,12 +384,12 @@ class PSShare {
 	 *
 	 * @return string
 	 */
-	public function renderCreateSelectTagsForm( bool $returnSubmit = false ): string {
+	public function renderCreateSelectTagsForm( bool $returnSubmit = false ) : string {
 		global $IP;
 
 		//$smw = ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' );
 		$smw = false;
-		if ( !$returnSubmit ) {
+		if ( ! $returnSubmit ) {
 			$selectTagsForm = '<input type="hidden" name="wsps-action" value="wsps-share-select-tags">';
 			$selectTagsForm .= '<div class="uk-grid-small" uk-grid>';
 			if ( $smw ) {
@@ -369,9 +417,9 @@ class PSShare {
 				$selectTagsForm .= wfMessage( 'wsps-special_share_choose_tags' )->text() . '</legend>';
 			}
 			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
-			$tags       = WSpsHooks::getAllTags();
+			$tags           = WSpsHooks::getAllTags();
 			foreach ( $tags as $tag ) {
-				if ( !empty( $tag ) ) {
+				if ( ! empty( $tag ) ) {
 					$selectTagsForm .= '<option selected="selected" value="' . $tag . '">' . $tag . '</option>';
 				}
 			}
@@ -381,16 +429,20 @@ class PSShare {
 			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_options1' )->text() . '</label><br>';
 			$selectTagsForm .= '<input type="radio" id="ws-one" class="uk-radio" name="wsps-select-type" value="one">';
 			$selectTagsForm .= ' <label for="ws-one" class="uk-form-label">';
-			$selectTagsForm .=  wfMessage( 'wsps-special_share_choose_options2' )->text() . '</label><br>';
+			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_options2' )->text() . '</label><br>';
 			$selectTagsForm .= '<input type="radio" id="ws-all-pages" class="uk-radio" name="wsps-select-type" value="ignore">';
 			$selectTagsForm .= ' <label for="ws-all-pages" class="uk-form-label">';
-			$selectTagsForm .=  wfMessage( 'wsps-special_share_choose_options3' )->text() . '</label></p></fieldset></div>';
-			$selectTagsForm .= '<script>' . file_get_contents( $IP . '/extensions/PageSync/assets/js/loadSelect2.js' ) . '</script>';;
+			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_options3' )->text(
+				) . '</label></p></fieldset></div>';
+			$selectTagsForm .= '<script>' . file_get_contents(
+					$IP . '/extensions/PageSync/assets/js/loadSelect2.js'
+				) . '</script>';;
 		} else {
 			$selectTagsForm = '<input type="submit" class="uk-button uk-width-1-1 uk-button-primary" value="';
 			$selectTagsForm .= wfMessage( 'wsps-special_share_submit_and_preview' )->text();
 			$selectTagsForm .= '">';
 		}
+
 		return $selectTagsForm;
 	}
 
@@ -399,8 +451,8 @@ class PSShare {
 	 *
 	 * @return string
 	 */
-	public function renderDownloadUrlForm( bool $returnSubmit = false ): string {
-		if ( !$returnSubmit ) {
+	public function renderDownloadUrlForm( bool $returnSubmit = false ) : string {
+		if ( ! $returnSubmit ) {
 			$downloadForm = '<input type="hidden" name="wsps-action" value="wsps-share-downloadurl">';
 			$downloadForm .= '<div class="uk-margin"><div class="uk-inline  uk-width-1-1"><a class="uk-form-icon uk-form-icon-flip" href="#" uk-icon="icon: link"></a>';
 			$downloadForm .= '<input class="uk-input" name="url" type="url" placeholder="URL to ZIP File"></div></div>';
@@ -410,13 +462,62 @@ class PSShare {
 			$downloadForm .= "Download and Preview Shared file";
 			$downloadForm .= '">';
 		}
+
 		return $downloadForm;
+	}
+
+	/**
+	 * @param array $data
+	 *
+	 * @return string
+	 */
+	public function renderShareList( array $data ) : string {
+		$html = '';
+		$html .= '<table style="width:100%;" class="uk-table uk-table-striped uk-table-hover"><thead><tr>';
+		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_share' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_project' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_company' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_name' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_website' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_version' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_table_header_delete' )->text() . '</th></tr></thead>';
+		$row  = 1;
+		if ( empty( $data ) ) { // content_no_backups
+			$html .= '</table>';
+			$html .= wfMessage( 'wsps-content_no_shares' )->text();
+		} else {
+			foreach ( $data as $share ) {
+				$fName  = basename( $share['file'] );
+				$html   .= '<tr><td class="wsps-td">' . $row . '</td>';
+				$html   .= '<td class="wsps-td"><span uk-icon="icon: album"></span> ' . $fName . '</td>';
+				$html   .= '<td class="wsps-td">' . $share['info']['project'] . '</td>';
+				$html   .= '<td class="wsps-td">' . $share['info']['company'] . '</td>';
+				$html   .= '<td class="wsps-td">' . $share['info']['name'] . ' (<span uk-icon="icon: user"></span> ' . $share['info']['uname'] . ')</td>';
+				$html   .= '<td class="wsps-td">' . $share['info']['sitename'] . '</td>';
+				$html   .= '<td class="wsps-td"><span uk-icon="icon: calendar"></span> ' . $share['info']['date'] . '</td>';
+				$html   .= '<td class="wsps-td">' . $share['info']['version'] . '</td>';
+				$button = '<a class="uk-icon-button wsps-download-share" uk-icon="download" data-id="' . $fName . '" title="' . wfMessage(
+						'wsps-special_backup_download'
+					)->text() . '"></a> ';
+				$button .= '<a class="uk-icon-button wsps-delete-share" uk-icon="ban" data-id="' . $fName . '" title="' . wfMessage(
+						'wsps-special_backup_delete'
+					)->text() . '"></a> ';
+				$html   .= '<td class="wsps-td">' . $button . '</td>';
+				$html   .= '</tr>';
+				$html   .= '<tr><td class="wsps-td"></td><td class="wsps-td" colspan="8"><span class="uk-text-meta"><span uk-icon="icon: info"></span> ' . $share['info']['disclaimer'] . '</span></td></tr>';
+				$row++;
+			}
+			$html .= '</table>';
+		}
+
+		return $html;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function renderChooseAction(): string {
+	public function renderChooseAction() : string {
 		global $wgScript;
 		$btn_create = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=share">';
 		$btn_create .= '<input type="hidden" name="wsps-action" value="wsps-share-create">';

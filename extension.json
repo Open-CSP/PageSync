@@ -21,6 +21,7 @@
     "WSpsSpecial": "specials/WSps_special.php",
     "WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php",
     "WSpsBackupHandler": "specials/handlers/WSpsBackupHandler.php",
+    "WSpsShareHandler": "specials/handlers/WSpsShareHandler.php",
     "WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php",
     "PSShare": "assets/classes/PSShare.class.php"
   },
@@ -87,6 +88,7 @@
         "wsps-page-removed",
         "wsps-javascript_restore_backup_text",
         "wsps-javascript_delete_backup_text",
+        "wsps-javascript_delete_share_text",
         "wsps-api-error-no-config-title",
         "wsps-page-tags-added",
         "wsps-page-tags-removed",

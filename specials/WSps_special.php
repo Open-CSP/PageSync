@@ -198,6 +198,16 @@ class WSpsSpecial extends SpecialPage {
 			}
 		}
 
+		// First handle serving share file for download, before we output anything
+		if ( false !== $wspsAction && strtolower( $wspsAction ) === 'share' ) {
+			$pAction = $this->getPost( 'wsps-action' );
+			if ( $pAction === 'download-share' ) {
+				$backupHandler = new WSpsShareHandler();
+				$backupHandler->setShareFile( $this->getPost( 'ws-share-file' ) );
+				$backupHandler->downloadShare();
+			}
+		}
+
 
 		$this->setHeaders();
 		$out->setPageTitle( '' );
@@ -314,8 +324,27 @@ class WSpsSpecial extends SpecialPage {
 				}
 				$share = new PSShare();
 				//Handle any backup actions
+				$backActionResult = '';
 				$pAction = $this->getPost( 'wsps-action' );
 				switch ( $pAction ) {
+					case "delete-share":
+						$resultDeleteBackup = false;
+						$backupFile         = $this->getPost( 'ws-share-file' );
+						if ( $backupFile !== false ) {
+							$resultDeleteBackup = $share->deleteBackupFile( $backupFile );
+						}
+						if ( $resultDeleteBackup === true ) {
+							$backActionResult = wfMessage(
+								'wsps-special_share_delete_file_success',
+								$backupFile
+							)->text();
+						} else {
+							$backActionResult = wfMessage(
+								'wsps-special_share_delete_file_error',
+								$backupFile
+							)->text();
+						}
+						break;
 					case "wsps-share-docancel":
 						break;
 					case "wsps-share-doshare":
@@ -425,12 +454,18 @@ class WSpsSpecial extends SpecialPage {
 						return true;
 						break;
 				}
-				$body = '<p>' . $this->msg( 'wsps-content_share_information' ) . '</p>';
+				$body = $backActionResult;
+				$body .= '<p>' . $this->msg( 'wsps-content_share_information' ) . '</p>';
 				$listOfsharePages = $share->getShareList();
-				$body .= '<pre>' . print_r( $listOfsharePages, true ) . '</pre>';
+				$nr   = count( $listOfsharePages );
+				$body .= wfMessage(
+					'wsps-special_share_count',
+					$nr
+				)->text();
+				$body .= $share->renderShareList( $listOfsharePages );
 				$footer = $share->renderChooseAction();
 
-				$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"Download Shared File", $body, $footer ) );
+				$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"Create or Download Shared File", $body, $footer ) );
 				$out->addHTML( $style );
 				return true;
 				break;
