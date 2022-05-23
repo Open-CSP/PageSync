@@ -426,6 +426,8 @@ class WSpsSpecial extends SpecialPage {
 						break;
 				}
 				$body = '<p>' . $this->msg( 'wsps-content_share_information' ) . '</p>';
+				$listOfsharePages = $share->getShareList();
+				$body .= '<pre>' . print_r( $listOfsharePages, true ) . '</pre>';
 				$footer = $share->renderChooseAction();
 
 				$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"Download Shared File", $body, $footer ) );

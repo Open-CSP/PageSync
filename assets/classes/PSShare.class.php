@@ -173,7 +173,7 @@ class PSShare {
 		foreach ( $shareList as $shareFile ) {
 			$data[$t]['file'] = basename( $shareFile );
 			$zip       = new ZipArchive();
-			if ( $zip->open( $path . $shareFile ) === true ) {
+			if ( $zip->open( $shareFile ) === true ) {
 				$json = $zip->getArchiveComment();
 				if ( $json === null ) {
 					continue;
@@ -237,7 +237,7 @@ class PSShare {
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
-		$path            = WSpsHooks::$config['filePath']; //filePath :: tempFilePath
+		$path            = WSpsHooks::$config['exportPath']; //filePath :: tempFilePath
 		$tempPath		 = WSpsHooks::$config['filePath'];
 		$version         = str_replace(
 			'.',
