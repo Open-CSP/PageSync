@@ -327,6 +327,31 @@ class WSpsSpecial extends SpecialPage {
 				$backActionResult = '';
 				$pAction = $this->getPost( 'wsps-action' );
 				switch ( $pAction ) {
+					case "wsps-share-downloadurl":
+						$fileUrl = $this->getPost( 'url' );
+						if ( $fileUrl === false ) {
+							$out->addHTML( $this->makeAlert( 'Missing Share Url' ) );
+							break;
+						}
+						$tempPath = WSpsHooks::$config['tempFilePath'];
+						$zipFile = file_get_contents( $fileUrl );
+						if ( $zipFile === false ) {
+							$out->addHTML( $this->makeAlert( 'Could not load Share url' ) );
+							break;
+						}
+						if ( !file_put_contents( $tempPath . basename( $fileUrl ), $zipFile ) ) {
+							$out->addHTML( $this->makeAlert( 'Could not save Share File to Temp folder' ) );
+							break;
+						}
+						$fileInfo = [];
+						$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $fileUrl ) );
+						$fileInfo['file'] = $tempPath . basename( $fileUrl );
+						$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $fileUrl ) );
+						$body = $share->renderShareFileInformation( $fileInfo );
+						$out->addHTML( $render->renderCard( 'Install a Shared File', '', $body, '' ) );
+						return true;
+
+						break;
 					case "delete-share":
 						$resultDeleteBackup = false;
 						$backupFile         = $this->getPost( 'ws-share-file' );

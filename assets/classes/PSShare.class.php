@@ -182,6 +182,74 @@ class PSShare {
 		return false;
 	}
 
+
+
+	/**
+	 * @param string $name
+	 *
+	 * @return array|false|string|string[]
+	 */
+	private function returnTitleFromFileName( string $name ) {
+		if ( strpos( $name, '.info' ) ) {
+			return str_replace( '.info', '', $name );
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @param string $file
+	 *
+	 * @return array|null
+	 */
+	public function getShareFileContent( string $file ): ?array {
+		$data = [];
+		$zip  = new ZipArchive();
+		if ( $zip->open( $file ) === true ) {
+			$data['count'] = $zip->numFiles;
+			for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+				$name = $this->returnTitleFromFileName( $zip->getNameIndex( $i ) );
+				if ( $name !== false ) {
+					$content = json_decode( $zip->getFromIndex( $i ), true );
+					$data['list'][$i] = $content['pagetitle'];
+					$data['description'][$i] = $content['description'];
+				}
+			}
+			$zip->close();
+		} else {
+			return null;
+		}
+		return $data;
+	}
+
+	/**
+	 * @param string $file
+	 *
+	 * @return array|null
+	 */
+	public function getShareFileInfo( string $file ): ?array {
+		$data = [];
+		$zip  = new ZipArchive();
+		if ( $zip->open( $file ) === true ) {
+			$json = $zip->getArchiveComment();
+			$count = $zip->numFiles;
+			if ( $json === null ) {
+				$zip->close();
+				return null;
+			}
+			$json             = json_decode(
+				base64_decode( $json ),
+				true
+			);
+			$json['nroffiles'] = $count;
+			$data = $json;
+			$zip->close();
+		} else {
+			return null;
+		}
+		return $data;
+	}
+
 	/**
 	 * Get a list of all backup files
 	 *
@@ -200,20 +268,11 @@ class PSShare {
 		$t = 0;
 		foreach ( $shareList as $shareFile ) {
 			$data[$t]['file'] = basename( $shareFile );
-			$zip              = new ZipArchive();
-			if ( $zip->open( $shareFile ) === true ) {
-				$json = $zip->getArchiveComment();
-				if ( $json === null ) {
-					continue;
-				}
-				$json             = json_decode(
-					base64_decode( $json ),
-					true
-				);
-				$data[$t]['info'] = $json;
-				$zip->close();
-			} else {
+			$nfo = $this->getShareFileInfo( $shareFile );
+			if ( $nfo === null ) {
 				$data[$t]['file'] = "error";
+			} else {
+				$data[$t]['info'] = $nfo;
 			}
 			$t++;
 		}
@@ -464,6 +523,83 @@ class PSShare {
 		}
 
 		return $downloadForm;
+	}
+
+	/**
+	 * @param string $name
+	 *
+	 * @return string
+	 */
+	private function replaceUnderScoreWithSpace( string $name ): string {
+		return str_replace( '_', ' ', $name );
+	}
+
+	/**
+	 * @param array $file
+	 *
+	 * @return string
+	 */
+	public function renderShareFileInformation( array $file ): string {
+		$html = '<div class="uk-grid-divider uk-child-width-expand@s" uk-grid>';
+		$html .= '<div><h2 class="uk-heading-bullet uk-heading-small">File Information</h2>';
+		$html .= '<table class="uk-table uk-table-small">';
+
+		$html .= '<tr></tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= 'File';
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . basename( $file['file'] ) . '</td></tr>';
+
+		$html .= '<tr></tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= 'Contains';
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['nroffiles'] . ' file(s)</td></tr>';
+
+		$html .= '<tr></tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= wfMessage( 'wsps-special_table_header_project' )->text();
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['project'] . '</td></tr>';
+
+		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= wfMessage( 'wsps-special_table_header_website' )->text();
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['sitename'] . '</td></tr>';
+
+		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= wfMessage( 'wsps-special_table_header_company' )->text();
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['company'] . '</td></tr>';
+
+		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= wfMessage( 'wsps-special_table_header_name' )->text();
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['name'] . ' (';
+		$html .= $file['info']['uname'] . ')</td></tr>';
+
+		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= wfMessage( 'wsps-special_table_header_date' )->text();
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['date'] . '</td></tr>';
+
+		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= wfMessage( 'wsps-special_table_header_version' )->text();
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['version'] . '</td></tr>';
+
+		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
+		$html .= wfMessage( 'wsps-special_table_header_description' )->text();
+		$html .= '</td><td class="uk-table-expand uk-text-primary uk-text-italic">' . $file['info']['disclaimer'];
+		$html .= '</td></tr>';
+
+		$html .= '</table></div>';
+
+		$html .= '<div><h2 class="uk-heading-bullet uk-heading-small">File Contents</h2>';
+		$html .= '<table style="width:100%;" class="uk-table uk-table-striped uk-table-hover uk-table-small"><thead><tr>';
+		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page_title' )->text();
+		$html .= '</th><th>' . wfMessage( 'wsps-special_table_header_description' )->text();
+		$html .= '</th></tr>';
+		$t = 1;
+		foreach ( $file['list']['list'] as $k => $entry ) {
+			$html .= '<tr><td class="uk-table-shrink uk-text-bold">' . $t . '</td>';
+			$html .= '<td class="wsps-td uk-text-primary">' . $entry . '</td>';
+			$html .= '<td class="wsps-td uk-text-muted uk-text-italic">' . $file['list']['description'][$k] . '</td>';
+			$html .= '</tr>';
+			$t++;
+		}
+		$html .= '</table></div></div>';
+		return $html;
+
 	}
 
 	/**

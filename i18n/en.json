@@ -81,6 +81,7 @@
   "wsps-special_table_header_moddate": "Modification date",
   "wsps-special_table_header_version": "Version",
   "wsps-special_table_header_version_note": "Latest version note",
+  "wsps-special_table_header_page_title": "Page title",
   "wsps-special_menu_list_managed_pages": "List Managed Pages",
   "wsps-special_menu_sync_all_managed_pages": "Sync all managed pages",
   "wsps-special_menu_sync_custom_query": "Sync Custom Query",

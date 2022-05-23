@@ -124,6 +124,13 @@ class WSpsHooks {
 					);
 				}
 			}
+			global $wgScript;
+			$url   = str_replace(
+				'index.php',
+				'',
+				$wgScript
+			);
+			self::$config['uri'] = $url . 'extensions/PageSync/';
 
 			return;
 		}
