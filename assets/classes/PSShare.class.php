@@ -525,6 +525,68 @@ class PSShare {
 		return $downloadForm;
 	}
 
+	public function isZipfile( $data ) {
+		$fileHeader="\x50\x4b\x03\x04";
+		if ( strpos( $data, $fileHeader ) === false ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * @param string $path
+	 *
+	 * @return array
+	 */
+	public function getFileInfoList( string $path ): array {
+		$fList = glob( $path . "*.info" );
+		$data = [];
+		if ( $fList !== false && !empty ( $fList ) ) {
+			foreach ( $fList as $infoFile ) {
+				if ( file_exists( $infoFile ) ) {
+					$data[] = json_decode(
+						file_get_contents( $infoFile ),
+						true
+					);
+				}
+			}
+		}
+		if ( !empty( $data ) ) {
+			array_multisort( array_map( 'strtotime', array_column( $data, 'changed' ) ),
+				SORT_DESC,
+				$data );
+		}
+
+		return $data;
+	}
+
+	public function extractTempZip( $zipFile ) {
+		$zipFileAndPath = WSpsHooks::$config['tempFilePath'] . $zipFile;
+		if ( !file_exists( $zipFileAndPath ) ) {
+			return false;
+		}
+		$zipTempPath = WSpsHooks::$config['tempFilePath'] . basename( $zipFile, '.zip' );
+		$zip       = new ZipArchive();
+		if ( file_exists( $zipTempPath ) ) {
+			$back = new WSpsHooksBackup();
+			$back->removeRecursively(
+				$zipTempPath,
+				$zipTempPath
+			);
+			rmdir( $zipTempPath );
+			if ( !mkdir( $zipTempPath ) ) {
+				return false;
+			}
+		}
+		if ( $zip->open( $zipFileAndPath ) === true ) {
+			$zip->extractTo( $zipTempPath );
+			$zip->close();
+			return $zipTempPath . '/';
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * @param string $name
 	 *
@@ -539,7 +601,17 @@ class PSShare {
 	 *
 	 * @return string
 	 */
-	public function renderShareFileInformation( array $file ): string {
+	public function renderShareFileInformation( array $file, $footer = false ): string {
+		if ( $footer ) {
+			$html = $this->getFormHeader();
+			$html .= '<input type="hidden" name="wsps-action" value="wsps-do-download-install">';
+			$html .= '<input type="hidden" name="tmpfile" value="' . basename( $file['file'] ) . '">';
+			$html .= '<div class="uk-form-controls">';
+			$html .= '<label><input class="uk-checkbox" type="checkbox" name="agreed" required="required"> I agree with the description</label>';
+			$html .= '<input type="submit" class="uk-button uk-inline uk-button-primary uk-margin-large-left uk-width-1-4" value="Install files">';
+			$html .= '</div></form>';
+			return $html;
+		}
 		$html = '<div class="uk-grid-divider uk-child-width-expand@s" uk-grid>';
 		$html .= '<div><h2 class="uk-heading-bullet uk-heading-small">File Information</h2>';
 		$html .= '<table class="uk-table uk-table-small">';

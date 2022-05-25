@@ -44,6 +44,19 @@ class importPagesIntoWiki extends Maintenance {
 			'force-rebuild-index',
 			'Used with rebuild-index. This forces rebuild-index without prompting for user interaction'
 		);
+
+		$this->addOption(
+			'install-shared-file',
+			'url or path to a PageSync share file. This will only import the pages into the wiki. Nothing else.',
+			false,
+			true
+		);
+
+		$this->addOption(
+			'silent',
+			'No verbose information. Only result in the following format. success : "ok|description", error: "error|error message".'
+
+		);
 	}
 
 	/**
@@ -129,6 +142,10 @@ class importPagesIntoWiki extends Maintenance {
 		return true;
 	}
 
+	private function returnOutput( $message, $status = 'error' ) {
+		echo $status . '|' . $message;
+	}
+
 	/**
 	 * @throws MWContentSerializationException
 	 * @throws MWException
@@ -145,27 +162,40 @@ class importPagesIntoWiki extends Maintenance {
 
 		$IP = getenv( 'MW_INSTALL_PATH' );
 
+		$silent = false;
+		if ( $this->hasOption( 'silent' ) ) {
+			$silent = true;
+		}
+
 		if ( $IP === false ) {
 			$IP = __DIR__ . '/../..';
 		}
-		echo "\n\n\n";
-		echo "********************************************************************\n";
-		echo str_pad( "** PageSync version \e[36m$versionCurrent\e[0m", 75 ) . "**\n";
-		echo "** /WSps/maintenance/WSps.maintenance.php                         **\n";
-		echo "********************************************************************\n";
-		echo "** Import pages that have been synced by the PageSync extension **\n";
-		echo "********************************************************************\n";
-
+		if ( !$silent ) {
+			echo "\n\n\n";
+			echo "********************************************************************\n";
+			echo str_pad( "** PageSync version \e[36m$versionCurrent\e[0m", 75 ) . "**\n";
+			echo "** /WSps/maintenance/WSps.maintenance.php                         **\n";
+			echo "********************************************************************\n";
+			echo "** Import pages that have been synced by the PageSync extension **\n";
+			echo "********************************************************************\n";
+		}
 		if ( $this->hasOption( 'autodelete' ) && strtolower( $this->getOption( 'autodelete' ) ) === 'true' ) {
 			$autoDelete = true;
-			echo "\n[Auto delete files turned on]\n";
+			if ( !$silent ) {
+				echo "\n[Auto delete files turned on]\n";
+			}
 		}
 
 
 		if ( WSpsHooks::checkFileConsistency() === false ) {
-			$this->fatalError( "\n\e[41mConsistency check failed. Please read instructions on converting old file formats to new."  . "\e[0m\n" );
+			if ( !$silent ) {
+				$this->fatalError( "\n\e[41mConsistency check failed. Please read instructions on converting old file formats to new." . "\e[0m\n" );
+			} else {
+				$this->returnOutput( 'Consistency check failed. Please read instructions on converting old file formats to new.' );
+			}
 			return;
 		}
+
 
 		if ( $this->hasOption( 'rebuild-index' ) ) {
 			// We need to rebuild the index file here.
@@ -196,6 +226,10 @@ class importPagesIntoWiki extends Maintenance {
 			die();
 		}
 
+		if ( $this-hasOption( 'install-shared-file' ) ) {
+			$zipFile = $this->getOption( 'install-shared-file' );
+		} else $zipFile = false;
+
 		$summary = $this->getOption(
 			'summary',
 			'Imported by PageSync'
@@ -204,7 +238,11 @@ class importPagesIntoWiki extends Maintenance {
 		if ( $this->hasOption( 'user' ) ) {
 			$user = $this->getOption( 'user' );
 		} else {
-			$this->fatalError( "User argument is mandatory." );
+			if ( !$silent ) {
+				$this->fatalError( "User argument is mandatory." );
+			} else {
+				$this->returnOutput( 'User argument is mandatory.' );
+			}
 
 			return;
 		}
@@ -212,7 +250,11 @@ class importPagesIntoWiki extends Maintenance {
 		$user = User::newFromName( $user );
 
 		if ( ! $user ) {
-			$this->fatalError( "Invalid username\n" );
+			if ( !$silent ) {
+				$this->fatalError( "Invalid username\n" );
+			} else {
+				$this->returnOutput( 'Invalid username' );
+			}
 		}
 		if ( $user->isAnon() ) {
 			$user->addToDatabase();
@@ -225,19 +267,45 @@ class importPagesIntoWiki extends Maintenance {
 
 		WSpsHooks::setConfig();
 		if ( WSpsHooks::$config === false ) {
-			$this->fatalError( wfMessage( 'wsps-api-error-no-config-body' )->text() . "\n" );
+			if ( !$silent ) {
+				$this->fatalError( wfMessage( 'wsps-api-error-no-config-body' )->text() . "\n" );
+			} else {
+				$this->returnOutput( wfMessage( 'wsps-api-error-no-config-body' )->text() );
+			}
+			return;
 		}
-		$this->filePath = WSpsHooks::$config['exportPath'];
-		$data           = WSpsHooks::getAllPageInfo();
+		$share = new PSShare();
+		if ( $zipFile === false ) {
+			$this->filePath = WSpsHooks::$config['exportPath'];
+			$data           = WSpsHooks::getAllPageInfo();
+		} else {
+			$pathToExtractedZip = $share->extractTempZip( $zipFile );
+			if ( $pathToExtractedZip === false ) {
+				$this->fatalError(  'Could not extract this Share file!' );
+				return;
+			}
+			$this->filePath = $pathToExtractedZip;
+			$data           = $share->getFileInfoList( $pathToExtractedZip );
+			if ( empty( $data ) ) {
+				$this->fatalError(  'No pages in the PageSync Share file to be installed!' );
+				return;
+			}
+		}
 
 
 		foreach ( $data as $page ) {
 			$content = [];
 			if ( isset( $page['isFile'] ) && $page['isFile'] === true ) {
-				$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
+				if ( !$zipFile === false ) {
+					$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
+				} else {
+					$fpath = $this->filePath . $page['filestoredname'];
+				}
 				$text  = WSpsHooks::getFileContent(
 					$page['filename'],
-					SlotRecord::MAIN
+					SlotRecord::MAIN,
+					$this->filePath
+
 				);
 				if ( $text === false ) {
 					$this->fatalError( "Cannot read content of file : " . $page['filename'] );
@@ -290,7 +358,8 @@ class importPagesIntoWiki extends Maintenance {
 				echo "\nGetting content for slot $slot.";
 				$content[ $slot ] = WSpsHooks::getFileContent(
 					$page['filename'],
-					$slot
+					$slot,
+					$this->filePath
 				);
 				if ( false === $content[ $slot ] ) {
 					$failCount ++;
@@ -321,7 +390,11 @@ class importPagesIntoWiki extends Maintenance {
 						"\n\e[42mSuccessfully changed " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
 					);
 				} else {
-					$infoPath = WSpsHooks::getInfoFileFromPageID( $wikiPageObject->getId() );
+					if ( $zipFile === false ) {
+						$infoPath = WSpsHooks::getInfoFileFromPageID( $wikiPageObject->getId() );
+					} else {
+						$infoPath = WSpsHooks::getZipInfoFileFromPageID( $wikiPageObject->getId(), $this->filePath );
+					}
 					if ( $infoPath['status'] !== false ) {
 						$pageInfo = json_decode( file_get_contents( $infoPath['info'] ), true );
 						$pageInfo['pageid'] = $wikiPageObject->getId();

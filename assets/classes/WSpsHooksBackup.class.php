@@ -37,7 +37,7 @@ class WSpsHooksBackup {
 	 * @param string $dir
 	 * @param string $finalDir
 	 */
-	private function removeRecursively( string $dir, string $finalDir ) {
+	public function removeRecursively( string $dir, string $finalDir ) {
 		if ( is_dir( $dir ) ) {
 			$objects = scandir( $dir );
 			foreach ( $objects as $object ) {

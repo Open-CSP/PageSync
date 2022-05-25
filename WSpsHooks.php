@@ -168,6 +168,10 @@ class WSpsHooks {
 		}
 	}
 
+	public static function getFileIndexCustom( $path ){
+		$infoFilesList = glob( $path . "*.info" );
+	}
+
 	/**
 	 * Read the list of files that need to be synced
 	 *
@@ -227,7 +231,7 @@ class WSpsHooks {
 	 *
 	 * @return array|false all pages and their detailed info
 	 */
-	public static function getAllPageInfo() {
+	public static function getAllPageInfo( $customPath = false ) {
 		if ( self::$config === false ) {
 			return false;
 		}
@@ -271,11 +275,18 @@ class WSpsHooks {
 	 *
 	 * @return false|string
 	 */
-	public static function getFileContent( string $fname, string $slotName ) {
-		$fileAndPath = self::$config['exportPath'] . self::getFileSlotNameWiki(
-				$fname,
-				$slotName
-			);
+	public static function getFileContent( string $fname, string $slotName, $path = false ) {
+		if ( !$path ) {
+			$fileAndPath = self::$config['exportPath'] . self::getFileSlotNameWiki(
+					$fname,
+					$slotName
+				);
+		} else {
+			$fileAndPath = $path . self::getFileSlotNameWiki(
+					$fname,
+					$slotName
+				);
+		}
 		echo "\nGetting file : $fileAndPath\n";
 
 		if ( file_exists( $fileAndPath ) ) {
@@ -327,6 +338,16 @@ class WSpsHooks {
 	 */
 	private static function setInfoName( string $fname ) : string {
 		return self::$config['exportPath'] . $fname . '.info';
+	}
+
+	/**
+	 * @param string $fname
+	 * @param string $path
+	 *
+	 * @return string
+	 */
+	private static function setZipInfoName( string $fname, $path  ) : string {
+		return $path . $fname . '.info';
 	}
 
 	/**
@@ -595,6 +616,25 @@ class WSpsHooks {
 			}
 		}
 		return array_unique( $tags );
+	}
+
+	/**
+	 * @param int $id
+	 *
+	 * @return array
+	 */
+	public static function getZipInfoFileFromPageID( int $id, $path ): array {
+		$title = self::getPageTitle( $id );
+		if ( $title === false || $title === null ) {
+			return self::makeMessage(
+				false,
+				wfMessage( 'wsps-error_page_not_found' )->text()
+			);
+		}
+		return self::makeMessage(
+			true,
+			self::setZipInfoName( self::cleanFileName( $title ), $path )
+		);
 	}
 
 	/**

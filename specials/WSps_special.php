@@ -327,16 +327,45 @@ class WSpsSpecial extends SpecialPage {
 				$backActionResult = '';
 				$pAction = $this->getPost( 'wsps-action' );
 				switch ( $pAction ) {
+					case "wsps-do-download-install":
+						$zipFile = $this->getPost( 'tmpfile' );
+						$agreed = $this->getPost( 'agreed' );
+						if ( $agreed === false ) {
+							$out->addHTML( $this->makeAlert( 'No agreement found to install Share file' ) );
+							break;
+						}
+						if ( $zipFile === false ) {
+							$out->addHTML( $this->makeAlert( 'No Share file information found' ) );
+							break;
+						}
+						global $IP;
+
+						$userName = $wgUser->getName();
+						$cmd = 'php ' . $IP . 'extensions/PageSync/maintenance/WSps.maintenance.php --action uploadFileToWiki';
+						$cmd .= ' --user "' . $userName.'"';
+						$cmd .= ' --install-shared-file "' . $zipFile . '"';
+						$cmd .= ' --summary "Installed via PageSync Special page"';
+						//echo $cmd;
+
+						$result = shell_exec( $cmd );
+						$res = explode('|', $result);
+						if($res[0] === 'ok' ) return true;
+						if($res[0] === 'error' ) die($res[1]);
+
+						break;
 					case "wsps-share-downloadurl":
 						$fileUrl = $this->getPost( 'url' );
+
 						if ( $fileUrl === false ) {
 							$out->addHTML( $this->makeAlert( 'Missing Share Url' ) );
 							break;
 						}
 						$tempPath = WSpsHooks::$config['tempFilePath'];
+						// First remove any ZIP file in the temp folder
+						array_map( 'unlink', glob( $tempPath . "*.zip") );
 						$zipFile = file_get_contents( $fileUrl );
-						if ( $zipFile === false ) {
-							$out->addHTML( $this->makeAlert( 'Could not load Share url' ) );
+						if ( $zipFile === false || $share->isZipfile( $zipFile ) === false ) {
+							$out->addHTML( $this->makeAlert( 'Could not load Share url. Not a valid ZIP file or it can not be downloaded.' ) );
 							break;
 						}
 						if ( !file_put_contents( $tempPath . basename( $fileUrl ), $zipFile ) ) {
@@ -348,7 +377,8 @@ class WSpsSpecial extends SpecialPage {
 						$fileInfo['file'] = $tempPath . basename( $fileUrl );
 						$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $fileUrl ) );
 						$body = $share->renderShareFileInformation( $fileInfo );
-						$out->addHTML( $render->renderCard( 'Install a Shared File', '', $body, '' ) );
+						$footer = $share->renderShareFileInformation( $fileInfo, true );
+						$out->addHTML( $render->renderCard( 'Install a Shared File', '', $body, $footer ) );
 						return true;
 
 						break;
