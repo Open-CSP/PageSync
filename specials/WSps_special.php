@@ -339,18 +339,23 @@ class WSpsSpecial extends SpecialPage {
 							break;
 						}
 						global $IP;
-
-						$userName = $wgUser->getName();
-						$cmd = 'php ' . $IP . 'extensions/PageSync/maintenance/WSps.maintenance.php --action uploadFileToWiki';
-						$cmd .= ' --user "' . $userName.'"';
-						$cmd .= ' --install-shared-file "' . $zipFile . '"';
-						$cmd .= ' --summary "Installed via PageSync Special page"';
+						$userName = $this->getUser()->getName();
+						$cmd = 'php ' . $IP . '/extensions/PageSync/maintenance/WSps.maintenance.php';
+						$cmd .= ' --user="' . $userName.'"';
+						$cmd .= ' --install-shared-file-from-temp="' . $zipFile . '"';
+						$cmd .= ' --summary="Installed via PageSync Special page"';
+						$cmd .= ' --silent';
 						//echo $cmd;
 
 						$result = shell_exec( $cmd );
-						$res = explode('|', $result);
-						if($res[0] === 'ok' ) return true;
-						if($res[0] === 'error' ) die($res[1]);
+						//echo $result;
+						$res = explode( '|', $result );
+						if ( $res[0] === 'ok' ) {
+							$out->addHTML( $this->makeAlert( $res[1], 'success' ) );
+						}
+						if ( $res[0] === 'error' ) {
+							$out->addHTML( $this->makeAlert( $res[1] ) );
+						}
 
 						break;
 					case "wsps-share-downloadurl":
@@ -362,14 +367,9 @@ class WSpsSpecial extends SpecialPage {
 						}
 						$tempPath = WSpsHooks::$config['tempFilePath'];
 						// First remove any ZIP file in the temp folder
-						array_map( 'unlink', glob( $tempPath . "*.zip") );
-						$zipFile = file_get_contents( $fileUrl );
-						if ( $zipFile === false || $share->isZipfile( $zipFile ) === false ) {
-							$out->addHTML( $this->makeAlert( 'Could not load Share url. Not a valid ZIP file or it can not be downloaded.' ) );
-							break;
-						}
-						if ( !file_put_contents( $tempPath . basename( $fileUrl ), $zipFile ) ) {
-							$out->addHTML( $this->makeAlert( 'Could not save Share File to Temp folder' ) );
+						$store = $share->getExternalZipAndStoreIntemp( $fileUrl );
+						if ( $store !== true ) {
+							$out->addHTML( $this->makeAlert( $store ) );
 							break;
 						}
 						$fileInfo = [];

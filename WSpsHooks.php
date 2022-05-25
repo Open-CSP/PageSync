@@ -287,7 +287,7 @@ class WSpsHooks {
 					$slotName
 				);
 		}
-		echo "\nGetting file : $fileAndPath\n";
+		//echo "\nGetting file : $fileAndPath\n";
 
 		if ( file_exists( $fileAndPath ) ) {
 			return file_get_contents( $fileAndPath );
@@ -408,7 +408,7 @@ class WSpsHooks {
 		$slot_role_registry  = MediaWikiServices::getInstance()->getSlotRoleRegistry();
 
 		foreach ( $text as $slot_name => $content ) {
-			echo "\nWorking with $slot_name";
+			//echo "\nWorking with $slot_name";
 			// Make sure the slot we are editing exists
 			if ( ! $slot_role_registry->isDefinedRole( $slot_name ) ) {
 				$status   = false;

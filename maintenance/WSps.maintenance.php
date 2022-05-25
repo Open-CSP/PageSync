@@ -53,6 +53,13 @@ class importPagesIntoWiki extends Maintenance {
 		);
 
 		$this->addOption(
+			'install-shared-file-from-temp',
+			'Name of an already stored PageSync share file. This will only import the pages into the wiki. Nothing else.',
+			false,
+			true
+		);
+
+		$this->addOption(
 			'silent',
 			'No verbose information. Only result in the following format. success : "ok|description", error: "error|error message".'
 
@@ -196,7 +203,6 @@ class importPagesIntoWiki extends Maintenance {
 			return;
 		}
 
-
 		if ( $this->hasOption( 'rebuild-index' ) ) {
 			// We need to rebuild the index file here.
 			if ( $this->hasOption('force-rebuild-index') === false ) {
@@ -225,10 +231,26 @@ class importPagesIntoWiki extends Maintenance {
 			echo "\nIndex Rebuild with $cnt file(s).\nDone!\n";
 			die();
 		}
-
-		if ( $this-hasOption( 'install-shared-file' ) ) {
+		$zipFromTemp = false;
+		if ( $this->hasOption( 'install-shared-file' ) ) {
 			$zipFile = $this->getOption( 'install-shared-file' );
-		} else $zipFile = false;
+			$zipFromTemp = false;
+			if ( !$silent ) {
+				echo "\nZip File set : $zipFile\n";
+			}
+		} else {
+			$zipFile = false;
+		}
+
+		if ( $this->hasOption( 'install-shared-file-from-temp' ) ) {
+			$zipFromTemp = true;
+			$zipFile = $this->getOption( 'install-shared-file-from-temp' );
+			if ( !$silent ) {
+				echo "\nZip File set : $zipFile\n";
+			}
+		} else {
+			$zipFile = false;
+		}
 
 		$summary = $this->getOption(
 			'summary',
@@ -279,19 +301,38 @@ class importPagesIntoWiki extends Maintenance {
 			$this->filePath = WSpsHooks::$config['exportPath'];
 			$data           = WSpsHooks::getAllPageInfo();
 		} else {
-			$pathToExtractedZip = $share->extractTempZip( $zipFile );
+			if ( $zipFromTemp === false ) {
+				$store = $share->getExternalZipAndStoreIntemp( $zipFile );
+				if ( $store !== true ) {
+					if ( !$silent ) {
+						$this->fatalError( $store );
+					} else {
+						$this->returnOutput( $store );
+					}
+
+					return;
+				}
+			}
+			$pathToExtractedZip = $share->extractTempZip( basename( $zipFile ) );
 			if ( $pathToExtractedZip === false ) {
-				$this->fatalError(  'Could not extract this Share file!' );
+				if ( !$silent ) {
+					$this->fatalError( 'Could not extract this Share file!' );
+				} else {
+					$this->returnOutput( 'Could not extract this Share file!' );
+				}
 				return;
 			}
 			$this->filePath = $pathToExtractedZip;
 			$data           = $share->getFileInfoList( $pathToExtractedZip );
 			if ( empty( $data ) ) {
-				$this->fatalError(  'No pages in the PageSync Share file to be installed!' );
+				if ( !$silent ) {
+					$this->fatalError( 'No pages in the PageSync Share file to be installed!' );
+				} else {
+					$this->returnOutput( 'No pages in the PageSync Share file to be installed!' );
+				}
 				return;
 			}
 		}
-
 
 		foreach ( $data as $page ) {
 			$content = [];
@@ -301,14 +342,19 @@ class importPagesIntoWiki extends Maintenance {
 				} else {
 					$fpath = $this->filePath . $page['filestoredname'];
 				}
-				$text  = WSpsHooks::getFileContent(
+				$text = WSpsHooks::getFileContent(
 					$page['filename'],
 					SlotRecord::MAIN,
 					$this->filePath
 
 				);
 				if ( $text === false ) {
-					$this->fatalError( "Cannot read content of file : " . $page['filename'] );
+					if ( !$silent ) {
+						$this->fatalError( "Cannot read content of file : " . $page['filename'] );
+					} else {
+						$this->returnOutput( "Cannot read content of file : " . $page['filename'] );
+					}
+					return;
 				}
 				$resultFileUpload = $this->uploadFileToWiki(
 					$fpath,
@@ -319,10 +365,17 @@ class importPagesIntoWiki extends Maintenance {
 					wfTimestampNow()
 				);
 				if ( $resultFileUpload !== true ) {
-					$this->fatalError( $resultFileUpload );
+					if ( !$silent ) {
+						$this->fatalError( $resultFileUpload );
+					} else {
+						$this->returnOutput( $resultFileUpload );
+					}
+					return;
 				}
 				$successCount++;
-				$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
+				if ( !$silent ) {
+					$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
+				}
 				continue;
 			}
 			$pageName = $page['pagetitle'];
@@ -330,10 +383,14 @@ class importPagesIntoWiki extends Maintenance {
 				',',
 				$page['slots']
 			);
-			echo "\n\e[36mWorking with page $pageName\e[0m";
+			if ( !$silent ) {
+				echo "\n\e[36mWorking with page $pageName\e[0m";
+			}
 			$title = Title::newFromText( $pageName );
-			if ( ! $title || $title->hasFragment() ) {
-				$this->error( "Invalid title $pageName. Skipping.\n" );
+			if ( !$title || $title->hasFragment() ) {
+				if ( !$silent ) {
+					$this->error( "Invalid title $pageName. Skipping.\n" );
+				}
 				$failCount++;
 				$exit = true;
 				continue;
@@ -341,31 +398,39 @@ class importPagesIntoWiki extends Maintenance {
 			try {
 				$wikiPageObject = WikiPage::factory( $title );
 			} catch ( MWException $e ) {
-				echo "Could not create a WikiPage Object from title " . $title->getText(
-					) . '. Message ' . $e->getMessage();
+				if ( !$silent ) {
+					echo "Could not create a WikiPage Object from title " . $title->getText(
+						) . '. Message ' . $e->getMessage();
+				}
 				$failCount++;
 				$exit = true;
 				continue;
 			}
 			if ( $wikiPageObject === null ) {
-				echo "Could not create a WikiPage Object from Article Id. Title: " . $title->getText();
+				if ( !$silent ) {
+					echo "Could not create a WikiPage Object from Article Id. Title: " . $title->getText();
+				}
 				$failCount++;
 				$exit = true;
 				continue;
 			}
 
 			foreach ( $pageSlots as $slot ) {
-				echo "\nGetting content for slot $slot.";
+				if ( !$silent ) {
+					echo "\nGetting content for slot $slot.";
+				}
 				$content[ $slot ] = WSpsHooks::getFileContent(
 					$page['filename'],
 					$slot,
 					$this->filePath
 				);
 				if ( false === $content[ $slot ] ) {
-					$failCount ++;
-					$this->output(
-						"\n\e[41mFailed " . $page['pagetitle'] . " with slot: " . $slot . ". Could not find file:" . $page['filename'] . "\e[0m\n"
-					);
+					$failCount++;
+					if ( !$silent ) {
+						$this->output(
+							"\n\e[41mFailed " . $page['pagetitle'] . " with slot: " . $slot . ". Could not find file:" . $page['filename'] . "\e[0m\n"
+						);
+					}
 					unset( $content[$slot] );
 				}
 			}
@@ -379,16 +444,20 @@ class importPagesIntoWiki extends Maintenance {
 				list( $result, $errors ) = $result;
 				$failCount++;
 				foreach ( $errors as $error ) {
-					$this->output(
-						"\n\e[41mFailed " . $page['pagetitle'] . " with. Message:" . $error . "\e[0m\n"
-					);
+					if ( !$silent ) {
+						$this->output(
+							"\n\e[41mFailed " . $page['pagetitle'] . " with. Message:" . $error . "\e[0m\n"
+						);
+					}
 				}
 			} else {
 				if ( $result['changed'] === false ) {
 					$successCount++;
-					$this->output(
-						"\n\e[42mSuccessfully changed " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
-					);
+					if ( !$silent ) {
+						$this->output(
+							"\n\e[42mSuccessfully changed " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
+						);
+					}
 				} else {
 					if ( $zipFile === false ) {
 						$infoPath = WSpsHooks::getInfoFileFromPageID( $wikiPageObject->getId() );
@@ -403,22 +472,31 @@ class importPagesIntoWiki extends Maintenance {
 
 
 					$skipCount++;
-					$this->output(
-						"\n\e[42mSkipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
-					);
+					if ( !$silent ) {
+						$this->output(
+							"\n\e[42mSkipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
+						);
+					}
 				}
 			}
 
 		}
 
 
-
-		$this->output( "Done! $successCount succeeded, $skipCount skipped.\n" );
+		if ( !$silent ) {
+			$this->output( "Done! $successCount succeeded, $skipCount skipped.\n" );
+		} else {
+			$this->returnOutput( "Done! $successCount succeeded, $skipCount skipped.", "ok" );
+		}
 		if ( $exit ) {
-			$this->fatalError(
-				"Import failed with $failCount failed pages.\n",
-				$exit
-			);
+			if ( !$silent ) {
+				$this->fatalError(
+					"Import failed with $failCount failed pages.\n",
+					$exit
+				);
+			} else {
+				$this->returnOutput( "Import failed with $failCount failed pages." );
+			}
 		}
 	}
 }
