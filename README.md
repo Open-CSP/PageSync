@@ -4,69 +4,12 @@ PageSync
 
 Export and import wiki pages
 
-## Installation
-Grab an instance from the Wikibase Gitlab repository. Create a "PageSync" folder in your Wiki extensions folder and extract the files there.
-
-## Setup
-PS needs a full path to a directory to store the file that can be synced. e.g. $IP/wspsFiles
-This can be set in the LocalSettings as  : 
-```php
-$wgPageSync['filePath'] =  $IP . '/wspsFiles';
-```
-Make sure the map has the correct right for PageSync to store files
-It is also a good practice to store these files outside of your html folder.
-
-Files from the File namespace will also be synced.
-
-You can define what slots you want to sync. Default value is all.
-If you change this value, make sure to add "main" for the main content-slot.
-```php
-$wgPageSync['contentSlotsToBeSynced'] = "all";
-```
-or
-```php
-$wgPageSync['contentSlotsToBeSynced'] = ['main', 'my-content-slot'];
-```
-
-## Special page usage
-By default the special page shows a list of all Wiki pages set for syncing.
-
-From the Special page you can also create, restore and delete ZIP backups.
-To be able to use **ZIP Backups**, make sure ZIPArchive is installed on your PHP setup.
-
-The special page also allows for you to do a **Semantic MediaWiki Query** to quickly add
-certain pages to PageSync. This feature only works if you have SemanticMediaWiki extension installed.
-
-###Update to version 0.9.9.9+
-
-Since the structure of the files have changed as of version 0.9.9.9 to support Content Slots, some extra effort is needed if you are performing an upgrade.
-
-We have tried to make this very effortlessly.
-
-Once you have installed the 0.9.9.9+ update, visit the Wiki. You will notice the sync button in the admin menu has an exclamation mark. Click this and it will bring you to a Special page.
-
-Make sure you do not sync any pages to avoid possible failures.
-
-First thing you should do is use the new feature to create a backup. This will bring you to the backup tab and you can find your new backup file there.
-
-Click on the PageSync logo to go back to the convert page. Now click convert files preview. This will give you an overview of the files affected. Click on convert files to convert all the synced files to version 0.9.9.9.
-
-## Maintenance script
-Options:
-
-- 'rebuild-index' : Rebuild the index file from existing files in export folder
-- 'force-rebuild-index' : Used with 'rebuild-index' to suppress confirmation
-- 'summary': Additional text that will be added to the files imported History.
-- 'user': Your username. Will be added to the import log. [mandatory]
-
-Example:
-```bash
-SERVER_NAME=<myservername> php extensions/PageSync/maintenance/WSps.maintenance.php --user 'Maintenance script' --summary 'Fill database'
-```
+Please visit https://www.mediawiki.org/wiki/Extension:PageSync for default information.
+Detailed documentaion can be found here : https://www.open-csp.org/DevOps:Doc/PageSync
 
 #### Development
 
-* 1.5.0 Sharing Files added
+* 1.5.0 Sharing Files added. Rename to PageSync.
 * 1.2.0 Rename WSPageSync to PageSync and move from gitlab to github.
 * 1.1.0 Rewrote deprecated 1.35.1+ code. Unchanged pages will no longer updates sync files
 * 1.0.1 Added support for different content types
