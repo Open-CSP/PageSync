@@ -149,7 +149,14 @@ class importPagesIntoWiki extends Maintenance {
 		return true;
 	}
 
-	private function returnOutput( $message, $status = 'error' ) {
+	private function returnOutput( $message, $status = 'error', $collectedMessage = [] ) {
+		if ( !empty( $collectedMessage ) ) {
+			$message = '<p><ul><li>' . $message . '</li>';
+			foreach ( $collectedMessage as $msg ) {
+				$message .= '<li>' . $msg . '</li>';
+			}
+			$message .= '</ul></p>';
+		}
 		echo $status . '|' . $message;
 	}
 
@@ -158,6 +165,9 @@ class importPagesIntoWiki extends Maintenance {
 	 * @throws MWException
 	 */
 	public function execute() {
+
+		$collectedMessages = [];
+
 		if ( wfReadOnly() ) {
 			$this->fatalError( "Wiki is in read-only mode; you'll need to disable it for import to work." );
 		}
@@ -249,7 +259,7 @@ class importPagesIntoWiki extends Maintenance {
 				echo "\nZip File set : $zipFile\n";
 			}
 		} else {
-			$zipFile = false;
+			$zipFromTemp = false;
 		}
 
 		$summary = $this->getOption(
@@ -375,6 +385,8 @@ class importPagesIntoWiki extends Maintenance {
 				$successCount++;
 				if ( !$silent ) {
 					$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
+				} else {
+					$collectedMessages[] = "Uploaded " . $page['fileoriginalname'];
 				}
 				continue;
 			}
@@ -390,6 +402,8 @@ class importPagesIntoWiki extends Maintenance {
 			if ( !$title || $title->hasFragment() ) {
 				if ( !$silent ) {
 					$this->error( "Invalid title $pageName. Skipping.\n" );
+				} else {
+					$collectedMessages[] = "Invalid title $pageName. Skipping.";
 				}
 				$failCount++;
 				$exit = true;
@@ -401,6 +415,9 @@ class importPagesIntoWiki extends Maintenance {
 				if ( !$silent ) {
 					echo "Could not create a WikiPage Object from title " . $title->getText(
 						) . '. Message ' . $e->getMessage();
+				} else {
+					$collectedMessages[] = "Could not create a WikiPage Object from title " . $title->getText(
+						) . '. Message ' . $e->getMessage();
 				}
 				$failCount++;
 				$exit = true;
@@ -409,6 +426,8 @@ class importPagesIntoWiki extends Maintenance {
 			if ( $wikiPageObject === null ) {
 				if ( !$silent ) {
 					echo "Could not create a WikiPage Object from Article Id. Title: " . $title->getText();
+				} else {
+					$collectedMessages[] = "Could not create a WikiPage Object from Article Id. Title: " . $title->getText();
 				}
 				$failCount++;
 				$exit = true;
@@ -430,6 +449,8 @@ class importPagesIntoWiki extends Maintenance {
 						$this->output(
 							"\n\e[41mFailed " . $page['pagetitle'] . " with slot: " . $slot . ". Could not find file:" . $page['filename'] . "\e[0m\n"
 						);
+					} else {
+						$collectedMessages[] = "Failed " . $page['pagetitle'] . " with slot: " . $slot . ". Could not find file:" . $page['filename'];
 					}
 					unset( $content[$slot] );
 				}
@@ -448,6 +469,8 @@ class importPagesIntoWiki extends Maintenance {
 						$this->output(
 							"\n\e[41mFailed " . $page['pagetitle'] . " with. Message:" . $error . "\e[0m\n"
 						);
+					} else {
+						$collectedMessages[] = "Failed " . $page['pagetitle'] . " with. Message:" . $error;
 					}
 				}
 			} else {
@@ -457,6 +480,8 @@ class importPagesIntoWiki extends Maintenance {
 						$this->output(
 							"\n\e[42mSuccessfully changed " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
 						);
+					} else {
+						$collectedMessages[] = "Successfully changed " . $page['pagetitle'] . " and slots " . $page['slots'];
 					}
 				} else {
 					if ( $zipFile === false ) {
@@ -476,6 +501,8 @@ class importPagesIntoWiki extends Maintenance {
 						$this->output(
 							"\n\e[42mSkipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
 						);
+					} else {
+						$collectedMessages[] = "Skipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'];
 					}
 				}
 			}
@@ -486,7 +513,7 @@ class importPagesIntoWiki extends Maintenance {
 		if ( !$silent ) {
 			$this->output( "Done! $successCount succeeded, $skipCount skipped.\n" );
 		} else {
-			$this->returnOutput( "Done! $successCount succeeded, $skipCount skipped.", "ok" );
+			$this->returnOutput( "Done! $successCount succeeded, $skipCount skipped.", "ok", $collectedMessages );
 		}
 		if ( $exit ) {
 			if ( !$silent ) {
