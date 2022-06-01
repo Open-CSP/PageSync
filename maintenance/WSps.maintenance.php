@@ -61,7 +61,13 @@ class importPagesIntoWiki extends Maintenance {
 
 		$this->addOption(
 			'silent',
-			'No verbose information. Only result in the following format. success : "ok|description", error: "error|error message".'
+			'No verbose information. Will end with number of successes and skipped pages.'
+
+		);
+
+		$this->addOption(
+			'special',
+			'Used for the Special page. Same as silent option, but result is in the following format. success : "ok|description", error: "error|error message".'
 
 		);
 	}
@@ -149,15 +155,30 @@ class importPagesIntoWiki extends Maintenance {
 		return true;
 	}
 
-	private function returnOutput( $message, $status = 'error', $collectedMessage = [] ) {
-		if ( !empty( $collectedMessage ) ) {
+	/**
+	 * @param string $message
+	 * @param string $status
+	 * @param array $collectedMessage
+	 * @param bool $special
+	 *
+	 * @return void
+	 */
+	private function returnOutput(
+		string $message,
+		string $status = 'error',
+		array $collectedMessage = [],
+		bool $special = false
+	) {
+		if ( $special && !empty( $collectedMessage ) ) {
 			$message = '<p><ul><li>' . $message . '</li>';
 			foreach ( $collectedMessage as $msg ) {
 				$message .= '<li>' . $msg . '</li>';
 			}
 			$message .= '</ul></p>';
+			echo $status . '|' . $message;
+		} else {
+			echo $message;
 		}
-		echo $status . '|' . $message;
 	}
 
 	/**
@@ -181,6 +202,12 @@ class importPagesIntoWiki extends Maintenance {
 
 		$silent = false;
 		if ( $this->hasOption( 'silent' ) ) {
+			$silent = true;
+		}
+
+		$special = false;
+		if ( $this->hasOption( 'special' ) ) {
+			$special = true;
 			$silent = true;
 		}
 
@@ -513,7 +540,7 @@ class importPagesIntoWiki extends Maintenance {
 		if ( !$silent ) {
 			$this->output( "Done! $successCount succeeded, $skipCount skipped.\n" );
 		} else {
-			$this->returnOutput( "Done! $successCount succeeded, $skipCount skipped.", "ok", $collectedMessages );
+			$this->returnOutput( "Done! $successCount succeeded, $skipCount skipped.", "ok", $collectedMessages, $special );
 		}
 		if ( $exit ) {
 			if ( !$silent ) {

@@ -344,7 +344,7 @@ class WSpsSpecial extends SpecialPage {
 						$cmd .= ' --user="' . $userName.'"';
 						$cmd .= ' --install-shared-file-from-temp="' . $zipFile . '"';
 						$cmd .= ' --summary="Installed via PageSync Special page"';
-						$cmd .= ' --silent';
+						$cmd .= ' --special';
 						//echo $cmd;
 
 						$result = shell_exec( $cmd );

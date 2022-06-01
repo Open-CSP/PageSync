@@ -9,6 +9,7 @@ Detailed documentaion can be found here : https://www.open-csp.org/DevOps:Doc/Pa
 
 #### Development
 
+* 1.5.1 Made maintenance option silent more silent. Added special option.
 * 1.5.0 Sharing Files added. Rename to PageSync.
 * 1.2.0 Rename WSPageSync to PageSync and move from gitlab to github.
 * 1.1.0 Rewrote deprecated 1.35.1+ code. Unchanged pages will no longer updates sync files
