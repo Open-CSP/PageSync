@@ -62,13 +62,16 @@ class importPagesIntoWiki extends Maintenance {
 		$this->addOption(
 			'silent',
 			'No verbose information. Will end with number of successes and skipped pages.'
-
 		);
 
 		$this->addOption(
 			'special',
 			'Used for the Special page. Same as silent option, but result is in the following format. success : "ok|description", error: "error|error message".'
+		);
 
+		$this->addOption(
+			'skip-if-page-is-changed-in-wiki',
+			'For Shared Files only : Tell PageSync to not overwrite a page, when the maintenance user differs from the last user who edited the page in the wiki.'
 		);
 	}
 
@@ -79,6 +82,7 @@ class importPagesIntoWiki extends Maintenance {
 	 * @param string $content
 	 * @param string $summary
 	 * @param mixed $timestamp
+	 * @param bool $checkSameUser
 	 *
 	 * @return bool|string
 	 */
@@ -88,7 +92,8 @@ class importPagesIntoWiki extends Maintenance {
 		$user,
 		string $content,
 		string $summary,
-		$timestamp
+		$timestamp,
+		bool $checkSameUser = false
 	) {
 		global $wgUser;
 		if ( ! file_exists( $filePath ) ) {
@@ -107,6 +112,10 @@ class importPagesIntoWiki extends Maintenance {
 		);
 		if ( ! is_object( $title ) ) {
 			return "{$base} could not be imported; a valid title cannot be produced";
+		}
+
+		if( $title->exists() ) {
+			$title->getLatestRevID();
 		}
 
 		$fileRepo       = MediaWikiServices::getInstance()->getRepoGroup()->getLocalRepo();
@@ -209,6 +218,11 @@ class importPagesIntoWiki extends Maintenance {
 		if ( $this->hasOption( 'special' ) ) {
 			$special = true;
 			$silent = true;
+		}
+
+		$skipDifferentUser = false;
+		if ( $this->hasOption( 'skip-if-page-is-changed-in-wiki' ) ) {
+			$skipDifferentUser = true;
 		}
 
 		if ( $IP === false ) {
@@ -373,8 +387,10 @@ class importPagesIntoWiki extends Maintenance {
 
 		foreach ( $data as $page ) {
 			$content = [];
+			$checkSameUser = false;
 			if ( isset( $page['isFile'] ) && $page['isFile'] === true ) {
 				if ( !$zipFile === false ) {
+					$checkSameUser = $skipDifferentUser;
 					$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
 				} else {
 					$fpath = $this->filePath . $page['filestoredname'];
@@ -399,7 +415,8 @@ class importPagesIntoWiki extends Maintenance {
 					$user,
 					$text,
 					$summary,
-					wfTimestampNow()
+					wfTimestampNow(),
+					$checkSameUser
 				);
 				if ( $resultFileUpload !== true ) {
 					if ( !$silent ) {
