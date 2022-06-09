@@ -110,12 +110,22 @@ class importPagesIntoWiki extends Maintenance {
 			NS_FILE,
 			$base
 		);
-		if ( ! is_object( $title ) ) {
+		if ( !is_object( $title ) ) {
 			return "{$base} could not be imported; a valid title cannot be produced";
 		}
 
-		if( $title->exists() ) {
-			$title->getLatestRevID();
+		if ( $checkSameUser ) {
+			if ( $title->exists() ) {
+				$oldRevId  = $title->getLatestRevID();
+				$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
+				$oldRev    = $oldRevId ? $revLookup->getRevisionById( $oldRevId ) : null;
+				if ( $oldRev !== null ) {
+					$revUser = $oldRev->getUser();
+					if ( $revUser->getId() !== $wgUser->getId() ) {
+						return "different user";
+					}
+				}
+			}
 		}
 
 		$fileRepo       = MediaWikiServices::getInstance()->getRepoGroup()->getLocalRepo();
@@ -418,7 +428,16 @@ class importPagesIntoWiki extends Maintenance {
 					wfTimestampNow(),
 					$checkSameUser
 				);
-				if ( $resultFileUpload !== true ) {
+				if ( $checkSameUser && $resultFileUpload === 'different user' ) {
+					$skipCount++;
+					if ( !$silent ) {
+						$this->output(
+							"File " . $page['fileoriginalname'] . " skipped. File changed in wiki.[skip-if-page-is-changed-in-wiki]\n"
+						);
+					} else {
+						$collectedMessages[] = "File " . $page['fileoriginalname'] . " skipped. File changed in wiki.[skip-if-page-is-changed-in-wiki]\n";
+					}
+				} elseif ( $resultFileUpload !== true ) {
 					if ( !$silent ) {
 						$this->fatalError( $resultFileUpload );
 					} else {
@@ -426,11 +445,13 @@ class importPagesIntoWiki extends Maintenance {
 					}
 					return;
 				}
-				$successCount++;
-				if ( !$silent ) {
-					$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
-				} else {
-					$collectedMessages[] = "Uploaded " . $page['fileoriginalname'];
+				if ( $resultFileUpload !== 'different user' ) {
+					$successCount++;
+					if ( ! $silent ) {
+						$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
+					} else {
+						$collectedMessages[] = "Uploaded " . $page['fileoriginalname'];
+					}
 				}
 				continue;
 			}
@@ -476,6 +497,28 @@ class importPagesIntoWiki extends Maintenance {
 				$failCount++;
 				$exit = true;
 				continue;
+			}
+
+			if ( $zipFile !== false && $skipDifferentUser ) {
+				if ( $title->exists() ) {
+					$oldRevId  = $title->getLatestRevID();
+					$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
+					$oldRev    = $oldRevId ? $revLookup->getRevisionById( $oldRevId ) : null;
+					if ( $oldRev !== null ) {
+						$revUser = $oldRev->getUser();
+						if ( $revUser->getId() !== $user->getId() ) {
+							if ( !$silent ) {
+								$this->output(
+									"\nPage " . $pageName . " skipped. Page changed in wiki.[skip-if-page-is-changed-in-wiki]\n"
+								);
+							} else {
+								$collectedMessages[] = "Page " . $pageName . " skipped. File changed in wiki.[skip-if-page-is-changed-in-wiki]\n";
+							}
+							$skipCount++;
+							continue;
+						}
+					}
+				}
 			}
 
 			foreach ( $pageSlots as $slot ) {
@@ -527,19 +570,22 @@ class importPagesIntoWiki extends Maintenance {
 					} else {
 						$collectedMessages[] = "Successfully changed " . $page['pagetitle'] . " and slots " . $page['slots'];
 					}
-				} else {
 					if ( $zipFile === false ) {
 						$infoPath = WSpsHooks::getInfoFileFromPageID( $wikiPageObject->getId() );
-					} else {
-						$infoPath = WSpsHooks::getZipInfoFileFromPageID( $wikiPageObject->getId(), $this->filePath );
-					}
-					if ( $infoPath['status'] !== false ) {
-						$pageInfo = json_decode( file_get_contents( $infoPath['info'] ), true );
-						$pageInfo['pageid'] = $wikiPageObject->getId();
-						file_put_contents( $infoPath['info'], json_encode( $pageInfo ) );
-					}
 
-
+						if ( $infoPath['status'] !== false && $zipFile === false ) {
+							$pageInfo = json_decode(
+								file_get_contents( $infoPath['info'] ),
+								true
+							);
+							$pageInfo['pageid'] = $wikiPageObject->getId();
+							file_put_contents(
+								$infoPath['info'],
+								json_encode( $pageInfo )
+							);
+						}
+					}
+				} else {
 					$skipCount++;
 					if ( !$silent ) {
 						$this->output(
