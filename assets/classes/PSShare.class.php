@@ -610,6 +610,10 @@ class PSShare {
 		return str_replace( '_', ' ', $name );
 	}
 
+	public function renderShareFileInformationConsole( array $file ) : string {
+		$this->Main
+	}
+
 	/**
 	 * @param array $file
 	 *

@@ -374,6 +374,17 @@ class importPagesIntoWiki extends Maintenance {
 					return;
 				}
 			}
+			$tempPath = WSpsHooks::$config['tempFilePath'];
+			$fileInfo = [];
+			$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $zipFile ) );
+			$fileInfo['file'] = $tempPath . basename( $zipFile );
+			$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $zipFile ) );
+
+			$this->
+
+			AnsiTermColorer::color
+
+
 			$pathToExtractedZip = $share->extractTempZip( basename( $zipFile ) );
 			if ( $pathToExtractedZip === false ) {
 				if ( !$silent ) {
