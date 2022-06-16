@@ -375,15 +375,19 @@ class importPagesIntoWiki extends Maintenance {
 				}
 			}
 			$tempPath = WSpsHooks::$config['tempFilePath'];
-			$fileInfo = [];
-			$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $zipFile ) );
-			$fileInfo['file'] = $tempPath . basename( $zipFile );
-			$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $zipFile ) );
+			if ( !$silent ) {
+				$fileInfo         = [];
+				$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $zipFile ) );
+				$fileInfo['file'] = $tempPath . basename( $zipFile );
+				$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $zipFile ) );
 
-			$this->
+				echo $share->renderShareFileInformationConsole( $fileInfo );
 
-			AnsiTermColorer::color
-
+				$answer = strtolower( readline( "Continue and agree to disclaimer/description (y/n)" ) );
+				if ( $answer !== "y" ) {
+					die( "no action\n\n" );
+				}
+			}
 
 			$pathToExtractedZip = $share->extractTempZip( basename( $zipFile ) );
 			if ( $pathToExtractedZip === false ) {

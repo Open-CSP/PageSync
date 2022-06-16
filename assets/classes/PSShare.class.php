@@ -610,8 +610,57 @@ class PSShare {
 		return str_replace( '_', ' ', $name );
 	}
 
+	/**
+	 * @param array $file
+	 *
+	 * @return string
+	 */
 	public function renderShareFileInformationConsole( array $file ) : string {
-		$this->Main
+		$txt = '*** SHARE FILE INFORMATION ***' . "\n";
+		$txt .= "\n";
+		$txt .= "\n*** ";
+		$txt .= 'File : ' . basename( $file['file'] );
+		$txt .= "\n*** ";
+		$txt .= $file['info']['nroffiles'] . ' file(s)';
+		$txt .= "\n*** ";
+		$txt .= wfMessage( 'wsps-special_table_header_project' )->text() . ': ';
+		$txt .= $file['info']['project'];
+		$txt .= "\n*** ";
+
+		$txt .= wfMessage( 'wsps-special_table_header_website' )->text() . ': ';
+		$txt .= $file['info']['sitename'];
+		$txt .= "\n*** ";
+
+		$txt .= wfMessage( 'wsps-special_table_header_company' )->text() . ': ';
+		$txt .= $file['info']['company'];
+		$txt .= "\n*** ";
+
+		$txt .= wfMessage( 'wsps-special_table_header_name' )->text() . ': ';
+		$txt .= $file['info']['name'] . ' (' . $file['info']['uname'] . ')';
+		$txt .= "\n*** ";
+
+		$txt .= wfMessage( 'wsps-special_table_header_date' )->text() . ': ';
+		$txt .= $file['info']['date'];
+		$txt .= "\n*** ";
+
+		$txt .= wfMessage( 'wsps-special_table_header_version' )->text() . ': ';
+		$txt .= $file['info']['version'];
+		$txt .= "\n*** ";
+
+		$txt .= wfMessage( 'wsps-special_table_header_description' )->text() . ': ';
+		$txt .= $file['info']['disclaimer'];
+		$txt .= "\n***************************\n";
+		$txt .= 'File Contents';
+		$txt .= "\n";
+
+		$t = 1;
+		foreach ( $file['list']['list'] as $k => $entry ) {
+			$txt .= str_pad( $t, 4, '0', STR_PAD_LEFT ) . '. ';
+			$txt .= $entry . " (";
+			$txt .= $file['list']['description'][$k] . ")\n";
+			$t++;
+		}
+		return $txt . "\n\n";
 	}
 
 	/**
