@@ -42,7 +42,13 @@ class WSpsHooks {
 		if ( $config->has( "PageSync" ) ) {
 			$wgWSPageSync = $config->get( "PageSync" );
 
-			if ( ! isset( $wgWSPageSync['fileNameSpaces'] ) && ! is_array( $wgWSPageSync['fileNameSpaces'] ) ) {
+			if ( !isset( $wgWSPageSync['allowedGroups'] ) || !is_array( $wgWSPageSync['allowedGroups'] ) ) {
+				self::$config[ 'allowedGroups' ] = [ 'sysop' ];
+			}
+			else {
+				self::$config[ 'allowedGroups' ] = $wgWSPageSync['allowedGroups'];
+			}
+			if ( !isset( $wgWSPageSync['fileNameSpaces'] ) && !is_array( $wgWSPageSync['fileNameSpaces'] ) ) {
 				self::$config['fileNameSpaces'] = [
 					6,
 					-2
@@ -1446,10 +1452,10 @@ class WSpsHooks {
 			$wgScript
 		);
 		// If not sysop.. return
-		if ( ! in_array(
-			'sysop',
+		if ( empty( array_intersect(
+			self::$config['allowedGroups'],
 			MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $wgUser )
-		) ) {
+		) ) ) {
 			return;
 		}
 

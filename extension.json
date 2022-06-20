@@ -60,6 +60,9 @@
   },
   "config": {
     "PageSync": {
+      "allowedGroups": [
+        "spacemaster"
+      ],
       "filePath": "",
       "tempFilePath": "",
       "fileNameSpaces": [
