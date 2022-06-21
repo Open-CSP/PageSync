@@ -62,13 +62,16 @@ class importPagesIntoWiki extends Maintenance {
 		$this->addOption(
 			'silent',
 			'No verbose information. Will end with number of successes and skipped pages.'
-
 		);
 
 		$this->addOption(
 			'special',
 			'Used for the Special page. Same as silent option, but result is in the following format. success : "ok|description", error: "error|error message".'
+		);
 
+		$this->addOption(
+			'skip-if-page-is-changed-in-wiki',
+			'For Shared Files only : Tell PageSync to not overwrite a page, when the maintenance user differs from the last user who edited the page in the wiki.'
 		);
 	}
 
@@ -79,6 +82,7 @@ class importPagesIntoWiki extends Maintenance {
 	 * @param string $content
 	 * @param string $summary
 	 * @param mixed $timestamp
+	 * @param bool $checkSameUser
 	 *
 	 * @return bool|string
 	 */
@@ -88,7 +92,8 @@ class importPagesIntoWiki extends Maintenance {
 		$user,
 		string $content,
 		string $summary,
-		$timestamp
+		$timestamp,
+		bool $checkSameUser = false
 	) {
 		global $wgUser;
 		if ( ! file_exists( $filePath ) ) {
@@ -105,8 +110,22 @@ class importPagesIntoWiki extends Maintenance {
 			NS_FILE,
 			$base
 		);
-		if ( ! is_object( $title ) ) {
+		if ( !is_object( $title ) ) {
 			return "{$base} could not be imported; a valid title cannot be produced";
+		}
+
+		if ( $checkSameUser ) {
+			if ( $title->exists() ) {
+				$oldRevId  = $title->getLatestRevID();
+				$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
+				$oldRev    = $oldRevId ? $revLookup->getRevisionById( $oldRevId ) : null;
+				if ( $oldRev !== null ) {
+					$revUser = $oldRev->getUser();
+					if ( $revUser->getId() !== $wgUser->getId() ) {
+						return "different user";
+					}
+				}
+			}
 		}
 
 		$fileRepo       = MediaWikiServices::getInstance()->getRepoGroup()->getLocalRepo();
@@ -209,6 +228,11 @@ class importPagesIntoWiki extends Maintenance {
 		if ( $this->hasOption( 'special' ) ) {
 			$special = true;
 			$silent = true;
+		}
+
+		$skipDifferentUser = false;
+		if ( $this->hasOption( 'skip-if-page-is-changed-in-wiki' ) ) {
+			$skipDifferentUser = true;
 		}
 
 		if ( $IP === false ) {
@@ -350,6 +374,21 @@ class importPagesIntoWiki extends Maintenance {
 					return;
 				}
 			}
+			$tempPath = WSpsHooks::$config['tempFilePath'];
+			if ( !$silent ) {
+				$fileInfo         = [];
+				$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $zipFile ) );
+				$fileInfo['file'] = $tempPath . basename( $zipFile );
+				$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $zipFile ) );
+
+				echo $share->renderShareFileInformationConsole( $fileInfo );
+
+				$answer = strtolower( readline( "Continue and agree to disclaimer/description (y/n)" ) );
+				if ( $answer !== "y" ) {
+					die( "no action\n\n" );
+				}
+			}
+
 			$pathToExtractedZip = $share->extractTempZip( basename( $zipFile ) );
 			if ( $pathToExtractedZip === false ) {
 				if ( !$silent ) {
@@ -373,8 +412,10 @@ class importPagesIntoWiki extends Maintenance {
 
 		foreach ( $data as $page ) {
 			$content = [];
+			$checkSameUser = false;
 			if ( isset( $page['isFile'] ) && $page['isFile'] === true ) {
 				if ( !$zipFile === false ) {
+					$checkSameUser = $skipDifferentUser;
 					$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
 				} else {
 					$fpath = $this->filePath . $page['filestoredname'];
@@ -399,9 +440,19 @@ class importPagesIntoWiki extends Maintenance {
 					$user,
 					$text,
 					$summary,
-					wfTimestampNow()
+					wfTimestampNow(),
+					$checkSameUser
 				);
-				if ( $resultFileUpload !== true ) {
+				if ( $checkSameUser && $resultFileUpload === 'different user' ) {
+					$skipCount++;
+					if ( !$silent ) {
+						$this->output(
+							"File " . $page['fileoriginalname'] . " skipped. File changed in wiki.[skip-if-page-is-changed-in-wiki]\n"
+						);
+					} else {
+						$collectedMessages[] = "File " . $page['fileoriginalname'] . " skipped. File changed in wiki.[skip-if-page-is-changed-in-wiki]\n";
+					}
+				} elseif ( $resultFileUpload !== true ) {
 					if ( !$silent ) {
 						$this->fatalError( $resultFileUpload );
 					} else {
@@ -409,11 +460,13 @@ class importPagesIntoWiki extends Maintenance {
 					}
 					return;
 				}
-				$successCount++;
-				if ( !$silent ) {
-					$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
-				} else {
-					$collectedMessages[] = "Uploaded " . $page['fileoriginalname'];
+				if ( $resultFileUpload !== 'different user' ) {
+					$successCount++;
+					if ( ! $silent ) {
+						$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
+					} else {
+						$collectedMessages[] = "Uploaded " . $page['fileoriginalname'];
+					}
 				}
 				continue;
 			}
@@ -459,6 +512,28 @@ class importPagesIntoWiki extends Maintenance {
 				$failCount++;
 				$exit = true;
 				continue;
+			}
+
+			if ( $zipFile !== false && $skipDifferentUser ) {
+				if ( $title->exists() ) {
+					$oldRevId  = $title->getLatestRevID();
+					$revLookup = MediaWikiServices::getInstance()->getRevisionLookup();
+					$oldRev    = $oldRevId ? $revLookup->getRevisionById( $oldRevId ) : null;
+					if ( $oldRev !== null ) {
+						$revUser = $oldRev->getUser();
+						if ( $revUser->getId() !== $user->getId() ) {
+							if ( !$silent ) {
+								$this->output(
+									"\nPage " . $pageName . " skipped. Page changed in wiki.[skip-if-page-is-changed-in-wiki]\n"
+								);
+							} else {
+								$collectedMessages[] = "Page " . $pageName . " skipped. File changed in wiki.[skip-if-page-is-changed-in-wiki]\n";
+							}
+							$skipCount++;
+							continue;
+						}
+					}
+				}
 			}
 
 			foreach ( $pageSlots as $slot ) {
@@ -510,19 +585,22 @@ class importPagesIntoWiki extends Maintenance {
 					} else {
 						$collectedMessages[] = "Successfully changed " . $page['pagetitle'] . " and slots " . $page['slots'];
 					}
-				} else {
 					if ( $zipFile === false ) {
 						$infoPath = WSpsHooks::getInfoFileFromPageID( $wikiPageObject->getId() );
-					} else {
-						$infoPath = WSpsHooks::getZipInfoFileFromPageID( $wikiPageObject->getId(), $this->filePath );
-					}
-					if ( $infoPath['status'] !== false ) {
-						$pageInfo = json_decode( file_get_contents( $infoPath['info'] ), true );
-						$pageInfo['pageid'] = $wikiPageObject->getId();
-						file_put_contents( $infoPath['info'], json_encode( $pageInfo ) );
-					}
 
-
+						if ( $infoPath['status'] !== false && $zipFile === false ) {
+							$pageInfo = json_decode(
+								file_get_contents( $infoPath['info'] ),
+								true
+							);
+							$pageInfo['pageid'] = $wikiPageObject->getId();
+							file_put_contents(
+								$infoPath['info'],
+								json_encode( $pageInfo )
+							);
+						}
+					}
+				} else {
 					$skipCount++;
 					if ( !$silent ) {
 						$this->output(

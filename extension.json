@@ -1,6 +1,6 @@
 {
   "name": "PageSync",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "author": [
     "Sen-Sai"
   ],
@@ -60,6 +60,9 @@
   },
   "config": {
     "PageSync": {
+      "allowedGroups": [
+        "sysop"
+      ],
       "filePath": "",
       "tempFilePath": "",
       "fileNameSpaces": [

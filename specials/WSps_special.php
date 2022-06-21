@@ -6,6 +6,8 @@
  * @ingroup Extensions
  */
 
+use MediaWiki\MediaWikiServices;
+
 /**
  * Class WSpsSpecial
  */
@@ -156,14 +158,6 @@ class WSpsSpecial extends SpecialPage {
 		$usr            = $wgUser->getName();
 		$groups         = $wgUser->getGroups();
 		$showAnyMessage = false;
-		if ( ! in_array(
-			'sysop',
-			$groups
-		) ) {
-			$out->addHTML( '<p>Nothing to see here, only interesting stuff for Admins</p>' );
-
-			return true;
-		}
 		WSpsHooks::setConfig();
 
 		if ( WSpsHooks::$config === false ) {
@@ -171,6 +165,15 @@ class WSpsSpecial extends SpecialPage {
 
 			return true;
 		}
+		if ( empty( array_intersect(
+			WSpsHooks::$config['allowedGroups'],
+			MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $wgUser )
+		) ) ) {
+			$out->addHTML( '<p>Nothing to see here, only interesting stuff for Admins</p>' );
+
+			return true;
+		}
+
 
 		include( $IP . '/extensions/PageSync/assets/classes/WSpsRender.class.php' );
 
