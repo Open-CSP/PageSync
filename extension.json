@@ -61,7 +61,7 @@
   "config": {
     "PageSync": {
       "allowedGroups": [
-        "spacemaster"
+        "sysop"
       ],
       "filePath": "",
       "tempFilePath": "",
