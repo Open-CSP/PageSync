@@ -41,6 +41,10 @@ class importPagesIntoWiki extends Maintenance {
 			'Will recreate the index file from existing file structure'
 		);
 		$this->addOption(
+			'convert-2-version-2',
+			'Will rewrite all file and rebuild index from files.'
+		);
+		$this->addOption(
 			'force-rebuild-index',
 			'Used with rebuild-index. This forces rebuild-index without prompting for user interaction'
 		);
@@ -264,9 +268,18 @@ class importPagesIntoWiki extends Maintenance {
 			return;
 		}
 
+		if ( $this->hasOption( 'convert-2-version-2' ) ) {
+			echo "\n[Converting to version 2 and rebuilding index file from file structure --RUN--]\n";
+			$result = WSpsHooks::convertToVersion2();
+			$cnt = $result['total'];
+			$skipped = $result['skipped'];
+			echo "\nWorked with $cnt file(s), skipped $skipped files and index Rebuild.\nDone!\n";
+			die();
+		}
+
 		if ( $this->hasOption( 'rebuild-index' ) ) {
 			// We need to rebuild the index file here.
-			if ( $this->hasOption('force-rebuild-index') === false ) {
+			if ( $this->hasOption( 'force-rebuild-index' ) === false ) {
 				echo "\n[Rebuilding index file from file structure]\n";
 				$answer = strtolower( readline( "Are you sure (y/n)" ) );
 				if ( $answer !== "y" ) {

@@ -1143,14 +1143,53 @@ class WSpsHooks {
 	}
 
 	/**
+	 * @since 1.35
+	 * @return ILanguageConverter
+	 */
+	private static function getLanguageConverter(): ILanguageConverter {
+		$services = MediaWikiServices::getInstance();
+		return $services
+			->getLanguageConverterFactory()
+			->getLanguageConverter( $services->getContentLanguage() );
+	}
+
+
+
+	/**
 	 * @param Title $title
 	 *
 	 * @return string Title in english
 	 * @throws MWException
 	 */
 	public static function convertToEN( Title $title ) {
-		$langConvert = new \EnConverter( MediaWikiServices::getInstance()->getLanguageFactory()->getLanguage( 'en' ) );
-		return $langConvert->convertTitle( $title );
+
+		$lang = wfGetLangObj( 'en' );
+
+		$ns = $title->getNamespace();
+		$titleText = $title->getText();
+		$langConv = MediaWikiServices::getInstance()->getLanguageConverterFactory()->getLanguageConverter( $lang );
+		if ( $langConv->convertNamespace( $ns ) ) {
+			return $langConv->convertNamespace( $ns ) .
+				   ':' . $langConv->convert( $titleText );
+		} else {
+			return $langConv->convert( $titleText );
+		}
+
+
+		$ns = $title->getNamespace();
+
+		$lang = wfGetLangObj( 'EN' );
+		$smw = new SMW\Localizer( $lang, new \SMW\MediaWiki\NamespaceInfo() );
+		var_dump ( $smw->convertNamespace( $ns ) );
+		var_dump( $smw->convertNamespace( $ns ) );
+		//$langConverter =
+		echo "NameSpace: " . $langConverter->convertNamespace( $ns, 'en' );
+		var_dump( $langConverter->getConvRuleTitle() );
+		return $langConverter->convertTitle( $title );
+		$newTitle = Title::newFromText( $title->getFullText() );
+		//$new = $newTitle->getFullText();
+
+		return $new;
 	}
 
 	/**
@@ -1343,6 +1382,119 @@ class WSpsHooks {
 				$json['tags']
 			)
 		);
+	}
+
+	/**
+	 * @param string $newFName
+	 * @param string $oldFName
+	 * @param array $infoContent
+	 * @param array $slots
+	 *
+	 * @return void
+	 */
+	public static function rewriteFileToVersion2(
+		string $newFName,
+		string $oldFName,
+		array $infoContent,
+		array $slots
+	) {
+		if ( self::$config !== false ) {
+			self::setConfig();
+		}
+		$path = self::$config['exportPath'];
+
+		echo "\nCreating new file : " . $path . $newFName . ".info'\n";
+
+		file_put_contents(
+			$path . $newFName . '.info',
+			json_encode(
+				$infoContent,
+				JSON_PRETTY_PRINT
+			)
+		);
+		foreach ( $slots as $slot ) {
+			$oldFile = $path . $oldFName . '_slot_' . $slot . '.wiki';
+			$newFile = $path . $newFName . '_slot_' . $slot . '.wiki';
+			if ( $oldFile === $newFile ) {
+				echo "\nSkipping renaming slots, filenames are equal " . $newFName . "\n";
+			} else {
+				echo "\nRenaming " . $oldFName . '_slot_' . $slot . '.wiki' . "\nTo: " . $newFName . '_slot_' . $slot . '.wiki' . "\n";
+				rename(
+					$oldFile,
+					$newFile
+				);
+			}
+			echo "\nDeleting " . $oldFile . "\n";
+			unlink( $oldFile );
+		}
+		echo "\nDeleting " . $path . $oldFName . ".info\n";
+		unlink( $path . $oldFName . '.info' );
+	}
+
+	/**
+	 * @return array
+	 * @throws MWException
+	 */
+	public static function convertToVersion2() : array {
+		if ( self::$config !== false ) {
+			self::setConfig();
+		}
+
+		$ptitle = 'Sjabloon:fa';
+		$tObject = Title::newFromText( $ptitle );
+
+		echo "\nOld Page Title = " . $ptitle . "\n";
+		$nTitle = self::convertToEN( $tObject );
+		echo "\nEN Page Title = " . $nTitle . "\n";
+		die();
+
+		$path      = self::$config['exportPath'];
+		$infoFilesList = glob( $path . "*.info" );
+		$cnt           = 0;
+		$skipped = 0;
+		$index = [];
+		foreach ( $infoFilesList as $infoFile ) {
+			$content = json_decode( file_get_contents( $infoFile ), true );
+
+			// Get titleobject
+			$tObject = Title::newFromText( $content['pagetitle'] );
+
+			$oldPageTitle = $content['pagetitle'];
+
+			// Create EN title
+			echo "\nOld Page Title = " . $oldPageTitle . "\n";
+			$content['pagetitle'] = self::convertToEN( $tObject );
+			echo "\nEN Page Title = " . $content['pagetitle'] . "\n";
+
+			if ( $oldPageTitle === $content['pagetitle'] ) {
+				echo "\nSkipping renaming slots, Titles are equal " . $oldPageTitle . "\n";
+				$skipped++;
+				$fName = $content['filename'];
+				$fTitle = $content['pagetitle'];
+				$index[$fName] = $fTitle;
+				$cnt++;
+				continue;
+			}
+
+			$oldFName = $content['filename'];
+
+			// Set new filename
+			$content['filename'] = self::cleanFileName( $content['pagetitle'] );
+
+			$slots = explode( ',', $content['slots'] );
+
+			self::rewriteFileToVersion2( $content['filename'], $oldFName, $content, $slots );
+
+			$fName = $content['filename'];
+			$fTitle = $content['pagetitle'];
+			$index[$fName] = $fTitle;
+			$cnt++;
+		}
+		self::saveFileIndex( $index );
+		return [
+			'total' => $cnt,
+			'skipped' => $skipped
+		];
 	}
 
 	/**
