@@ -1052,6 +1052,8 @@ class WSpsHooks {
 	 * @return false|mixed
 	 */
 	public static function isTitleInIndex( string $title ) {
+		$tObject = Title::newFromText( $title );
+		$title = self::convertToEN( $tObject );
 		$index = self::getFileIndex();
 		if ( in_array(
 			$title,
@@ -1140,6 +1142,16 @@ class WSpsHooks {
 		);
 	}
 
+	/**
+	 * @param Title $title
+	 *
+	 * @return string Title in english
+	 * @throws MWException
+	 */
+	public static function convertToEN( Title $title ) {
+		$langConvert = new \EnConverter( MediaWikiServices::getInstance()->getLanguageFactory()->getLanguage( 'en' ) );
+		return $langConvert->convertTitle( $title );
+	}
 
 	/**
 	 * @param WikiPage $article
@@ -1165,7 +1177,7 @@ class WSpsHooks {
 		}
 		$t_title  = $article->getTitle();
 		$id       = $article->getId();
-		$title    = $t_title->getFullText();
+		$title    = self::convertToEN( $t_title );
 		$fName    = self::cleanFileName( $title );
 		$username = $user->getName();
 		$index    = self::getFileIndex();
@@ -1209,8 +1221,7 @@ class WSpsHooks {
 		$article = WikiPage::newFromId( $id );
 		if ( $article instanceof WikiPage ) {
 			$t = $article->getTitle();
-
-			return $t->getFullText();
+			return self::convertToEN( $t );
 		} else {
 			return false;
 		}

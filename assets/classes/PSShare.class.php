@@ -674,8 +674,12 @@ class PSShare {
 			$html .= '<input type="hidden" name="wsps-action" value="wsps-do-download-install">';
 			$html .= '<input type="hidden" name="tmpfile" value="' . basename( $file['file'] ) . '">';
 			$html .= '<div class="uk-form-controls">';
-			$html .= '<label><input class="uk-checkbox" type="checkbox" name="agreed" required="required"> I agree with the description</label>';
-			$html .= '<input type="submit" class="uk-button uk-inline uk-button-primary uk-margin-large-left uk-width-1-4" value="Install files">';
+			if ( $file['info']['version'][0] === '1' ) {
+				$html .= '<span class="uk-text-danger uk-text-emphasis">' . wfMessage( 'wsps-special_share_older' )->text() . '</span>';
+			} else {
+				$html .= '<label><input class="uk-checkbox" type="checkbox" name="agreed" required="required"> I agree with the description</label>';
+				$html .= '<input type="submit" class="uk-button uk-inline uk-button-primary uk-margin-large-left uk-width-1-4" value="Install files">';
+			}
 			$html .= '</div></form>';
 			return $html;
 		}

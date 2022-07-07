@@ -576,16 +576,10 @@ class WSpsSpecial extends SpecialPage {
 						$backupFile       = $this->getPost( 'ws-backup-file' );
 						if ( $backupFile !== false ) {
 							$resRestore = $psBackup->restoreBackupFile( $backupFile );
-							if ( $resRestore === true ) {
-								$backActionResult = wfMessage(
-									'wsps-special_backup_restore_file_success',
-									$backupFile
-								)->text();
+							if ( $resRestore[0] === true ) {
+								$backActionResult = $resRestore[1];
 							} else {
-								$backActionResult = wfMessage(
-									'wsps-special_backup_restore_file_failure',
-									$backupFile
-								)->text();
+								$backActionResult = $resRestore[1];
 							}
 						}
 						break;

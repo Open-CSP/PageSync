@@ -85,16 +85,38 @@ class WSpsHooksBackup {
 	}
 
 	/**
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	private function getVersionFromBackupName( string $name ) {
+		$tmp = explode( '_', $name );
+		if ( count( $tmp ) < 3 ) {
+			return false;
+		}
+		$fVersion = $tmp[2];
+		if ( $fVersion[0] === '1' ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Restore a backup
 	 *
 	 * @param string $backupFile
 	 *
-	 * @return bool
+	 * @return array
 	 */
-	public function restoreBackupFile( string $backupFile ) : bool {
+	public function restoreBackupFile( string $backupFile ) : array {
 		if ( WSpsHooks::$config === false ) {
 			WSpsHooks::setConfig();
 		}
+
+		if ( $this->getVersionFromBackupName( $backupFile ) === false ) {
+			return [ false, wfMessage( 'wsps-special_backup_restore_file_failure_old', $backupFile )->text() ];
+		}
+
 		$path      = \WSpsHooks::$config['exportPath'];
 		$indexPath = \WSpsHooks::$config['filePath'];
 		$zip       = new ZipArchive();
@@ -107,9 +129,9 @@ class WSpsHooksBackup {
 			$zip->extractTo( $indexPath );
 			$zip->close();
 
-			return true;
+			return [ true, wfMessage( 'wsps-special_backup_restore_file_success', $backupFile )->text() ];
 		} else {
-			return false;
+			return [ false, wfMessage( 'wsps-special_backup_restore_file_failure', $backupFile )->text() ];
 		}
 	}
 
