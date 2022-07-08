@@ -137,7 +137,8 @@ class WSpsRender {
 		foreach ( $pages as $page ) {
 
 			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
-			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
+			$title = WSpsHooks::titleForDisplay( $page['ns'], $page['pagetitle'] );
+			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $title . '">' . $title . '</a></td>';
 			if ( isset( $page['slots'] ) ) {
 				$html .= '<td class="wsps-td">' . $page['slots'] . '</td>';
 			} else {
@@ -187,9 +188,9 @@ class WSpsRender {
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
 		$row  = 1;
 		foreach ( $data as $page ) {
-
+			$title = WSpsHooks::titleForDisplay( $page['ns'], $page['pagetitle'] );
 			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
-			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $page['pagetitle'] . '">' . $page['pagetitle'] . '</a></td>';
+			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $title . '">' . $title . '</a></td>';
 			if ( isset( $page['slots'] ) ) {
 				$html .= '<td class="wsps-td">' . $page['slots'] . '</td>';
 			} else {

@@ -214,7 +214,11 @@ class WSpsSpecial extends SpecialPage {
 
 		$this->setHeaders();
 		$out->setPageTitle( '' );
-
+		if ( WSpsHooks::checkFileConsistency2() === false ) {
+			// Preview files affected
+			$out->addHTML('<p>Please use maintenance script with --convert-2-version-2 first</p>' );
+			return true;
+		}
 		switch ( strtolower( $wspsAction ) ) {
 			case "pedit":
 
@@ -307,6 +311,11 @@ class WSpsSpecial extends SpecialPage {
 					$out->addHTML( $convertHandler->preview( $render ) );
 					$out->addHTML( $style );
 
+					return true;
+				}
+				if ( WSpsHooks::checkFileConsistency2() === false ) {
+					// Preview files affected
+					$out->addHTML('<p>Please use maintenance script with --convert-2-version-2 first</p>' );
 					return true;
 				}
 				break;
@@ -753,6 +762,11 @@ class WSpsSpecial extends SpecialPage {
 			);
 			$out->addHTML( $style );
 
+			return true;
+		}
+		if ( WSpsHooks::checkFileConsistency2() === false ) {
+			// Preview files affected
+			$out->addHTML('<p>Please use maintenance script with --convert-2-version-2 first</p>' );
 			return true;
 		}
 
