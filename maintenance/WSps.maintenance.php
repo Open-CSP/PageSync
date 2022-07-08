@@ -277,6 +277,16 @@ class importPagesIntoWiki extends Maintenance {
 			die();
 		}
 
+		if ( WSpsHooks::checkFileConsistency2() === false ) {
+			if ( !$silent ) {
+				$this->fatalError( "\n\e[41mConsistency check failed. Please read instructions on converting old file formats to new." . "\e[0m\n" );
+			} else {
+				$this->returnOutput( 'Consistency check failed. Please read instructions on converting old file formats to new.' );
+			}
+			return;
+		}
+
+
 		if ( $this->hasOption( 'rebuild-index' ) ) {
 			// We need to rebuild the index file here.
 			if ( $this->hasOption( 'force-rebuild-index' ) === false ) {
