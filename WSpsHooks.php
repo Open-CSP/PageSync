@@ -232,6 +232,13 @@ class WSpsHooks {
 		array_multisort( $sort_col, $dir, $arr );
 	}
 
+	public static function titleForDisplay( $ns, $title ) {
+		$nsName = self::getNameSpaceNameFromID( $ns );
+		if ( $ns !== 0 ) {
+			return $nsName . ':' . $title;
+		} else return $title;
+	}
+
 	/**
 	 * Get all pages and their detailed info
 	 *
@@ -649,7 +656,7 @@ class WSpsHooks {
 	 * @return array
 	 */
 	public static function getInfoFileFromPageID( int $id ): array {
-		$title = self::getPageTitle( $id );
+		$title = self::getPageTitleForFileName( $id );
 		if ( $title === false || $title === null ) {
 			return self::makeMessage(
 				false,
@@ -685,8 +692,10 @@ class WSpsHooks {
 		// get current indexfile
 		$index = self::getFileIndex();
 
+		$ns = self::getNSFromId( $id );
+
 		// add or replace page
-		$index[$fname] = $title;
+		$index[$fname] = $ns . '_' . $title;
 
 		//wiki export folder
 		$exportFolder = self::$config['exportPath'];
@@ -734,9 +743,12 @@ class WSpsHooks {
 			}
 		}
 
+
+
 		$infoContent = self::setInfoContent(
 			$fname,
 			$title,
+			$ns,
 			$uname,
 			$id,
 			$slots,
@@ -892,6 +904,7 @@ class WSpsHooks {
 	/**
 	 * @param string $fname
 	 * @param string $title
+	 * @param int $ns
 	 * @param string $uname
 	 * @param int $id
 	 * @param array $slots
@@ -905,6 +918,7 @@ class WSpsHooks {
 	private static function setInfoContent(
 		string $fname,
 		string $title,
+		int $ns,
 		string $uname,
 		int $id,
 		array $slots,
@@ -922,6 +936,7 @@ class WSpsHooks {
 		$infoContent              = [];
 		$infoContent['filename']  = $fname;
 		$infoContent['pagetitle'] = $title;
+		$infoContent['ns'] = $ns;
 		$infoContent['username']  = $uname;
 		$infoContent['changed']   = $date;
 		$infoContent['pageid']    = $id;
@@ -989,13 +1004,15 @@ class WSpsHooks {
 			);
 		}
 		$title = self::getPageTitle( $id );
-		if ( $title === false || $title === null ) {
+		$fileTitle = self::getPageTitleForFileName( $id );
+		if ( $title === false || $title === null || $fileTitle === false || $fileTitle === null ) {
 			return self::makeMessage(
 				false,
 				wfMessage( 'wsps-error_page_not_found' )->text()
 			);
 		}
-		$fname = self::cleanFileName( $title );
+		$fname = self::cleanFileName( $fileTitle );
+		$ns = self::getNSFromId( $id );
 		if ( self::isFile( $id ) !== false ) {
 			// we are dealing with a file or image
 			$repoGroup    = MediaWikiServices::getInstance()->getRepoGroup();
@@ -1046,6 +1063,10 @@ class WSpsHooks {
 		);
 	}
 
+
+	 public static function getNameSpaceNameFromID( $ns ) {
+		 return MediaWiki\MediaWikiServices::getInstance()->getContentLanguage()->getFormattedNsText( $ns );
+	 }
 	/**
 	 * @param string $title
 	 *
@@ -1053,13 +1074,16 @@ class WSpsHooks {
 	 */
 	public static function isTitleInIndex( string $title ) {
 		$tObject = Title::newFromText( $title );
-		$title = self::convertToEN( $tObject );
+		$title = $tObject->getText();
+		$id = $tObject->getArticleID();
+		$ns = $tObject->getNamespace();
+
 		$index = self::getFileIndex();
 		if ( in_array(
-			$title,
+			$ns . '_' . $title,
 			$index
 		) ) {
-			$fname    = self::cleanFileName( $title );
+			$fname    = self::cleanFileName( self::getPageTitleForFileName( $id ) );
 			$infoFile = self::setInfoName( $fname );
 			if ( file_exists( $infoFile ) ) {
 				$info = json_decode(
@@ -1214,10 +1238,10 @@ class WSpsHooks {
 		if ( $editResult->isNullEdit() ) {
 			return true;
 		}
-		$t_title  = $article->getTitle();
 		$id       = $article->getId();
-		$title    = self::convertToEN( $t_title );
-		$fName    = self::cleanFileName( $title );
+		$title  = self::getPageTitle( $id );
+		$f_title  = self::getPageTitleForFileName( $id );
+		$fName    = self::cleanFileName( $f_title );
 		$username = $user->getName();
 		$index    = self::getFileIndex();
 
@@ -1254,13 +1278,56 @@ class WSpsHooks {
 	/**
 	 * @param int $id
 	 *
+	 * @return false|int Either Title as string or false
+	 */
+	public static function getPageNS( int $id ) {
+		$article = WikiPage::newFromId( $id );
+		if ( $article instanceof WikiPage ) {
+			return $article->getTitle()->getNamespace();
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @param int $id
+	 *
 	 * @return false|string Either Title as string or false
 	 */
 	public static function getPageTitle( int $id ) {
 		$article = WikiPage::newFromId( $id );
 		if ( $article instanceof WikiPage ) {
-			$t = $article->getTitle();
-			return self::convertToEN( $t );
+			return $article->getTitle()->getText();
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @param int $id
+	 *
+	 * @return false|string Either Title as string or false
+	 */
+	public static function getPageTitleForFileName( int $id ) {
+		$article = WikiPage::newFromId( $id );
+		if ( $article instanceof WikiPage ) {
+			$title = $article->getTitle()->getText();
+			$ns = $article->getTitle()->getNamespace();
+			return $ns . '_' . $title;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @param int $id
+	 *
+	 * @return false|string Either Title as string or false
+	 */
+	public static function getNSFromId( int $id ) {
+		$article = WikiPage::newFromId( $id );
+		if ( $article instanceof WikiPage ) {
+			return $article->getTitle()->getNamespace();
 		} else {
 			return false;
 		}
@@ -1369,10 +1436,15 @@ class WSpsHooks {
 			$json['tags'] = '';
 		}
 
+		if ( !isset( $json['ns'] ) ) {
+			$json['ns'] = self::getNSFromId( $json['pageid'] );
+		}
+
 		return json_encode(
 			self::setInfoContent(
 				$json['filename'],
 				$json['pagetitle'],
+				$json['ns'],
 				$json['username'],
 				$json['pageid'],
 				$json['slots'],
@@ -1424,8 +1496,8 @@ class WSpsHooks {
 					$newFile
 				);
 			}
-			echo "\nDeleting " . $oldFile . "\n";
-			unlink( $oldFile );
+			//echo "\nDeleting " . $oldFile . "\n";
+			//unlink( $oldFile );
 		}
 		echo "\nDeleting " . $path . $oldFName . ".info\n";
 		unlink( $path . $oldFName . '.info' );
@@ -1440,14 +1512,6 @@ class WSpsHooks {
 			self::setConfig();
 		}
 
-		$ptitle = 'Sjabloon:fa';
-		$tObject = Title::newFromText( $ptitle );
-
-		echo "\nOld Page Title = " . $ptitle . "\n";
-		$nTitle = self::convertToEN( $tObject );
-		echo "\nEN Page Title = " . $nTitle . "\n";
-		die();
-
 		$path      = self::$config['exportPath'];
 		$infoFilesList = glob( $path . "*.info" );
 		$cnt           = 0;
@@ -1458,19 +1522,21 @@ class WSpsHooks {
 
 			// Get titleobject
 			$tObject = Title::newFromText( $content['pagetitle'] );
-
-			$oldPageTitle = $content['pagetitle'];
+			$ns = $tObject->getNamespace();
+			$oldFilename = $content['captain_test2'];
+			$content['pagetitle'] = $tObject->getText();
+			$content['ns'] = $ns;
 
 			// Create EN title
-			echo "\nOld Page Title = " . $oldPageTitle . "\n";
-			$content['pagetitle'] = self::convertToEN( $tObject );
-			echo "\nEN Page Title = " . $content['pagetitle'] . "\n";
+			echo "\nOld File Name = " . $oldFilename . "\n";
+			$newFileName = self::cleanFileName( self::getPageTitleForFileName( $content['pageid'] ) );
+			echo "\nNew File Name = " . $newFileName . "\n";
 
-			if ( $oldPageTitle === $content['pagetitle'] ) {
-				echo "\nSkipping renaming slots, Titles are equal " . $oldPageTitle . "\n";
+			if ( $oldFilename === $newFileName ) {
+				echo "\nSkipping renaming slots, file names are equal " . $oldFilename . "\n";
 				$skipped++;
 				$fName = $content['filename'];
-				$fTitle = $content['pagetitle'];
+				$fTitle = $ns . '_' . $content['pagetitle'];
 				$index[$fName] = $fTitle;
 				$cnt++;
 				continue;
@@ -1479,14 +1545,14 @@ class WSpsHooks {
 			$oldFName = $content['filename'];
 
 			// Set new filename
-			$content['filename'] = self::cleanFileName( $content['pagetitle'] );
+			$content['filename'] = self::cleanFileName( self::getPageTitleForFileName( $content['pageid'] ) );
 
 			$slots = explode( ',', $content['slots'] );
 
 			self::rewriteFileToVersion2( $content['filename'], $oldFName, $content, $slots );
 
 			$fName = $content['filename'];
-			$fTitle = $content['pagetitle'];
+			$fTitle = $ns . '_' . $content['pagetitle'];
 			$index[$fName] = $fTitle;
 			$cnt++;
 		}
