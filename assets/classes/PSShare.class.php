@@ -183,15 +183,22 @@ class PSShare {
 	}
 
 
-
 	/**
 	 * @param string $name
 	 *
 	 * @return array|false|string|string[]
 	 */
 	private function returnTitleFromFileName( string $name ) {
-		if ( strpos( $name, '.info' ) ) {
-			return str_replace( '.info', '', $name );
+		if ( strpos(
+			$name,
+			'.info'
+		) ) {
+			$withoutExtension = str_replace(
+				'.info',
+				'',
+				$name
+			);
+			return $withoutExtension;
 		} else {
 			return false;
 		}
@@ -211,7 +218,8 @@ class PSShare {
 				$name = $this->returnTitleFromFileName( $zip->getNameIndex( $i ) );
 				if ( $name !== false ) {
 					$content = json_decode( $zip->getFromIndex( $i ), true );
-					$data['list'][$i] = $content['pagetitle'];
+					$nsId = WSpsHooks::getNSFromTitleString( $content['pagetitle'] );
+					$data['list'][$i] = WSpsHooks::titleForDisplay( $nsId, $content['pagetitle'] );
 					$data['description'][$i] = $content['description'];
 				}
 			}

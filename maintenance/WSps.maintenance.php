@@ -488,15 +488,18 @@ class importPagesIntoWiki extends Maintenance {
 				',',
 				$page['slots']
 			);
+
+			$ns = $page['ns'];
+			$nTitle2 = WSpsHooks::titleForDisplay( $ns, $pageName );
+			$title = Title::newFromText( $nTitle2 );
 			if ( !$silent ) {
-				echo "\n\e[36mWorking with page $pageName\e[0m";
+				echo "\n\e[36mWorking with page $nTitle2 / $pageName / $ns \e[0m";
 			}
-			$title = Title::newFromText( $pageName );
 			if ( !$title || $title->hasFragment() ) {
 				if ( !$silent ) {
-					$this->error( "Invalid title $pageName. Skipping.\n" );
+					$this->error( "Invalid title $nTitle2. Skipping.\n" );
 				} else {
-					$collectedMessages[] = "Invalid title $pageName. Skipping.";
+					$collectedMessages[] = "Invalid title $nTitle2. Skipping.";
 				}
 				$failCount++;
 				$exit = true;
