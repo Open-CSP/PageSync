@@ -1481,6 +1481,26 @@ class WSpsHooks {
 	}
 
 	/**
+	 * @param string  $id
+	 *
+	 * @return false|string Either Title as string or false
+	 */
+	public static function getPageTitleForFileNameFromText( string $txt ) {
+		$title = Title::newFromText( $txt );
+		$id = $title->getArticleID();
+		$article = WikiPage::newFromID( $id );
+
+		if ( $article instanceof WikiPage ) {
+			$title = $article->getTitle()->getText();
+			$ns = $article->getTitle()->getNamespace();
+			return $ns . '_' . $title;
+		} else {
+			return false;
+		}
+	}
+
+
+	/**
 	 * @return array
 	 * @throws MWException
 	 */
@@ -1501,12 +1521,12 @@ class WSpsHooks {
 			$tObject = Title::newFromText( $content['pagetitle'] );
 			$ns = $tObject->getNamespace();
 			$oldFilename = $content['pagetitle'];
-			$content['pagetitle'] = self::getPageTitleForFileName( $content['pageid'] );
+			$content['pagetitle'] = self::getPageTitleForFileNameFromText( $oldFilename );
 			$content['ns'] = $ns;
 
 			// Create EN title
 			echo "\nOld File Name = " . $oldFilename . "\n";
-			$newFileName = self::cleanFileName( self::getPageTitleForFileName( $content['pageid'] ) );
+			$newFileName = self::cleanFileName( self::getPageTitleForFileNameFromText( $oldFilename ) );
 			echo "\nNew File Name = " . $newFileName . "\n";
 
 			if ( $oldFilename === $newFileName ) {
