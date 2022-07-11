@@ -1,6 +1,6 @@
 {
   "name": "PageSync",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "author": [
     "Sen-Sai"
   ],
@@ -41,6 +41,9 @@
     ],
     "PageSaveComplete": [
       "WSpsHooks::pageSaved"
+    ],
+    "ArticleDelete": [
+      "WSpsHooks::onArticleDelete"
     ],
     "SkinTemplateNavigation::Universal": [
       "WSpsHooks::nav"

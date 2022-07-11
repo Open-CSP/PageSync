@@ -186,6 +186,9 @@ class WSpsHooks {
 	 */
 	public static function getFileIndex() {
 		if ( self::$config === false ) {
+			self::setConfig();
+		}
+		if ( self::$config === false ) {
 			return false;
 		}
 
@@ -245,6 +248,9 @@ class WSpsHooks {
 	 * @return array|false all pages and their detailed info
 	 */
 	public static function getAllPageInfo( $customPath = false ) {
+		if ( self::$config === false ) {
+			self::setConfig();
+		}
 		if ( self::$config === false ) {
 			return false;
 		}
@@ -1173,6 +1179,30 @@ class WSpsHooks {
 		);
 	}
 
+
+	/**
+	 * @param WikiPage $article
+	 * @param User $user
+	 * @param $reason
+	 * @param $error
+	 *
+	 *
+	 */
+	public static function onArticleDelete( WikiPage &$article, User &$user, &$reason, &$error ) {
+		$id       = $article->getId();
+		$title    = self::getPageTitleForFileName( $id );
+		$fName    = self::cleanFileName( $title );
+		$username = $user->getName();
+		$index    = self::getFileIndex();
+		if ( isset( $index[$fName] ) && $index[$fName] === $title ) {
+			$result = self::removeFileForExport(
+				$id,
+				$username
+			);
+		}
+		return true;
+	}
+
 	/**
 	 * @param WikiPage $article
 	 * @param UserIdentity $user
@@ -1522,6 +1552,11 @@ class WSpsHooks {
 			$ns = $tObject->getNamespace();
 			$oldFilename = $content['pagetitle'];
 			$content['pagetitle'] = self::getPageTitleForFileNameFromText( $oldFilename );
+			if ( $content['pagetitle'] === false ) {
+				echo "\nCould not find page " . $oldFilename . " in the Wiki. Skipping..\n";
+				$skipped++;
+				continue;
+			}
 			$content['ns'] = $ns;
 
 			// Create EN title
