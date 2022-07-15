@@ -101,7 +101,7 @@ class importPagesIntoWiki extends Maintenance {
 	) {
 		global $wgUser;
 		if ( ! file_exists( $filePath ) ) {
-			return 'Cannot find file';
+			return 'Cannot find file : ' . $filePath;
 		}
 
 		if ( $user === false ) {

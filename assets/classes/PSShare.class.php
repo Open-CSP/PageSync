@@ -220,7 +220,11 @@ class PSShare {
 					$content = json_decode( $zip->getFromIndex( $i ), true );
 					$nsId = WSpsHooks::getNSFromTitleString( $content['pagetitle'] );
 					$data['list'][$i] = WSpsHooks::titleForDisplay( $nsId, $content['pagetitle'] );
-					$data['description'][$i] = $content['description'];
+					if ( isset( $content['description'] ) ) {
+						$data['description'][$i] = $content['description'];
+					} else {
+						$data['description'][$i] = '';
+					}
 				}
 			}
 			$zip->close();
