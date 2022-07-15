@@ -9,6 +9,7 @@ Detailed documentaion can be found here : https://www.open-csp.org/DevOps:Doc/Pa
 
 #### Development
 
+* 2.0.4 fixed bug in Shared file import
 * 2.0.3 Added onArticleDelete hook ( this is deprecated, but we only support LTS versions of MW )
 * 2.0.2 Fixed title look-up in conversion to version 2
 * 2.0.0 New file management system to fix a problem with multi-language wikis
