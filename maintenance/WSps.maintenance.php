@@ -437,7 +437,7 @@ class importPagesIntoWiki extends Maintenance {
 			$content = [];
 			$checkSameUser = false;
 			if ( isset( $page['isFile'] ) && $page['isFile'] === true ) {
-				if ( !$zipFile === false ) {
+				if ( $zipFile === false ) {
 					$checkSameUser = $skipDifferentUser;
 					$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
 				} else {
