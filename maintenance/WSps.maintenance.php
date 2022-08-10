@@ -335,11 +335,13 @@ class importPagesIntoWiki extends Maintenance {
 				$user->addToDatabase();
 			}
 			foreach ( $indexFile as $indexFileEntry ) {
-				$ns = WSpsHooks::getNameSpaceNameFromID( WSpsHooks::getNSFromTitleString( $indexFileEntry ) );
-				$title = WSpsHooks::removeNSFromTitle( $indexFileEntry );
-				$pageTitle = WSpsHooks::titleForDisplay( $ns, $title );
+				//echo "\nWorking on $indexFileEntry";
+				$ns = WSpsHooks::getNSFromTitleString( $indexFileEntry );
+				$pageTitle = WSpsHooks::titleForDisplay( $ns, $indexFileEntry );
+				//echo "\nTitle: $pageTitle";
 				$pageId = WSpsHooks::getPageIdFromTitle( $pageTitle );
-				/*
+				//echo "\nPage ID : $pageId\n";
+
 				$result = WSpsHooks::addFileForExport(
 					$pageId,
 					$userName
@@ -347,8 +349,8 @@ class importPagesIntoWiki extends Maintenance {
 				if ( $result['status'] === false ) {
 					die( "ERROR: " . $result['info'] );
 				}
-				*/
-				echo "Working on pge id $pageId with user $userName on title $pageTitle\n";
+
+				echo "Working on page id $pageId with user $userName on title $pageTitle\n";
 				$cnt++;
 			}
 			echo "\n$cnt files Rebuild from Index.\nDone!\n";

@@ -236,10 +236,13 @@ class WSpsHooks {
 	}
 
 	public static function titleForDisplay( $ns, $title ) {
+		//echo "\nGetting $title for $ns\n";
 		$nsName = self::getNameSpaceNameFromID( $ns );
 		if ( $ns !== 0 ) {
 			return $nsName . ':' . self::removeNSFromTitle( $title );
-		} else return self::removeNSFromTitle( $title );
+		} else {
+			return self::removeNSFromTitle( $title );
+		}
 	}
 
 	/**
