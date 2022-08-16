@@ -37,9 +37,14 @@ class importPagesIntoWiki extends Maintenance {
 			"u"
 		);
 		$this->addOption(
+			'rebuild-files',
+			'Will take the index file and re-create all files from the database'
+		);
+		$this->addOption(
 			'rebuild-index',
 			'Will recreate the index file from existing file structure'
 		);
+
 		$this->addOption(
 			'convert-2-version-2',
 			'Will rewrite all file and rebuild index from files.'
@@ -47,6 +52,10 @@ class importPagesIntoWiki extends Maintenance {
 		$this->addOption(
 			'force-rebuild-index',
 			'Used with rebuild-index. This forces rebuild-index without prompting for user interaction'
+		);
+		$this->addOption(
+			'force-rebuild-files',
+			'Used with rebuild-files. This forces rebuild-files without prompting for user interaction'
 		);
 
 		$this->addOption(
@@ -286,6 +295,67 @@ class importPagesIntoWiki extends Maintenance {
 			return;
 		}
 
+		if ( $this->hasOption( 'rebuild-files' ) ) {
+			// We need to rebuild the index file here.
+			if ( $this->hasOption( 'force-rebuild-files' ) === false ) {
+				echo "\n[Rebuilding files from index]\n";
+				$answer = strtolower( readline( "Are you sure (y/n)" ) );
+				if ( $answer !== "y" ) {
+					die( "no action\n\n" );
+				}
+			}
+			echo "\n[Rebuilding files from index --RUN--]\n";
+			if ( WSpsHooks::$config === false ) {
+				WSpsHooks::setConfig();
+			}
+			$indexFile = WSpsHooks::getFileIndex();
+			$cnt           = 0;
+			$index = [];
+
+			if ( $this->hasOption( 'user' ) ) {
+				$userName = $this->getOption( 'user' );
+			} else {
+				if ( !$silent ) {
+					$this->fatalError( "User argument is mandatory." );
+				} else {
+					$this->returnOutput( 'User argument is mandatory.' );
+				}
+
+				return;
+			}
+			$user = User::newFromName( $userName );
+			if ( !$user ) {
+				if ( !$silent ) {
+					$this->fatalError( "Invalid username\n" );
+				} else {
+					$this->returnOutput( 'Invalid username' );
+				}
+			}
+			if ( $user->isAnon() ) {
+				$user->addToDatabase();
+			}
+			foreach ( $indexFile as $indexFileEntry ) {
+				//echo "\nWorking on $indexFileEntry";
+				$ns = WSpsHooks::getNSFromTitleString( $indexFileEntry );
+				$pageTitle = WSpsHooks::titleForDisplay( $ns, $indexFileEntry );
+				//echo "\nTitle: $pageTitle";
+				$pageId = WSpsHooks::getPageIdFromTitle( $pageTitle );
+				//echo "\nPage ID : $pageId\n";
+
+				$result = WSpsHooks::addFileForExport(
+					$pageId,
+					$userName
+				);
+				if ( $result['status'] === false ) {
+					die( "ERROR: " . $result['info'] );
+				}
+
+				echo "Working on page id $pageId with user $userName on title $pageTitle\n";
+				$cnt++;
+			}
+			echo "\n$cnt files Rebuild from Index.\nDone!\n";
+			die();
+		}
 
 		if ( $this->hasOption( 'rebuild-index' ) ) {
 			// We need to rebuild the index file here.
