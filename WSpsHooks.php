@@ -38,6 +38,7 @@ class WSpsHooks {
 			file_get_contents( $IP . '/extensions/PageSync/extension.json' ),
 			true
 		);
+		self::setDefaultConfig( true );
 		self::$config['version'] = $json['version'];
 		if ( $config->has( "PageSync" ) ) {
 			$wgWSPageSync = $config->get( "PageSync" );
@@ -145,8 +146,11 @@ class WSpsHooks {
 
 	/**
 	 * old behaviour. Set export inside PageSync folder
+	 * @param bool $onlySelf
+	 *
+	 * @return void
 	 */
-	private static function setDefaultConfig() {
+	private static function setDefaultConfig( $onlySelf = false ) {
 		global $IP;
 		self::$config['contentSlotsToBeSynced']                = 'all';
 		self::$config['maintenance']['doNotRestoreThesePages'] = [];
@@ -154,23 +158,25 @@ class WSpsHooks {
 		self::$config['filePath']                              = $IP . '/extensions/PageSync/files/';
 		self::$config['exportPath']                            = self::$config['filePath'] . 'export/';
 
-		if ( !file_exists( self::$config['filePath'] ) ) {
-			mkdir(
-				self::$config['filePath']
-			);
-			chmod(
-				self::$config['filePath'],
-				0777
-			);
-		}
-		if ( !file_exists( self::$config['exportPath'] ) ) {
-			mkdir(
-				self::$config['exportPath']
-			);
-			chmod(
-				self::$config['exportPath'],
-				0777
-			);
+		if ( $onlySelf === false ) {
+			if ( ! file_exists( self::$config['filePath'] ) ) {
+				mkdir(
+					self::$config['filePath']
+				);
+				chmod(
+					self::$config['filePath'],
+					0777
+				);
+			}
+			if ( ! file_exists( self::$config['exportPath'] ) ) {
+				mkdir(
+					self::$config['exportPath']
+				);
+				chmod(
+					self::$config['exportPath'],
+					0777
+				);
+			}
 		}
 	}
 

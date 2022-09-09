@@ -714,7 +714,7 @@ class importPagesIntoWiki extends Maintenance {
 		if ( !$silent ) {
 			$this->output( "Done! $successCount succeeded, $skipCount skipped.\n" );
 		} else {
-			$this->returnOutput( "Done! $successCount succeeded, $skipCount skipped.", "ok", $collectedMessages, $special );
+			$this->returnOutput( "Done! $successCount succeeded, $skipCount skipped.\n", "ok", $collectedMessages, $special );
 		}
 		if ( $exit ) {
 			if ( !$silent ) {
