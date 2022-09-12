@@ -68,7 +68,10 @@ class WSpsHooks {
 
 			return [];
 		}
-
+		$content = file_get_contents( $indexFile );
+		if( empty( $content ) ) {
+			return [];
+		}
 		return json_decode(
 			file_get_contents( $indexFile ),
 			true
