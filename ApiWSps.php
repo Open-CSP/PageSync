@@ -42,7 +42,6 @@ class ApiWSps extends ApiBase {
 			$tags = false;
 		}
 		$userName = $user->getName();
-
 		WSpsHooks::setConfig();
 		if ( WSpsHooks::$config === false ) {
 			$output['status']  = wfMessage( 'wsps-api-error-no-config-title' )->text();

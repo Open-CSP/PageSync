@@ -9,6 +9,7 @@ Detailed documentaion can be found here : https://www.open-csp.org/DevOps:Doc/Pa
 
 #### Development
 
+* 2.0.7 seperated config from main
 * 2.0.6 removed PHP notice and newline ( Gitlab #13 )
 * 2.0.5 Added maintenance option **rebuild-files** to rebuild all files from the index.
 * 2.0.4 fixed bug in Shared file import

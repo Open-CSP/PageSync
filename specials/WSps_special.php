@@ -158,7 +158,9 @@ class WSpsSpecial extends SpecialPage {
 		$usr            = $wgUser->getName();
 		$groups         = $wgUser->getGroups();
 		$showAnyMessage = false;
-		WSpsHooks::setConfig();
+		if ( WSpsHooks::$config === false ) {
+			WSpsHooks::setConfig();
+		}
 
 		if ( WSpsHooks::$config === false ) {
 			$out->addHTML( '<p>' . wfMessage( 'wsps-api-error-no-config-body' )->text() . '</p>' );

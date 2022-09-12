@@ -1,6 +1,6 @@
 {
   "name": "PageSync",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "author": [
     "Sen-Sai"
   ],
@@ -23,7 +23,8 @@
     "WSpsBackupHandler": "specials/handlers/WSpsBackupHandler.php",
     "WSpsShareHandler": "specials/handlers/WSpsShareHandler.php",
     "WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php",
-    "PSShare": "assets/classes/PSShare.class.php"
+    "PSShare": "assets/classes/PSShare.class.php",
+    "WSpsConfig": "assets/classes/WSpsConfig.class.php"
   },
   "ExtensionMessagesFiles": {
     "WSpsAlias": "WSps.i18n.alias.php",
