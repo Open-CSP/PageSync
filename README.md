@@ -5,7 +5,7 @@ PageSync
 Export and import wiki pages
 
 Please visit https://www.mediawiki.org/wiki/Extension:PageSync for default information.
-Detailed documentaion can be found here : https://www.open-csp.org/DevOps:Doc/PageSync
+Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/PageSync
 
 #### Development
 
