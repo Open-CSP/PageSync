@@ -253,6 +253,10 @@ class PSShare {
 				base64_decode( $json ),
 				true
 			);
+			if ( $json === null ) {
+				$zip->close();
+				return null;
+			}
 			$json['nroffiles'] = $count;
 			$data = $json;
 			$zip->close();
@@ -575,8 +579,8 @@ class PSShare {
 	public function getExternalZipAndStoreIntemp( $fileUrl ) {
 		$tempPath = WSpsHooks::$config['tempFilePath'];
 		// First remove any ZIP file in the temp folder
-		array_map( 'unlink', glob( $tempPath . "*.zip") );
-		$zipFile = file_get_contents( $fileUrl );
+		array_map( 'unlink', glob( $tempPath . "*.zip" ) );
+		$zipFile = @file_get_contents( $fileUrl );
 		if ( $zipFile === false || $this->isZipfile( $zipFile ) === false ) {
 			return 'Could not load Share url. Not a valid ZIP file or it can not be downloaded.';
 		}

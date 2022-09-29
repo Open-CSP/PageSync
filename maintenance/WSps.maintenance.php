@@ -471,6 +471,12 @@ class importPagesIntoWiki extends Maintenance {
 			if ( !$silent ) {
 				$fileInfo         = [];
 				$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $zipFile ) );
+				if ( $fileInfo['info'] === null ) {
+					die( "not a PageSync Share file\n\n" );
+				}
+				if ( !isset( $file['info']['project'] ) ) {
+					die( "not a PageSync Share file\n\n" );
+				}
 				$fileInfo['file'] = $tempPath . basename( $zipFile );
 				$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $zipFile ) );
 
