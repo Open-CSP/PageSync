@@ -24,6 +24,7 @@
     "WSpsShareHandler": "specials/handlers/WSpsShareHandler.php",
     "WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php",
     "PSShare": "assets/classes/PSShare.class.php",
+    "PSGitHub": "assets/classes/PSGitHub.class.php",
     "WSpsConfig": "assets/classes/WSpsConfig.class.php"
   },
   "ExtensionMessagesFiles": {
