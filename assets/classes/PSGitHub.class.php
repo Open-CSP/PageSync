@@ -10,7 +10,7 @@
  */
 class PSGitHub {
 
-	private const PAGESYNC_SHARED_FILES_REPO = 'https://api.github.com/repos/Open-CSP/PageSync/contents/';
+	private const PAGESYNC_SHARED_FILES_REPO = 'https://api.github.com/repos/Open-CSP/PageSync-SharedFiles/contents/';
 
 	public string $error = '';
 
@@ -41,6 +41,26 @@ class PSGitHub {
 		if ( !$content ) {
 			return $this->error;
 		}
-		return print_r( $content, true ) ;
+		$content = json_decode( $content, true );
+
+		$lst = [];
+		$t = 0;
+		foreach ( $content as $folder ) {
+			$folderContent = $this->get( self::PAGESYNC_SHARED_FILES_REPO . $folder['path'] . '/' );
+			$folderContent = json_decode( $folderContent, true );
+			foreach ( $folderContent as $file ) {
+				$parts = pathinfo( $file['name'] );
+				if ( $parts['extension'] === 'info' ) {
+					$lst[$t]['info'] = file_get_contents( $file['download_url'] );
+					$lst[$t]['name'] = $parts['filename'];
+					$lst[$t]['zip']  = str_replace(
+						'.info',
+						'.zip',
+						$file['download_url']
+					);
+				}
+			}
+		}
+		return print_r( $lst, true ) ;
 	}
 }
