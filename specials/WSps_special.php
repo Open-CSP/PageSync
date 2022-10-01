@@ -388,7 +388,7 @@ class WSpsSpecial extends SpecialPage {
 						}
 						$fileInfo = [];
 						$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $fileUrl ) );
-						if ( $fileInfo['info'] === null || !isset( $file['info']['project'] ) ) {
+						if ( $fileInfo['info'] === null || !isset( $fileInfo['info']['project'] ) ) {
 							$out->addHTML( $this->makeAlert( 'Not a PageSync Share file' ) );
 							break;
 						}

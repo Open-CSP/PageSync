@@ -249,7 +249,7 @@ class PSShare {
 				$zip->close();
 				return null;
 			}
-			$json             = json_decode(
+			$json = json_decode(
 				base64_decode( $json ),
 				true
 			);
@@ -261,7 +261,7 @@ class PSShare {
 			$data = $json;
 			$zip->close();
 		} else {
-			return null;
+			die( 'could not open : ' . $file );
 		}
 		return $data;
 	}
