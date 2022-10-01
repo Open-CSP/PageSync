@@ -9,6 +9,7 @@ Detailed documentaion can be found here : https://www.open-csp.org/DevOps:Doc/Pa
 
 #### Development
 
+* 2.0.10 Install share file bug
 * 2.0.9 Extra Share file checks added and non valid URL warning catched
 * 2.0.8 PHP Warning removed
 * 2.0.7 seperated config from main
