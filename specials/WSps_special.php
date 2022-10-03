@@ -517,7 +517,7 @@ class WSpsSpecial extends SpecialPage {
 					case "wsps-share-install":
 						$gitHub = new PSGitHub();
 						$body = $share->getFormHeader() . $share->renderDownloadUrlForm();
-						$body .= '<pre>' . $gitHub->getFileList() . '</pre>';
+						$body .= $gitHub->renderListofGitHubFiles( $gitHub->getFileList() );
 						$footer = $share->renderDownloadUrlForm( true ) . '</form>';
 						$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"", $body, $footer ) );
 						return true;

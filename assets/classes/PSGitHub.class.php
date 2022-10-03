@@ -36,6 +36,15 @@ class PSGitHub {
 		return false;
 	}
 
+	private function splitInfo( $info ) {
+		$ret = [];
+		$data = explode( "\n", $info );
+		$ret['title'] = $data[0];
+		unset( $data[0] );
+		$ret['info'] = implode( "\n", $data );
+		return $ret;
+	}
+
 	public function getFileList() {
 		$content = $this->get( self::PAGESYNC_SHARED_FILES_REPO );
 		if ( !$content ) {
@@ -51,7 +60,9 @@ class PSGitHub {
 			foreach ( $folderContent as $file ) {
 				$parts = pathinfo( $file['name'] );
 				if ( $parts['extension'] === 'info' ) {
-					$lst[$t]['info'] = file_get_contents( $file['download_url'] );
+					$tmpInfo = $this->splitInfo( file_get_contents( $file['download_url'] ) );
+					$lst[$t]['info'] = $tmpInfo['info'];
+					$lst[$t]['title'] = $tmpInfo['title'];
 					$lst[$t]['name'] = $parts['filename'];
 					$lst[$t]['zip']  = str_replace(
 						'.info',
@@ -61,6 +72,27 @@ class PSGitHub {
 				}
 			}
 		}
-		return print_r( $lst, true ) ;
+		return $lst;
+	}
+
+	/**
+	 * @param array $data
+	 *
+	 * @return string
+	 */
+	public function renderListofGitHubFiles( array $data ): string {
+
+		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
+		$html .= '<th></th><th>' . wfMessage( 'wsps-special_share_list_name' )->text() . '</th>';
+		$html .= '<th>' . wfMessage( 'wsps-special_share_list_info' )->text() . '</th></tr>';
+		foreach ( $data as $listing ) {
+			$html .= '<tr><td class="wsps-td"><input type="radio" class="uk-radio" name="gitfile" ';
+			$html .= 'value = "' . $listing['name'] . '"></td>';
+			$html .= '<td class="wsps-td">' . $listing['title'] . '<br><span class="uk-text-meta">' . $listing['name'];
+			$html .= '</span></td>';
+			$html .= '<td class="wsps-td">' . $listing['info'] . '</td></tr>';
+		}
+		$html .= '</table>';
+		return $html;
 	}
 }
