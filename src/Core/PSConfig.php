@@ -130,13 +130,14 @@ class PSConfig {
 	}
 
 	/**
-	 * @param array $wgWSPageSync
+	 * @param array $PageSync
 	 *
 	 * @return void
 	 */
 	public function checkConfigFromMW( array $PageSync ): void {
-		var_dump( $PageSync );
-		if ( !isset( $PageSync['allowedGroups'] ) || !is_array( $PageSync['allowedGroups'] ) ) {
+		if ( !isset( $PageSync['allowedGroups'] )
+			 || !is_array( $PageSync['allowedGroups'] )
+			 || empty( $PageSync['allowedGroups'] ) ) {
 			$this->setDefaultAllowedGroups();
 		} else {
 			self::$config[ 'allowedGroups' ] = $PageSync['allowedGroups'];

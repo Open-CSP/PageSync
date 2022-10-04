@@ -358,7 +358,7 @@ class PSShare {
 		$version               = str_replace(
 			'.',
 			'-',
-			( WSpsHooks::$config['version'] )
+			( PSConfig::$config['version'] )
 		);
 		$nfoContent['version'] = PSConfig::$config['version'];
 

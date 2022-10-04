@@ -7,10 +7,12 @@ use ALRow;
 use ALSection;
 use ALTree;
 use MediaWiki\MediaWikiServices;
+use OutputPage;
 use PageSync\Core\PSConfig;
 use PageSync\Core\PSConverter;
 use PageSync\Core\PSCore;
 use Parser;
+use Skin;
 use SkinTemplate;
 use User;
 use WikiPage;
@@ -23,7 +25,17 @@ class HookHandler {
 	 * @return void
 	 */
 	public static function onParserFirstCallInit( Parser $parser ) {
-		$parser->getOutput()->addModules( 'ext.WSPageSync.scripts' );
+		PSCore::setConfig();
+	}
+
+	/**
+	 * @param OutputPage $out
+	 * @param Skin $skin
+	 *
+	 * @return void
+	 */
+	public static function onBeforePageDisplay( OutputPage $out, Skin $skin ) {
+		$out->addModules( 'ext.WSPageSync.scripts' );
 		PSCore::setConfig();
 	}
 

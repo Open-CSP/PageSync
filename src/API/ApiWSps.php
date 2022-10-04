@@ -1,6 +1,12 @@
 <?php
 
+namespace PageSync\API;
+
+use ApiBase;
+use ApiUsageException;
 use MediaWiki\MediaWikiServices;
+use PageSync\Core\PSConfig;
+use PageSync\Core\PSCore;
 use Wikimedia\ParamValidator\ParamValidator;
 
 /**
@@ -21,14 +27,14 @@ class ApiWSps extends ApiBase {
 		$action = $params['what'];
 
 		// If the "what" param isn't present, we don't know what to do!
-		if ( ! $action || $action === null ) {
+		if ( !$action || $action === null ) {
 			$this->dieWithError( 'missingparam' );
 		}
 
 		// Need to have sufficient user rights to proceed...
 		$groups = MediaWikiServices::getInstance()->getUserGroupManager()->getUserGroups( $user );
 
-		if ( ! in_array(
+		if ( !in_array(
 			'sysop',
 			$groups
 		) ) {
@@ -42,8 +48,8 @@ class ApiWSps extends ApiBase {
 			$tags = false;
 		}
 		$userName = $user->getName();
-		WSpsHooks::setConfig();
-		if ( WSpsHooks::$config === false ) {
+		PSCore::setConfig();
+		if ( PSConfig::$config === false ) {
 			$output['status']  = wfMessage( 'wsps-api-error-no-config-title' )->text();
 			$output['message'] = wfMessage( 'wsps-api-error-no-config-body' )->text();
 			$this->getResult()->addValue( null,
@@ -55,14 +61,14 @@ class ApiWSps extends ApiBase {
 
 		switch ( $action ) {
 			case "add" :
-				$result = WSpsHooks::addFileForExport(
+				$result = PSCore::addFileForExport(
 					$pageId,
 					$userName
 				);
 				$output = $this->setOutput( $result );
 				break;
 			case "remove" :
-				$result = WSpsHooks::removeFileForExport(
+				$result = PSCore::removeFileForExport(
 					$pageId,
 					$userName
 				);
@@ -70,7 +76,7 @@ class ApiWSps extends ApiBase {
 				break;
 			case "updatetags" :
 				if ( $tags !== false ) {
-					$result = WSpsHooks::updateTags(
+					$result = PSCore::updateTags(
 						$pageId,
 						$tags,
 						$userName
@@ -79,10 +85,10 @@ class ApiWSps extends ApiBase {
 				}
 				break;
 			case "gettags" :
-				$result = WSpsHooks::getTagsFromPage(
+				$result = PSCore::getTagsFromPage(
 					$pageId
 				);
-				$allTags = WSpsHooks::getAllTags();
+				$allTags = PSCore::getAllTags();
 				$ret = [ 'pagetags' => $result, 'alltags' => $allTags ];
 				if ( empty( $result ) ) {
 					$output = $this->setOutput( [ 'status' => false, 'info' => $ret ], true );

@@ -15,18 +15,7 @@
       "ext-zip": "*"
     }
   },
-  "AutoloadClasses": {
-    "ApiWSps": "ApiWSps.php",
-    "WSpsHooks": "WSpsHooks.php",
-    "WSpsSpecial": "specials/WSps_special.php",
-    "WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php",
-    "WSpsBackupHandler": "specials/handlers/WSpsBackupHandler.php",
-    "WSpsShareHandler": "specials/handlers/WSpsShareHandler.php",
-    "WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php",
-    "PSShare": "assets/classes/PSShare.class.php",
-    "PSGitHub": "assets/classes/PSGitHub.class.php",
-    "WSpsConfig": "assets/classes/WSpsConfig.class.php"
-  },
+
   "ExtensionMessagesFiles": {
     "WSpsAlias": "WSps.i18n.alias.php",
     "WSpsMagic": "WSps.i18n.magic.php"
@@ -36,6 +25,7 @@
   },
   "Hooks": {
     "ParserFirstCallInit" : "PageSync\\HookHandler::onParserFirstCallInit",
+    "BeforePageDisplay" : "PageSync\\HookHandler::onBeforePageDisplay",
     "AdminLinks": "PageSync\\HookHandler::addToAdminLinks",
     "PageSaveComplete": "PageSync\\HookHandler::pageSaved",
     "ArticleDelete": "PageSync\\HookHandler::onArticleDelete",
@@ -58,18 +48,18 @@
   },
   "config": {
     "PageSync": {
-      "allowedGroups": [
-        "sysop"
-      ],
-      "filePath": "",
-      "tempFilePath": "",
-      "fileNameSpaces": [
-        6
-      ],
-      "contentSlotsToBeSynced": "all",
-      "maintenance": {
-        "doNotRestoreThesePages": [],
-        "restoreFrom": ""
+      "value":  {
+        "allowedGroups": [],
+        "filePath": "",
+        "tempFilePath": "",
+        "fileNameSpaces": [
+          6
+        ],
+        "contentSlotsToBeSynced": "all",
+        "maintenance": {
+          "doNotRestoreThesePages": [],
+          "restoreFrom": ""
+        }
       }
     }
   },

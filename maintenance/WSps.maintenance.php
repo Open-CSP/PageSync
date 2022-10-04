@@ -2,6 +2,12 @@
 
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
+use PageSync\Core\PSConfig;
+use PageSync\Core\PSConverter;
+use PageSync\Core\PSCore;
+use PageSync\Core\PSNameSpaceUtils;
+use PageSync\Core\PSSlots;
+use PageSync\Helpers\PSShare;
 
 $IP = getenv( 'MW_INSTALL_PATH' );
 if ( $IP === false ) {
@@ -225,10 +231,10 @@ class importPagesIntoWiki extends Maintenance {
 			$this->fatalError( "Wiki is in read-only mode; you'll need to disable it for import to work." );
 		}
 
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
-		$versionCurrent = WSpsHooks::$config['version'];
+		$versionCurrent = PSConfig::$config['version'];
 
 		$IP = getenv( 'MW_INSTALL_PATH' );
 
@@ -268,7 +274,7 @@ class importPagesIntoWiki extends Maintenance {
 		}
 
 
-		if ( WSpsHooks::checkFileConsistency() === false ) {
+		if ( PSConverter::checkFileConsistency() === false ) {
 			if ( !$silent ) {
 				$this->fatalError( "\n\e[41mConsistency check failed. Please read instructions on converting old file formats to new." . "\e[0m\n" );
 			} else {
@@ -279,14 +285,14 @@ class importPagesIntoWiki extends Maintenance {
 
 		if ( $this->hasOption( 'convert-2-version-2' ) ) {
 			echo "\n[Converting to version 2 and rebuilding index file from file structure --RUN--]\n";
-			$result = WSpsHooks::convertToVersion2();
+			$result = PSConverter::convertToVersion2();
 			$cnt = $result['total'];
 			$skipped = $result['skipped'];
 			echo "\nWorked with $cnt file(s), skipped $skipped files and index Rebuild.\nDone!\n";
 			die();
 		}
 
-		if ( WSpsHooks::checkFileConsistency2() === false ) {
+		if ( PSConverter::checkFileConsistency2() === false ) {
 			if ( !$silent ) {
 				$this->fatalError( "\n\e[41mConsistency check failed. Please read instructions on converting old file formats to new." . "\e[0m\n" );
 			} else {
@@ -305,10 +311,10 @@ class importPagesIntoWiki extends Maintenance {
 				}
 			}
 			echo "\n[Rebuilding files from index --RUN--]\n";
-			if ( WSpsHooks::$config === false ) {
-				WSpsHooks::setConfig();
+			if ( PSConfig::$config === false ) {
+				PSCore::setConfig();
 			}
-			$indexFile = WSpsHooks::getFileIndex();
+			$indexFile = PSCore::getFileIndex();
 			$cnt           = 0;
 			$index = [];
 
@@ -336,13 +342,13 @@ class importPagesIntoWiki extends Maintenance {
 			}
 			foreach ( $indexFile as $indexFileEntry ) {
 				//echo "\nWorking on $indexFileEntry";
-				$ns = WSpsHooks::getNSFromTitleString( $indexFileEntry );
-				$pageTitle = WSpsHooks::titleForDisplay( $ns, $indexFileEntry );
+				$ns = PSNameSpaceUtils::getNSFromTitleString( $indexFileEntry );
+				$pageTitle = PSNameSpaceUtils::titleForDisplay( $ns, $indexFileEntry );
 				//echo "\nTitle: $pageTitle";
-				$pageId = WSpsHooks::getPageIdFromTitle( $pageTitle );
+				$pageId = PSCore::getPageIdFromTitle( $pageTitle );
 				//echo "\nPage ID : $pageId\n";
 
-				$result = WSpsHooks::addFileForExport(
+				$result = PSCore::addFileForExport(
 					$pageId,
 					$userName
 				);
@@ -367,10 +373,10 @@ class importPagesIntoWiki extends Maintenance {
 				}
 			}
 			echo "\n[Rebuilding index file from file structure --RUN--]\n";
-			if ( WSpsHooks::$config === false ) {
-				WSpsHooks::setConfig();
+			if ( PSConfig::$config === false ) {
+				PSCore::setConfig();
 			}
-			$path          = WSpsHooks::$config['exportPath'];
+			$path          = PSConfig::$config['exportPath'];
 			$infoFilesList = glob( $path . "*.info" );
 			$cnt           = 0;
 			$index = [];
@@ -381,7 +387,7 @@ class importPagesIntoWiki extends Maintenance {
 				$index[$fName] = $fTitle;
 				$cnt++;
 			}
-			WSpsHooks::saveFileIndex( $index );
+			PSCore::saveFileIndex( $index );
 			echo "\nIndex Rebuild with $cnt file(s).\nDone!\n";
 			die();
 		}
@@ -441,8 +447,8 @@ class importPagesIntoWiki extends Maintenance {
 		$failCount    = 0;
 		$skipCount    = 0;
 
-		WSpsHooks::setConfig();
-		if ( WSpsHooks::$config === false ) {
+		PSCore::setConfig();
+		if ( PSConfig::$config === false ) {
 			if ( !$silent ) {
 				$this->fatalError( wfMessage( 'wsps-api-error-no-config-body' )->text() . "\n" );
 			} else {
@@ -452,8 +458,8 @@ class importPagesIntoWiki extends Maintenance {
 		}
 		$share = new PSShare();
 		if ( $zipFile === false ) {
-			$this->filePath = WSpsHooks::$config['exportPath'];
-			$data           = WSpsHooks::getAllPageInfo();
+			$this->filePath = PSConfig::$config['exportPath'];
+			$data           = PSCore::getAllPageInfo();
 		} else {
 			if ( $zipFromTemp === false ) {
 				$store = $share->getExternalZipAndStoreIntemp( $zipFile );
@@ -467,7 +473,7 @@ class importPagesIntoWiki extends Maintenance {
 					return;
 				}
 			}
-			$tempPath = WSpsHooks::$config['tempFilePath'];
+			$tempPath = PSConfig::$config['tempFilePath'];
 			if ( !$silent ) {
 				$fileInfo         = [];
 				$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $zipFile ) );
@@ -515,11 +521,11 @@ class importPagesIntoWiki extends Maintenance {
 			if ( isset( $page['isFile'] ) && $page['isFile'] === true ) {
 				if ( $zipFile === false ) {
 					$checkSameUser = $skipDifferentUser;
-					$fpath = WSpsHooks::$config['exportPath'] . $page['filestoredname'];
+					$fpath = PSConfig::$config['exportPath'] . $page['filestoredname'];
 				} else {
 					$fpath = $this->filePath . $page['filestoredname'];
 				}
-				$text = WSpsHooks::getFileContent(
+				$text = PSCore::getFileContent(
 					$page['filename'],
 					SlotRecord::MAIN,
 					$this->filePath
@@ -561,7 +567,7 @@ class importPagesIntoWiki extends Maintenance {
 				}
 				if ( $resultFileUpload !== 'different user' ) {
 					$successCount++;
-					if ( ! $silent ) {
+					if ( !$silent ) {
 						$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
 					} else {
 						$collectedMessages[] = "Uploaded " . $page['fileoriginalname'];
@@ -576,7 +582,7 @@ class importPagesIntoWiki extends Maintenance {
 			);
 
 			$ns = $page['ns'];
-			$nTitle2 = WSpsHooks::titleForDisplay( $ns, $pageName );
+			$nTitle2 = PSNameSpaceUtils::titleForDisplay( $ns, $pageName );
 			$title = Title::newFromText( $nTitle2 );
 			if ( !$silent ) {
 				echo "\n\e[36mWorking with page $nTitle2 / $pageName / $ns \e[0m";
@@ -642,7 +648,7 @@ class importPagesIntoWiki extends Maintenance {
 				if ( !$silent ) {
 					echo "\nGetting content for slot $slot.";
 				}
-				$content[ $slot ] = WSpsHooks::getFileContent(
+				$content[ $slot ] = PSCore::getFileContent(
 					$page['filename'],
 					$slot,
 					$this->filePath
@@ -659,7 +665,7 @@ class importPagesIntoWiki extends Maintenance {
 					unset( $content[$slot] );
 				}
 			}
-			$result = WSpsHooks::editSlots(
+			$result = PSSlots::editSlots(
 				$user,
 				$wikiPageObject,
 				$content,
@@ -688,7 +694,7 @@ class importPagesIntoWiki extends Maintenance {
 						$collectedMessages[] = "Successfully changed " . $page['pagetitle'] . " and slots " . $page['slots'];
 					}
 					if ( $zipFile === false ) {
-						$infoPath = WSpsHooks::getInfoFileFromPageID( $wikiPageObject->getId() );
+						$infoPath = PSCore::getInfoFileFromPageID( $wikiPageObject->getId() );
 
 						if ( $infoPath['status'] !== false && $zipFile === false ) {
 							$pageInfo = json_decode(

@@ -27,7 +27,7 @@ class PSSlots {
 	 *
 	 * @return array|false
 	 */
-	private static function getSlotNamesForPageAndRevision( int $id ) {
+	public static function getSlotNamesForPageAndRevision( int $id ) {
 		$page = WikiPage::newFromId( $id );
 		if ( $page === false || $page === null ) {
 			return false;

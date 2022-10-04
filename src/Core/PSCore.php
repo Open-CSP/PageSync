@@ -336,7 +336,7 @@ class PSCore {
 					wfMessage( 'wsps-error_index_file' )->text()
 				);
 			}
-			$slot_result = self::getSlotNamesForPageAndRevision( $id );
+			$slot_result = PSSlots::getSlotNamesForPageAndRevision( $id );
 			$slot_names  = $slot_result['slots'];
 
 			foreach ( $slot_names as $slot_name ) {
