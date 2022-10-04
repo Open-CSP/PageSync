@@ -1,5 +1,9 @@
 <?php
 
+namespace PageSync\Helpers;
+
+use function wfMessage;
+
 /**
  * Created by  : Wikibase Solutions
  * Project     : PageSync
@@ -21,50 +25,80 @@ class PSGitHub {
 	 */
 	private function get( string $url ) {
 		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
-		curl_setopt( $ch, CURLOPT_USERAGENT, "php/curl" );
+		curl_setopt(
+			$ch,
+			CURLOPT_URL,
+			$url
+		);
+		curl_setopt(
+			$ch,
+			CURLOPT_RETURNTRANSFER,
+			true
+		);
+		curl_setopt(
+			$ch,
+			CURLOPT_FOLLOWLOCATION,
+			true
+		);
+		curl_setopt(
+			$ch,
+			CURLOPT_USERAGENT,
+			"php/curl"
+		);
 		$output = curl_exec( $ch );
-		$err     = curl_errno( $ch );
-		$errMsg  = curl_error( $ch );
+		$err    = curl_errno( $ch );
+		$errMsg = curl_error( $ch );
 		curl_close( $ch );
 		if ( $err === 0 ) {
 			return $output;
 		}
 		$this->error = $errMsg;
+
 		return false;
 	}
 
 	private function splitInfo( $info ) {
-		$ret = [];
-		$data = explode( "\n", $info );
+		$ret          = [];
+		$data         = explode(
+			"\n",
+			$info
+		);
 		$ret['title'] = $data[0];
 		unset( $data[0] );
-		$ret['info'] = implode( "\n", $data );
+		$ret['info'] = implode(
+			"\n",
+			$data
+		);
+
 		return $ret;
 	}
 
 	public function getFileList() {
 		$content = $this->get( self::PAGESYNC_SHARED_FILES_REPO );
-		if ( !$content ) {
+		if ( ! $content ) {
 			return $this->error;
 		}
-		$content = json_decode( $content, true );
+		$content = json_decode(
+			$content,
+			true
+		);
 
 		$lst = [];
-		$t = 0;
+		$t   = 0;
 		foreach ( $content as $folder ) {
 			$folderContent = $this->get( self::PAGESYNC_SHARED_FILES_REPO . $folder['path'] . '/' );
-			$folderContent = json_decode( $folderContent, true );
+			$folderContent = json_decode(
+				$folderContent,
+				true
+			);
 			foreach ( $folderContent as $file ) {
 				$parts = pathinfo( $file['name'] );
 				if ( $parts['extension'] === 'info' ) {
-					$tmpInfo = $this->splitInfo( file_get_contents( $file['download_url'] ) );
-					$lst[$t]['info'] = $tmpInfo['info'];
+					$tmpInfo          = $this->splitInfo( file_get_contents( $file['download_url'] ) );
+					$lst[$t]['info']  = $tmpInfo['info'];
 					$lst[$t]['title'] = $tmpInfo['title'];
-					$lst[$t]['name'] = $parts['filename'];
-					$lst[$t]['zip']  = str_replace(
+					$lst[$t]['name']  = $parts['filename'];
+					$lst[$t]['zip']   = str_replace(
 						'.info',
 						'.zip',
 						$file['download_url']
@@ -72,6 +106,7 @@ class PSGitHub {
 				}
 			}
 		}
+
 		return $lst;
 	}
 
@@ -80,8 +115,7 @@ class PSGitHub {
 	 *
 	 * @return string
 	 */
-	public function renderListofGitHubFiles( array $data ): string {
-
+	public function renderListofGitHubFiles( array $data ) : string {
 		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th></th><th>' . wfMessage( 'wsps-special_share_list_name' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_share_list_info' )->text() . '</th></tr>';
@@ -93,6 +127,7 @@ class PSGitHub {
 			$html .= '<td class="wsps-td">' . $listing['info'] . '</td></tr>';
 		}
 		$html .= '</table>';
+
 		return $html;
 	}
 }

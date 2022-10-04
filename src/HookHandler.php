@@ -6,33 +6,25 @@ use ALItem;
 use ALRow;
 use ALSection;
 use ALTree;
-use MediaWiki\Hook\ParserFirstCallInitHook;
 use MediaWiki\MediaWikiServices;
 use PageSync\Core\PSConfig;
+use PageSync\Core\PSConverter;
+use PageSync\Core\PSCore;
+use Parser;
+use SkinTemplate;
+use User;
+use WikiPage;
 
-class HookHandler implements ParserFirstCallInitHook {
+class HookHandler {
 
 	/**
-	 * @inheritDoc
+	 * @param Parser $parser
+	 *
+	 * @return void
 	 */
-	public function onParserFirstCallInit( $parser ) {
+	public static function onParserFirstCallInit( Parser $parser ) {
 		$parser->getOutput()->addModules( 'ext.WSPageSync.scripts' );
-		self::setConfig();
-	}
-
-	/**
-	 * Read config and set appropriately
-	 */
-	public static function setConfig() {
-		$config = MediaWikiServices::getInstance()->getMainConfig();
-		$wsConfig = new PSConfig();
-		$wsConfig->setVersionNr();
-		if ( $config->has( "PageSync" ) ) {
-			$WSPageSync = $config->get( "PageSync" );
-			$wsConfig->checkConfigFromMW( $WSPageSync );
-		} else {
-			$wsConfig->setAllDefaults();
-		}
+		PSCore::setConfig();
 	}
 
 	/**
@@ -42,7 +34,7 @@ class HookHandler implements ParserFirstCallInitHook {
 	 *
 	 * @return bool
 	 */
-	public static function AdminLinks( ALTree &$adminLinksTree ) : bool {
+	public static function addToAdminLinks( ALTree &$adminLinksTree ) : bool {
 		global $wgServer;
 		$wsSection = $adminLinksTree->getSection( 'WikiBase Solutions' );
 		if ( $wsSection === null ) {
@@ -68,6 +60,142 @@ class HookHandler implements ParserFirstCallInitHook {
 				'PageSync'
 			)
 		);
+
+		return true;
+	}
+
+	/**
+	 * @param WikiPage &$article
+	 * @param User &$user
+	 * @param &$reason
+	 * @param &$error
+	 *
+	 *
+	 */
+	public static function onArticleDelete( WikiPage &$article, User &$user, &$reason, &$error ) {
+		$id       = $article->getId();
+		$title    = PSCore::getPageTitleForFileName( $id );
+		$fName    = PSCore::cleanFileName( $title );
+		$username = $user->getName();
+		$index    = PSCore::getFileIndex();
+		if ( isset( $index[$fName] ) && $index[$fName] === $title ) {
+			$result = PSCore::removeFileForExport(
+				$id,
+				$username
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * @param SkinTemplate &$sktemplate
+	 * @param array &$links
+	 *
+	 * @return bool|void
+	 */
+	public static function nav( SkinTemplate &$sktemplate, array &$links ) {
+		global $wgUser, $wgScript;
+		$title = null;
+		$url   = str_replace(
+			'index.php',
+			'',
+			$wgScript
+		);
+		// If not sysop.. return
+		if ( empty(
+		array_intersect(
+			PSConfig::$config['allowedGroups'],
+			MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $wgUser )
+		)
+		) ) {
+			return;
+		}
+
+		if ( method_exists(
+			$sktemplate,
+			'getTitle'
+		) ) {
+			$title = $sktemplate->getTitle();
+		}
+		if ( $title === null ) {
+			return;
+		}
+
+		$articleId = $title->getArticleID();
+
+		if ( PSConverter::checkFileConsistency() === false || PSConverter::checkFileConsistency2() === false ) {
+			global $wgArticlePath;
+			$url                    = str_replace(
+				'$1',
+				'Special:PageSync',
+				$wgArticlePath
+			);
+			$class                  = "wsps-notice";
+			$links['views']['wsps'] = [
+				"class"     => $class,
+				"text"      => "",
+				"href"      => $url,
+				"exists"    => '1',
+				"primary"   => '1',
+				'redundant' => '1',
+				'title'     => 'PageSync cannot be currently used. Please click this button to visit the Special page',
+				'rel'       => 'PageSync'
+			];
+
+			return true;
+		}
+
+		$fIndex = PSCore::getFileIndex();
+		$tags   = [];
+		if ( $articleId !== 0 ) {
+			$class  = "wsps-toggle";
+			$classt = "wspst-toggle";
+			if ( $fIndex !== false && in_array(
+					PSCore::getPageTitleForFileName( $articleId ),
+					$fIndex
+				) ) {
+				$tags  = PSCore::getTagsFromPage( $articleId );
+				$class .= ' wsps-active';
+				if ( ! empty( $tags ) ) {
+					$classt .= ' wspst-active';
+				}
+			} else {
+				$classt .= ' wspst-hide';
+			}
+			$links['views']['wsps']  = [
+				"class"     => $class,
+				"text"      => "",
+				"href"      => '#',
+				"exists"    => '1',
+				"primary"   => '1',
+				'redundant' => '1',
+				'title'     => 'PageSync',
+				'rel'       => 'PageSync'
+			];
+			$links['views']['wspst'] = [
+				"class"     => $classt,
+				"text"      => "",
+				"href"      => '#',
+				"exists"    => '1',
+				"primary"   => '1',
+				'redundant' => '1',
+				'title'     => 'PageSync Tags',
+				'rel'       => 'PageSync Tags'
+			];
+		} else {
+			$class                  = "wsps-error";
+			$links['views']['wsps'] = [
+				"class"     => $class,
+				"text"      => "",
+				"href"      => '#',
+				"exists"    => '1',
+				"primary"   => '1',
+				'redundant' => '1',
+				'title'     => 'PageSync - Not syncable',
+				'rel'       => 'PageSync'
+			];
+		}
 
 		return true;
 	}

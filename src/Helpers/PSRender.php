@@ -8,8 +8,12 @@
  * Time        : 22:13
  */
 
-class WSpsRender {
+namespace PageSync\Helpers;
 
+use PageSync\Core\PSCore;
+use PageSync\Core\PSNameSpaceUtils;
+
+class PSRender {
 
 	/**
 	 * @return string
@@ -33,7 +37,7 @@ class WSpsRender {
 	 *
 	 * @return false|string
 	 */
-	function getTemplate( string $name ) {
+	public function getTemplate( string $name ) {
 		global $IP;
 		$file = $IP . '/extensions/PageSync/assets/templates/' . $name . '.html';
 		if ( file_exists( $file ) ) {
@@ -43,24 +47,24 @@ class WSpsRender {
 		}
 	}
 
-
 	/**
-	 * @param $query
+	 * @param string $query
+	 * @param bool $addTagsOption
 	 *
 	 * @return string
 	 */
-	function renderDoQueryForm( $query, $addTagsOption = false ) {
+	public function renderDoQueryForm( string $query, bool $addTagsOption = false ): string {
 		global $IP;
 		$form = '<form method="post" class="uk-form-horizontal">';
 		$form .= '<input type="hidden" name="wsps-action" value="wsps-import-query">';
 		$form .= '<input type="hidden" name="wsps-query" value="' . base64_encode( $query ) . '">';
-		if( $addTagsOption ) {
+		if ( $addTagsOption ) {
 			$form       .= '<div class="uk-margin uk-align-right"><label class="uk-form-label" for="ps-tags">';
-			$form .= wfMessage( 'wsps-special_custom_query_add_tags')->text();
+			$form .= wfMessage( 'wsps-special_custom_query_add_tags' )->text();
 			$form .= '</label>';
 			$form .= '<div class="uk-form-controls">';
 			$form       .= '<select id="ps-tags" class="uk-width-1-4" name="tags[]" multiple="multiple" >';
-			$tags       = WSpsHooks::getAllTags();
+			$tags       = PSCore::getAllTags();
 			foreach ( $tags as $tag ) {
 				$form .= '<option value="' . $tag . '">' . $tag . '</option>';
 			}
@@ -84,17 +88,17 @@ class WSpsRender {
 	public function renderEditEntry( array $pageInfo, bool $renderBottom = false ): string {
 		global $wgScript, $IP;
 
-		//https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=share
+		// https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=share
 		//https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=edit
 		if ( !$renderBottom ) {
 			$html       = '<form method="post" action="' . $wgScript . '/Special:WSps?action=pedit">';
 			$html       .= '<input type="hidden" name="wsps-action" value="wsps-edit-information">';
 			$html       .= '<input type="hidden" name="id" value="' . $pageInfo['pageid'] . '">';
 			$description = '';
-			if( isset( $pageInfo['description'] ) ) {
+			if ( isset( $pageInfo['description'] ) ) {
 				$description = $pageInfo['description'];
 			}
-			if( isset( $pageInfo['tags'] ) ) {
+			if ( isset( $pageInfo['tags'] ) ) {
 				$tagsFile = explode( ',', $pageInfo['tags'] );
 			} else {
 				$tagsFile = [];
@@ -103,9 +107,9 @@ class WSpsRender {
 			$html       .= '<textarea class="uk-textarea uk-width-1-1" rows="5" name="description">' . $description . '</textarea>';
 			$html       .= '<label class="uk-form-label">Tags</label>';
 			$html       .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
-			$tags       = WSpsHooks::getAllTags();
+			$tags       = PSCore::getAllTags();
 			foreach ( $tags as $tag ) {
-				if ( !empty ( $tag ) && in_array( $tag, $tagsFile ) ) {
+				if ( !empty( $tag ) && in_array( $tag, $tagsFile ) ) {
 					$html .= '<option selected="selected" value="' . $tag . '">' . $tag . '</option>';
 				} else {
 					$html .= '<option value="' . $tag . '">' . $tag . '</option>';
@@ -137,7 +141,7 @@ class WSpsRender {
 		foreach ( $pages as $page ) {
 
 			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
-			$title = WSpsHooks::titleForDisplay( $page['ns'], $page['pagetitle'] );
+			$title = PSNameSpaceUtils::titleForDisplay( $page['ns'], $page['pagetitle'] );
 			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $title . '">' . $title . '</a></td>';
 			if ( isset( $page['slots'] ) ) {
 				$html .= '<td class="wsps-td">' . $page['slots'] . '</td>';
@@ -169,13 +173,14 @@ class WSpsRender {
 
 		return $html;
 	}
+
 	/**
-	 * @param $data
+	 * @param array $data
 	 * @param string $wgScript
 	 *
 	 * @return string
 	 */
-	function renderIndexPage( $data, string $wgScript ) : string {
+	function renderIndexPage( array $data, string $wgScript ) : string {
 		global $wgScript;
 		$formHeader = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=pedit">';
 		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
@@ -188,7 +193,7 @@ class WSpsRender {
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th></tr>';
 		$row  = 1;
 		foreach ( $data as $page ) {
-			$title = WSpsHooks::titleForDisplay( $page['ns'], $page['pagetitle'] );
+			$title = PSNameSpaceUtils::titleForDisplay( $page['ns'], $page['pagetitle'] );
 			$html .= '<tr><td class="wsps-td">' . $row . '</td>';
 			$html .= '<td class="wsps-td"><a href="' . $wgScript . '/' . $title . '">' . $title . '</a></td>';
 			if ( isset( $page['slots'] ) ) {
@@ -233,7 +238,12 @@ class WSpsRender {
 		return $html;
 	}
 
-	function renderMarkedFiles( $data ) : string {
+	/**
+	 * @param array $data
+	 *
+	 * @return string
+	 */
+	public function renderMarkedFiles( array $data ) : string {
 		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><thead><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-error_file_consistency_convert_file' )->text(
 			) . '</th></tr></thead>';
@@ -252,7 +262,12 @@ class WSpsRender {
 		return $html;
 	}
 
-	function renderBackups( $data ) : string {
+	/**
+	 * @param array $data
+	 *
+	 * @return string
+	 */
+	public function renderBackups( array $data ) : string {
 		$html = '<table style="width:100%;" class="uk-table uk-table-striped uk-table-hover"><thead><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_backup_name' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_date' )->text() . '</th>';
@@ -287,11 +302,10 @@ class WSpsRender {
 		return $html;
 	}
 
-
 	/**
 	 * @return string
 	 */
-	function renderCustomQuery() : string {
+	public function renderCustomQuery() : string {
 		$content = '<h3 class="uk-card-title uk-margin-remove-bottom">' . wfMessage(
 				'wsps-special_custom_query_card_header'
 			)->text() . '</h3>';
@@ -316,11 +330,11 @@ class WSpsRender {
 	}
 
 	/**
-	 * @param $result
+	 * @param array $result
 	 *
 	 * @return array
 	 */
-	function renderDoQueryBody( $result ) : array {
+	public function renderDoQueryBody( array $result ) : array {
 		$html   = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover">';
 		$html   .= '<thead><tr><th>#</th>';
 		$html   .= '<th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
@@ -331,12 +345,12 @@ class WSpsRender {
 		foreach ( $result as $page ) {
 			$html   .= '<tr><td>' . $row . '</td>';
 			$html   .= '<td><a href="/' . $page . '">' . $page . '</a></td>';
-			$pageId = WSpsHooks::isTitleInIndex( $page );
+			$pageId = PSCore::isTitleInIndex( $page );
 			if ( $pageId !== false ) {
 				$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $pageId . '"></a>';
 				$active++;
 			} else {
-				$pageId = WSpsHooks::getPageIdFromTitle( $page );
+				$pageId = PSCore::getPageIdFromTitle( $page );
 				if ( $pageId === false || $pageId === 0 ) {
 					$button = '<span class="uk-badge" style="color:white; background-color:#666;"><strong>N/A</strong></span>';
 				} else {
@@ -349,18 +363,18 @@ class WSpsRender {
 		}
 		$html .= '</tbody></table>';
 
-		return array(
+		return [
 			'html'   => $html,
 			'active' => $active
-		);
+		];
 	}
 
 	/**
-	 * @param $assets
+	 * @param string $assets
 	 *
 	 * @return string
 	 */
-	function getStyle( string $assets ) : string {
+	public function getStyle( string $assets ) : string {
 		return str_replace(
 			'%%assets%%',
 			$assets,
@@ -376,7 +390,7 @@ class WSpsRender {
 	 *
 	 * @return string
 	 */
-	function renderMenu( string $baseUrl, string $logo, string $version, int $active ) : string {
+	public function renderMenu( string $baseUrl, string $logo, string $version, int $active ) : string {
 		$item1class = '';
 		$item2class = '';
 		$item3class = '';
@@ -389,7 +403,7 @@ class WSpsRender {
 		if ( $active === 3 ) {
 			$item3class = 'uk-active';
 		}
-		$search  = array(
+		$search  = [
 			'%%baseUrl%%',
 			'%%logo%%',
 			'%%item1class%%',
@@ -398,8 +412,8 @@ class WSpsRender {
 			'%%wsps-special_menu_sync_custom_query%%',
 			'%%wsps-special_menu_backup_files%%',
 			'%%wsps-special_menu_share_files%%'
-		);
-		$replace = array(
+		];
+		$replace = [
 			$baseUrl,
 			$logo,
 			$item1class,
@@ -408,7 +422,7 @@ class WSpsRender {
 			wfMessage( 'wsps-special_menu_sync_custom_query' )->text(),
 			wfMessage( 'wsps-special_menu_backup_files' )->text(),
 			wfMessage( 'wsps-special_menu_share_files' )->text()
-		);
+		];
 
 		$ret = str_replace(
 			$search,
@@ -423,20 +437,27 @@ class WSpsRender {
 		return $ret;
 	}
 
-	function renderCard( string $title, string $subTitle, string $body, string $footer = "" ) : string {
+	/**
+	 * @param string $title
+	 * @param string $subTitle
+	 * @param string $body
+	 * @param string $footer
+	 *
+	 * @return string
+	 */
+	public function renderCard( string $title, string $subTitle, string $body, string $footer = "" ) : string {
 		$content = '<div class="uk-card uk-card-default">';
 		$content .= '<div class="uk-card-header"><h3 class="uk-card-title uk-margin-remove-bottom">' . $title . '</h3>';
-		if( $subTitle !== "" ) {
+		if ( $subTitle !== "" ) {
 			$content .= '<p class="uk-text-meta uk-margin-remove-top">' . $subTitle . '</p>';
 		}
 		$content .= '</div><div class="uk-card-body"><p class="uk-text-meta uk-margin-remove-top">' . $body . '</p></div>';
-		if( $footer !== "" ) {
+		if ( $footer !== "" ) {
 			$content .= '<div class="uk-card-footer"><p>' . $footer . '</p></div>';
 		}
 		$content .= '</div>';
 
 		return $content;
 	}
-
 
 }

@@ -6,7 +6,20 @@
  * @ingroup Extensions
  */
 
+namespace PageSync\Special;
+
+use ApiMain;
+use DerivativeRequest;
 use MediaWiki\MediaWikiServices;
+use PageSync\Core\PSConfig;
+use PageSync\Core\PSConverter;
+use PageSync\Core\PSCore;
+use PageSync\Handlers\WSpsBackupHandler;
+use PageSync\Handlers\WSpsConvertHandler;
+use PageSync\Handlers\WSpsShareHandler;
+use PageSync\Helpers\PSRender;
+use PSShare;
+use SpecialPage;
 
 /**
  * Class WSpsSpecial
@@ -85,12 +98,12 @@ class WSpsSpecial extends SpecialPage {
 	}
 
 	/**
-	 * @param WSpsRender $render
+	 * @param PSRender $render
 	 * @param int $activeTab
 	 *
 	 * @return string
 	 */
-	private function setResourcesAndMenu( WSpsRender $render, int $activeTab ) : string {
+	private function setResourcesAndMenu( PSRender $render, int $activeTab ) : string {
 		$ret = $render->loadResources();
 		$ret .= $render->renderMenu(
 			$this->url,
@@ -126,14 +139,14 @@ class WSpsSpecial extends SpecialPage {
 		);
 		$api->execute();
 		$data = $api->getResult()->getResultData();
-		if ( ! isset( $data['query']['results'] ) ) {
+		if ( !isset( $data['query']['results'] ) ) {
 			return false;
 		}
 
 		$data = $data['query']['results'];
 
-		if ( ! $returnUnFiltered ) {
-			$listOfPages = array();
+		if ( !$returnUnFiltered ) {
+			$listOfPages = [];
 			foreach ( $data as $page ) {
 				$listOfPages[] = $page['fulltext'];
 			}
@@ -158,17 +171,17 @@ class WSpsSpecial extends SpecialPage {
 		$usr            = $wgUser->getName();
 		$groups         = $wgUser->getGroups();
 		$showAnyMessage = false;
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
 
-		if ( WSpsHooks::$config === false ) {
+		if ( PSConfig::$config === false ) {
 			$out->addHTML( '<p>' . wfMessage( 'wsps-api-error-no-config-body' )->text() . '</p>' );
 
 			return true;
 		}
 		if ( empty( array_intersect(
-			WSpsHooks::$config['allowedGroups'],
+			PSConfig::$config['allowedGroups'],
 			MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $wgUser )
 		) ) ) {
 			$out->addHTML( '<p>Nothing to see here, only interesting stuff for Admins</p>' );
@@ -177,9 +190,9 @@ class WSpsSpecial extends SpecialPage {
 		}
 
 
-		include( $IP . '/extensions/PageSync/assets/classes/WSpsRender.class.php' );
+		//include( $IP . '/extensions/PageSync/assets/classes/WSpsRender.class.php' );
 
-		$render = new WSpsRender();
+		$render = new PSRender();
 
 		$this->url     = str_replace(
 			'index.php',
@@ -194,7 +207,7 @@ class WSpsSpecial extends SpecialPage {
 		$wspsAction = $this->getGet( 'action' );
 
 		// First handle serving backup file for download, before we output anything
-		if ( false !== $wspsAction && strtolower( $wspsAction ) === 'backup' ) {
+		if ( $wspsAction !== false && strtolower( $wspsAction ) === 'backup' ) {
 			$pAction = $this->getPost( 'wsps-action' );
 			if ( $pAction === 'download-backup' ) {
 				$backupHandler = new WSpsBackupHandler();
@@ -216,7 +229,7 @@ class WSpsSpecial extends SpecialPage {
 
 		$this->setHeaders();
 		$out->setPageTitle( '' );
-		if ( WSpsHooks::checkFileConsistency2() === false ) {
+		if ( PSConverter::checkFileConsistency2() === false ) {
 			// Preview files affected
 			$out->addHTML('<p>Please use maintenance script with --convert-2-version-2 first</p>' );
 			return true;
@@ -236,7 +249,7 @@ class WSpsSpecial extends SpecialPage {
 						if ( $description === false ) {
 							$description = '';
 						}
-						$pagePath = WSpsHooks::getInfoFileFromPageID( $pageId );
+						$pagePath = PSCore::getInfoFileFromPageID( $pageId );
 						if ( $pagePath['status'] === false ) {
 							$out->addHTML( $pagePath['info'] );
 							break;
@@ -244,7 +257,7 @@ class WSpsSpecial extends SpecialPage {
 						if ( $tags === false ) {
 							$tags = [];
 						}
-						$result = WSpsHooks::updateInfoFile( $pagePath['info'], $description, implode( ',', $tags ) );
+						$result = PSCore::updateInfoFile( $pagePath['info'], $description, implode( ',', $tags ) );
 						if ( $result['status'] === false ) {
 							$out->addHTML( $pagePath['info'] );
 							break;
@@ -254,7 +267,7 @@ class WSpsSpecial extends SpecialPage {
 					case "wsps-edit":
 						$pageId = $this->getPost( 'id' );
 						if ( $pageId !== false ) {
-							$pagePath = WSpsHooks::getInfoFileFromPageID( $pageId );
+							$pagePath = PSCore::getInfoFileFromPageID( $pageId );
 							if ( $pagePath['status'] === false ) {
 								$out->addHTML( 'page not found: ' . $pageId );
 								break;
@@ -271,7 +284,7 @@ class WSpsSpecial extends SpecialPage {
 							);
 
 							$body   = $render->renderEditEntry( $pageInfo );
-							$title  = WSpsHooks::getPageTitle( $pageId );
+							$title  = PSCore::getPageTitle( $pageId );
 							$footer = $render->renderEditEntry(
 								$pageInfo,
 								true
@@ -298,7 +311,7 @@ class WSpsSpecial extends SpecialPage {
 					)
 				);
 				$convertHandler = new WSpsConvertHandler();
-				if ( WSpsHooks::checkFileConsistency() === false ) {
+				if ( PSConverter::checkFileConsistency() === false ) {
 					$pAction = $this->getPost( 'wsps-action' );
 
 					// Do the actual conversion
@@ -315,7 +328,7 @@ class WSpsSpecial extends SpecialPage {
 
 					return true;
 				}
-				if ( WSpsHooks::checkFileConsistency2() === false ) {
+				if ( PSConverter::checkFileConsistency2() === false ) {
 					// Preview files affected
 					$out->addHTML('<p>Please use maintenance script with --convert-2-version-2 first</p>' );
 					return true;
@@ -328,7 +341,7 @@ class WSpsSpecial extends SpecialPage {
 						3
 					)
 				);
-				if ( ! extension_loaded( 'zip' ) ) {
+				if ( !extension_loaded( 'zip' ) ) {
 					$out->addHTML(
 						$this->makeAlert( wfMessage( 'wsps-special_backup_we_need_zip_extension' )->text() )
 					);
@@ -379,7 +392,7 @@ class WSpsSpecial extends SpecialPage {
 							$out->addHTML( $this->makeAlert( 'Missing Share Url' ) );
 							break;
 						}
-						$tempPath = WSpsHooks::$config['tempFilePath'];
+						$tempPath = PSConfig::$config['tempFilePath'];
 						// First remove any ZIP file in the temp folder
 						$store = $share->getExternalZipAndStoreIntemp( $fileUrl );
 						if ( $store !== true ) {

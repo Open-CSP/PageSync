@@ -5,7 +5,7 @@ namespace PageSync\Core;
 class PSConfig {
 
 	/**
-	 * @var bool|array 
+	 * @var bool|array
 	 */
 	public static $config = false;
 
@@ -134,40 +134,40 @@ class PSConfig {
 	 *
 	 * @return void
 	 */
-	public function checkConfigFromMW( array $wgWSPageSync ): void {
-		if ( !isset( $wgWSPageSync['allowedGroups'] ) || !is_array( $wgWSPageSync['allowedGroups'] ) ) {
+	public function checkConfigFromMW( array $PageSync ): void {
+		var_dump( $PageSync );
+		if ( !isset( $PageSync['allowedGroups'] ) || !is_array( $PageSync['allowedGroups'] ) ) {
 			$this->setDefaultAllowedGroups();
+		} else {
+			self::$config[ 'allowedGroups' ] = $PageSync['allowedGroups'];
 		}
-		else {
-			self::$config[ 'allowedGroups' ] = $wgWSPageSync['allowedGroups'];
-		}
-		if ( !isset( $wgWSPageSync['fileNameSpaces'] ) && !is_array( $wgWSPageSync['fileNameSpaces'] ) ) {
+		if ( !isset( $PageSync['fileNameSpaces'] ) && !is_array( $PageSync['fileNameSpaces'] ) ) {
 			$this->setDefaultFileNameSpaces();
 		} else {
-			self::$config['fileNameSpaces'] = $wgWSPageSync['fileNameSpaces'];
+			self::$config['fileNameSpaces'] = $PageSync['fileNameSpaces'];
 		}
 
-		if ( ! isset( $wgWSPageSync['maintenance'] ) ) {
+		if ( !isset( $PageSync['maintenance'] ) ) {
 			$this->setDefaultMaintenance();
 		} else {
-			self::$config['maintenance'] = $wgWSPageSync['maintenance'];
+			self::$config['maintenance'] = $PageSync['maintenance'];
 		}
 
-		if ( ! isset( $wgWSPageSync['contentSlotsToBeSynced'] ) ) {
+		if ( !isset( $PageSync['contentSlotsToBeSynced'] ) ) {
 			$this->setDefaultcontentSlotsToBeSynced();
 		} else {
-			self::$config['contentSlotsToBeSynced'] = $wgWSPageSync['contentSlotsToBeSynced'];
+			self::$config['contentSlotsToBeSynced'] = $PageSync['contentSlotsToBeSynced'];
 		}
 
-		if ( isset( $wgWSPageSync['filePath'] ) && !empty( $wgWSPageSync['filePath'] ) ) {
-			self::$config['filePath'] = $this->createIfNeededPath( $wgWSPageSync['filePath'] );
+		if ( isset( $PageSync['filePath'] ) && !empty( $PageSync['filePath'] ) ) {
+			self::$config['filePath'] = $this->createIfNeededPath( $PageSync['filePath'] );
 			self::$config['exportPath'] = $this->createIfNeededPath( $this->getDefaultExportPath() );
 		} else {
 			$this->setDefaultcontentFilePath();
 		}
 
-		if ( isset( $wgWSPageSync['tempFilePath'] ) && !empty( $wgWSPageSync['tempFilePath'] ) ) {
-			$this->createIfNeededPath( $wgWSPageSync['tempFilePath']  );
+		if ( isset( $PageSync['tempFilePath'] ) && !empty( $PageSync['tempFilePath'] ) ) {
+			$this->createIfNeededPath( $PageSync['tempFilePath'] );
 		} else {
 			$this->setDefaultTempFilePath();
 		}

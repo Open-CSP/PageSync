@@ -32,26 +32,14 @@
     "WSpsMagic": "WSps.i18n.magic.php"
   },
   "APIModules": {
-    "wsps": "ApiWSps"
-  },
-  "Hookhandlers": {
-    "ParserInit": {
-      "class": "\\PageSync\\HookHandler"
-    },
-    "AdminLinks": {
-      "class": "\\PageSync\\HookHandler"
-    }
+    "wsps": "PageSync\\API\\ApiWSps"
   },
   "Hooks": {
-    "PageSaveComplete": [
-      "WSpsHooks::pageSaved"
-    ],
-    "ArticleDelete": [
-      "WSpsHooks::onArticleDelete"
-    ],
-    "SkinTemplateNavigation::Universal": [
-      "WSpsHooks::nav"
-    ]
+    "ParserFirstCallInit" : "PageSync\\HookHandler::onParserFirstCallInit",
+    "AdminLinks": "PageSync\\HookHandler::addToAdminLinks",
+    "PageSaveComplete": "PageSync\\HookHandler::pageSaved",
+    "ArticleDelete": "PageSync\\HookHandler::onArticleDelete",
+    "SkinTemplateNavigation::Universal": "PageSync\\HookHandler::nav"
   },
   "AutoloadNamespaces": {
     "PageSync\\": "src/"
@@ -66,7 +54,7 @@
     "remoteExtPath": "PageSync"
   },
   "SpecialPages": {
-    "WSps": "WSpsSpecial"
+    "WSps": "PageSync\\Special\\WSpsSpecial"
   },
   "config": {
     "PageSync": {

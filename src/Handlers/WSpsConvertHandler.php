@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Created by  : Wikibase Solution
  * Project     : csp
@@ -8,6 +7,13 @@
  * Date        : 19-11-2021
  * Time        : 09:27
  */
+
+namespace PageSync\Handlers;
+
+use PageSync\Core\PSConverter;
+use PageSync\Core\PSCore;
+use WSpsRender;
+
 class WSpsConvertHandler {
 
 	/**
@@ -16,7 +22,7 @@ class WSpsConvertHandler {
 	 * @return string
 	 */
 	public function convertForReal( WSpsRender $render ) : string {
-		$result = WSpsHooks::convertFilesTov0999();
+		$result = PSConverter::convertFilesTov0999();
 
 		return $render->renderCard(
 			wfMessage( 'wsps-error_file_consistency_page_2_header' )->text(),
@@ -39,13 +45,13 @@ class WSpsConvertHandler {
 	 */
 	public function preview( WSpsRender $render ) : string {
 		global $wgScript;
-		$markedFiles = WSpsHooks::checkFileConsistency(
+		$markedFiles = PSConverter::checkFileConsistency(
 			false,
 			true
 		);
 
 		foreach ( $markedFiles as $k => $mFile ) {
-			$result = WSpsHooks::isTitleInIndex( $mFile );
+			$result = PSCore::isTitleInIndex( $mFile );
 			if ( !$result ) {
 				$markedFiles[$k] .= ' *';
 			}

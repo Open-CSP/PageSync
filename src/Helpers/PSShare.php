@@ -1,5 +1,14 @@
 <?php
 
+namespace PageSync\Helpers;
+
+use DateTime;
+use PageSync\Core\PSConfig;
+use PageSync\Core\PSCore;
+use PageSync\Core\PSMessageMaker;
+use PageSync\Core\PSNameSpaceUtils;
+use ZipArchive;
+
 class PSShare {
 
 	/**
@@ -9,9 +18,9 @@ class PSShare {
 	 */
 	public function downloadZipFile( string $url ) : array {
 		$fName   = basename( $url );
-		$tmpPath = WSpsHooks::$config['tempFilePath'];
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		$tmpPath = PSConfig::$config['tempFilePath'];
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
 		$zipResource = fopen(
 			$tmpPath . $fName,
@@ -66,13 +75,13 @@ class PSShare {
 
 		$page = curl_exec( $ch );
 
-		if ( ! $page ) {
-			$result = WSpsHooks::makeMessage(
+		if ( !$page ) {
+			$result = PSMessageMaker::makeMessage(
 				false,
 				curl_error( $ch )
 			);
 		} else {
-			$result = WSpsHooks::makeMessage(
+			$result = PSMessageMaker::makeMessage(
 				true,
 				$tmpPath . $fName
 			);
@@ -100,7 +109,7 @@ class PSShare {
 	 * @return array
 	 */
 	public function returnPagesWithAtLeastOneTag( array $tags ) : array {
-		$allPages     = WSpsHooks::getAllPageInfo();
+		$allPages     = PSCore::getAllPageInfo();
 		$correctPages = [];
 		foreach ( $allPages as $page ) {
 			$tagCount = 0;
@@ -133,7 +142,7 @@ class PSShare {
 	 * @return array
 	 */
 	public function returnPagesWithAllTage( array $tags ) : array {
-		$allPages     = WSpsHooks::getAllPageInfo();
+		$allPages     = PSCore::getAllPageInfo();
 		$correctPages = [];
 		$nrOfTags     = count( $tags );
 		foreach ( $allPages as $k => $page ) {
@@ -169,10 +178,10 @@ class PSShare {
 	 * @return bool
 	 */
 	public function deleteBackupFile( string $shareFile ) : bool {
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
-		$path = WSpsHooks::$config['filePath'];
+		$path = PSConfig::$config['filePath'];
 		if ( file_exists( $path . $shareFile ) ) {
 			unlink( $path . $shareFile );
 
@@ -218,8 +227,8 @@ class PSShare {
 				$name = $this->returnTitleFromFileName( $zip->getNameIndex( $i ) );
 				if ( $name !== false ) {
 					$content = json_decode( $zip->getFromIndex( $i ), true );
-					$nsId = WSpsHooks::getNSFromTitleString( $content['pagetitle'] );
-					$data['list'][$i] = WSpsHooks::titleForDisplay( $nsId, $content['pagetitle'] );
+					$nsId = PSNameSpaceUtils::getNSFromTitleString( $content['pagetitle'] );
+					$data['list'][$i] = PSNameSpaceUtils::titleForDisplay( $nsId, $content['pagetitle'] );
 					if ( isset( $content['description'] ) ) {
 						$data['description'][$i] = $content['description'];
 					} else {
@@ -273,10 +282,10 @@ class PSShare {
 	 */
 	public function getShareList() : array {
 		$data = [];
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
-		$path      = WSpsHooks::$config['filePath'];
+		$path      = PSConfig::$config['filePath'];
 		$shareList = glob( $path . "PageSync_*.zip" );
 		if ( empty( $shareList ) ) {
 			return $data;
@@ -341,17 +350,17 @@ class PSShare {
 	 * @return bool|string
 	 */
 	public function createShareFile( array $pages, array $nfoContent ) {
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
-		$path                  = WSpsHooks::$config['exportPath']; //filePath :: tempFilePath
-		$tempPath              = WSpsHooks::$config['filePath'];
+		$path                  = PSConfig::$config['exportPath']; //filePath :: tempFilePath
+		$tempPath              = PSConfig::$config['filePath'];
 		$version               = str_replace(
 			'.',
 			'-',
 			( WSpsHooks::$config['version'] )
 		);
-		$nfoContent['version'] = WSpsHooks::$config['version'];
+		$nfoContent['version'] = PSConfig::$config['version'];
 
 		$addUploadedFile = [];
 		$infoFilesList   = [];
@@ -492,7 +501,7 @@ class PSShare {
 				$selectTagsForm .= wfMessage( 'wsps-special_share_choose_tags' )->text() . '</legend>';
 			}
 			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
-			$tags           = WSpsHooks::getAllTags();
+			$tags           = PSCore::getAllTags();
 			foreach ( $tags as $tag ) {
 				if ( ! empty( $tag ) ) {
 					$selectTagsForm .= '<option selected="selected" value="' . $tag . '">' . $tag . '</option>';
@@ -577,7 +586,7 @@ class PSShare {
 	}
 
 	public function getExternalZipAndStoreIntemp( $fileUrl ) {
-		$tempPath = WSpsHooks::$config['tempFilePath'];
+		$tempPath = PSConfig::$config['tempFilePath'];
 		// First remove any ZIP file in the temp folder
 		array_map( 'unlink', glob( $tempPath . "*.zip" ) );
 		$zipFile = @file_get_contents( $fileUrl );
@@ -591,11 +600,11 @@ class PSShare {
 	}
 
 	public function extractTempZip( $zipFile ) {
-		$zipFileAndPath = WSpsHooks::$config['tempFilePath'] . $zipFile;
+		$zipFileAndPath = PSConfig::$config['tempFilePath'] . $zipFile;
 		if ( !file_exists( $zipFileAndPath ) ) {
 			return false;
 		}
-		$zipTempPath = WSpsHooks::$config['tempFilePath'] . basename( $zipFile, '.zip' );
+		$zipTempPath = PSConfig::$config['tempFilePath'] . basename( $zipFile, '.zip' );
 		$zip       = new ZipArchive();
 		if ( file_exists( $zipTempPath ) ) {
 			$back = new WSpsHooksBackup();
