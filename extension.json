@@ -34,13 +34,15 @@
   "APIModules": {
     "wsps": "ApiWSps"
   },
+  "Hookhandlers": {
+    "ParserInit": {
+      "class": "\\PageSync\\HookHandler"
+    },
+    "AdminLinks": {
+      "class": "\\PageSync\\HookHandler"
+    }
+  },
   "Hooks": {
-    "ParserFirstCallInit": [
-      "WSpsHooks::onParserFirstCallInit"
-    ],
-    "AdminLinks": [
-      "WSpsHooks::addToAdminLinks"
-    ],
     "PageSaveComplete": [
       "WSpsHooks::pageSaved"
     ],
@@ -50,6 +52,9 @@
     "SkinTemplateNavigation::Universal": [
       "WSpsHooks::nav"
     ]
+  },
+  "AutoloadNamespaces": {
+    "PageSync\\": "src/"
   },
   "MessagesDirs": {
     "WSPageSync": [
@@ -105,5 +110,5 @@
       ]
     }
   },
-  "manifest_version": 1
+  "manifest_version": 2
 }
