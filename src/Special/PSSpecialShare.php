@@ -10,14 +10,136 @@
 
 namespace PageSync\Special;
 
+use PageSync\Core\PSConfig;
 use PageSync\Core\PSCore;
+use PageSync\Helpers\PSGitHub;
 use PageSync\Helpers\PSRender;
 use PageSync\Helpers\PSShare;
 
 class PSSpecialShare {
 
 
-	public function selecTags( PSShare $share, PSRender $render ){
+	/**
+	 * @param string $userName
+	 *
+	 * @return string|void
+	 */
+	public function installShare( string $userName ) {
+		$zipFile = WSpsSpecial::getPost( 'tmpfile' );
+		$agreed = WSpsSpecial::getPost( 'agreed' );
+		if ( $agreed === false ) {
+			return WSpsSpecial::makeAlert( 'No agreement found to install Share file' );
+		}
+		if ( $zipFile === false ) {
+			return WSpsSpecial::makeAlert( 'No Share file information found' );
+		}
+		global $IP;
+		$cmd = 'php ' . $IP . '/extensions/PageSync/maintenance/WSps.maintenance.php';
+		$cmd .= ' --user="' . $userName . '"';
+		$cmd .= ' --install-shared-file-from-temp="' . $zipFile . '"';
+		$cmd .= ' --summary="Installed via PageSync Special page"';
+		$cmd .= ' --special';
+		//echo $cmd;
+
+		$result = shell_exec( $cmd );
+		//echo $result;
+		$res = explode( '|', $result );
+		if ( $res[0] === 'ok' ) {
+			return WSpsSpecial::makeAlert( $res[1], 'success' );
+		}
+		if ( $res[0] === 'error' ) {
+			return WSpsSpecial::makeAlert( $res[1] );
+		}
+	}
+
+	/**
+	 * @param PSShare $share
+	 * @param PSRender $render
+	 *
+	 * @return string
+	 */
+	public function showDownloadShareInformation( PSShare $share, PSRender $render ): string {
+		$fileUrl = WSpsSpecial::getPost( 'url' );
+
+		if ( $fileUrl === false ) {
+			return WSpsSpecial::makeAlert( 'Missing Share Url' );
+		}
+		$tempPath = PSConfig::$config['tempFilePath'];
+		// First remove any ZIP file in the temp folder
+		$store = $share->getExternalZipAndStoreIntemp( $fileUrl );
+		if ( $store !== true ) {
+			return WSpsSpecial::makeAlert( $store );
+		}
+		$fileInfo = [];
+		$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $fileUrl ) );
+		if ( $fileInfo['info'] === null || !isset( $fileInfo['info']['project'] ) ) {
+			return WSpsSpecial::makeAlert( 'Not a PageSync Share file' );
+		}
+		$fileInfo['file'] = $tempPath . basename( $fileUrl );
+		$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $fileUrl ) );
+		$body = $share->renderShareFileInformation( $fileInfo );
+		$footer = $share->renderShareFileInformation( $fileInfo, true );
+		return $render->renderCard( 'Install a Shared File', '', $body, $footer );
+	}
+
+	/**
+	 * @param PSShare $share
+	 *
+	 * @return string
+	 */
+	public function deleteShare( PSShare $share ): string {
+		$resultDeleteBackup = false;
+		$backupFile         = WSpsSpecial::getPost( 'ws-share-file' );
+		if ( $backupFile !== false ) {
+			$resultDeleteBackup = $share->deleteBackupFile( $backupFile );
+		}
+		if ( $resultDeleteBackup === true ) {
+			$backActionResult = wfMessage(
+				'wsps-special_share_delete_file_success',
+				$backupFile
+			)->text();
+		} else {
+			$backActionResult = wfMessage(
+				'wsps-special_share_delete_file_error',
+				$backupFile
+			)->text();
+		}
+		return $backActionResult;
+	}
+
+	/**
+	 * @param PSShare $share
+	 * @param PSRender $render
+	 *
+	 * @return string
+	 */
+	public function createShare( PSShare $share, PSRender $render ): string {
+		$body = $share->getFormHeader() . $share->renderCreateSelectTagsForm();
+		$footer = $share->renderCreateSelectTagsForm( true ) . '</form>';
+		return $render->renderCard( wfMessage( 'wsps-content_share' ), "", $body, $footer );
+	}
+
+	/**
+	 * @param PSShare $share
+	 * @param PSRender $render
+	 *
+	 * @return string
+	 */
+	public function showInstallShare( PSShare $share, PSRender $render ): string {
+		$gitHub = new PSGitHub();
+		$body = $share->getFormHeader() . $share->renderDownloadUrlForm();
+		$body .= $gitHub->renderListofGitHubFiles( $gitHub->getFileList() );
+		$footer = $share->renderDownloadUrlForm( true ) . '</form>';
+		return $render->renderCard( wfMessage( 'wsps-content_share' ), "", $body, $footer );
+	}
+
+	/**
+	 * @param PSShare $share
+	 * @param PSRender $render
+	 *
+	 * @return false|string
+	 */
+	public function selecTags( PSShare $share, PSRender $render ) {
 		$tags = WSpsSpecial::getPost( "tags", false );
 		$type = WSpsSpecial::getPost( "wsps-select-type", true );
 		$query = WSpsSpecial::getPost( 'wsps-query' );

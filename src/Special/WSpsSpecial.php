@@ -345,7 +345,7 @@ class WSpsSpecial extends SpecialPage {
 				);
 				if ( !extension_loaded( 'zip' ) ) {
 					$out->addHTML(
-						$this->makeAlert( wfMessage( 'wsps-special_backup_we_need_zip_extension' )->text() )
+						self::makeAlert( $this->msg( 'wsps-special_backup_we_need_zip_extension' )->text() )
 					);
 					$out->addHTML( $style );
 
@@ -358,81 +358,13 @@ class WSpsSpecial extends SpecialPage {
 				$pAction = self::getPost( 'wsps-action' );
 				switch ( $pAction ) {
 					case "wsps-do-download-install":
-						$zipFile = self::getPost( 'tmpfile' );
-						$agreed = self::getPost( 'agreed' );
-						if ( $agreed === false ) {
-							$out->addHTML( $this->makeAlert( 'No agreement found to install Share file' ) );
-							break;
-						}
-						if ( $zipFile === false ) {
-							$out->addHTML( $this->makeAlert( 'No Share file information found' ) );
-							break;
-						}
-						global $IP;
-						$userName = $this->getUser()->getName();
-						$cmd = 'php ' . $IP . '/extensions/PageSync/maintenance/WSps.maintenance.php';
-						$cmd .= ' --user="' . $userName.'"';
-						$cmd .= ' --install-shared-file-from-temp="' . $zipFile . '"';
-						$cmd .= ' --summary="Installed via PageSync Special page"';
-						$cmd .= ' --special';
-						//echo $cmd;
-
-						$result = shell_exec( $cmd );
-						//echo $result;
-						$res = explode( '|', $result );
-						if ( $res[0] === 'ok' ) {
-							$out->addHTML( $this->makeAlert( $res[1], 'success' ) );
-						}
-						if ( $res[0] === 'error' ) {
-							$out->addHTML( $this->makeAlert( $res[1] ) );
-						}
-
+						$out->addHTML( $specialShare->installShare( $usr ) );
 						break;
 					case "wsps-share-downloadurl":
-						$fileUrl = self::getPost( 'url' );
-
-						if ( $fileUrl === false ) {
-							$out->addHTML( $this->makeAlert( 'Missing Share Url' ) );
-							break;
-						}
-						$tempPath = PSConfig::$config['tempFilePath'];
-						// First remove any ZIP file in the temp folder
-						$store = $share->getExternalZipAndStoreIntemp( $fileUrl );
-						if ( $store !== true ) {
-							$out->addHTML( $this->makeAlert( $store ) );
-							break;
-						}
-						$fileInfo = [];
-						$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $fileUrl ) );
-						if ( $fileInfo['info'] === null || !isset( $fileInfo['info']['project'] ) ) {
-							$out->addHTML( $this->makeAlert( 'Not a PageSync Share file' ) );
-							break;
-						}
-						$fileInfo['file'] = $tempPath . basename( $fileUrl );
-						$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $fileUrl ) );
-						$body = $share->renderShareFileInformation( $fileInfo );
-						$footer = $share->renderShareFileInformation( $fileInfo, true );
-						$out->addHTML( $render->renderCard( 'Install a Shared File', '', $body, $footer ) );
+						$out->addHTML( $specialShare->showDownloadShareInformation( $share, $render ) );
 						return true;
-
-						break;
 					case "delete-share":
-						$resultDeleteBackup = false;
-						$backupFile         = self::getPost( 'ws-share-file' );
-						if ( $backupFile !== false ) {
-							$resultDeleteBackup = $share->deleteBackupFile( $backupFile );
-						}
-						if ( $resultDeleteBackup === true ) {
-							$backActionResult = wfMessage(
-								'wsps-special_share_delete_file_success',
-								$backupFile
-							)->text();
-						} else {
-							$backActionResult = wfMessage(
-								'wsps-special_share_delete_file_error',
-								$backupFile
-							)->text();
-						}
+						$backActionResult = $specialShare->deleteShare( $share );
 						break;
 					case "wsps-share-docancel":
 						break;
@@ -449,23 +381,13 @@ class WSpsSpecial extends SpecialPage {
 							return true;
 						}
 						$out->addHTML( self::makeAlert( 'No pages found with these tags' ) );
-
-
 						break;
 					case "wsps-share-install":
-						$gitHub = new PSGitHub();
-						$body = $share->getFormHeader() . $share->renderDownloadUrlForm();
-						$body .= $gitHub->renderListofGitHubFiles( $gitHub->getFileList() );
-						$footer = $share->renderDownloadUrlForm( true ) . '</form>';
-						$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"", $body, $footer ) );
+						$out->addHTML( $specialShare->showInstallShare( $share, $render ) );
 						return true;
-						break;
 					case "wsps-share-create":
-						$body = $share->getFormHeader() . $share->renderCreateSelectTagsForm();
-						$footer = $share->renderCreateSelectTagsForm( true ) . '</form>';
-						$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"", $body, $footer ) );
+						$out->addHTML( $specialShare->createShare( $share, $render ) );
 						return true;
-						break;
 				}
 				$body = $backActionResult;
 				$body .= '<p>' . $this->msg( 'wsps-content_share_information' ) . '</p>';
@@ -481,7 +403,6 @@ class WSpsSpecial extends SpecialPage {
 				$out->addHTML( $render->renderCard( $this->msg( 'wsps-content_share' ),"Create or Download Shared File", $body, $footer ) );
 				$out->addHTML( $style );
 				return true;
-				break;
 			case "backup":
 				$out->addHTML(
 					$this->setResourcesAndMenu(
@@ -495,7 +416,7 @@ class WSpsSpecial extends SpecialPage {
 				// check if we have zip extension
 				if ( ! extension_loaded( 'zip' ) ) {
 					$out->addHTML(
-						$this->makeAlert( wfMessage( 'wsps-special_backup_we_need_zip_extension' )->text() )
+						self::makeAlert( wfMessage( 'wsps-special_backup_we_need_zip_extension' )->text() )
 					);
 					$out->addHTML( $style );
 
@@ -576,7 +497,7 @@ class WSpsSpecial extends SpecialPage {
 				);
 				// First check if we have SMW
 				if ( ! ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' ) ) {
-					$out->addHTML( $this->makeAlert( wfMessage( 'wsps-special_custom_query_we_need_smw' )->text() ) );
+					$out->addHTML( self::makeAlert( wfMessage( 'wsps-special_custom_query_we_need_smw' )->text() ) );
 					$out->addHTML( $style );
 
 					return true;
@@ -596,7 +517,7 @@ class WSpsSpecial extends SpecialPage {
 						}
 
 						if ( $query === false ) {
-							$error = $this->makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
+							$error = self::makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
 						} else {
 							$query       = base64_decode( $query );
 							$listOfPages = $this->doAsk( $query );
@@ -626,7 +547,7 @@ class WSpsSpecial extends SpecialPage {
 						$query = self::getPost( 'wsps-query' );
 
 						if ( $query === false ) {
-							$error = $this->makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
+							$error = self::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
 						} else {
 							$result = $this->doAsk( $query );
 
