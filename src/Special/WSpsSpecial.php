@@ -467,12 +467,12 @@ class WSpsSpecial extends SpecialPage {
 
 				$pAction = self::getPost( 'wsps-action' );
 				$error   = '';
-
+				$specialSMW = new PSSpecialSMWQeury();
 				switch ( $pAction ) {
 					case "wsps-import-query" :
-						$specialSMW = new PSSpecialSMWQeury();
 						$request = $this->getRequest();
 						$out->addHTML( $specialSMW->importQuery( $request, $usr ) );
+						$error = $specialSMW->error;
 						return true;
 					case "doQuery" :
 						$query = self::getPost( 'wsps-query' );

@@ -81,7 +81,7 @@ class PSSpecialSMWQeury {
 							$ntags
 						);
 					}
-					$count ++;
+					$count++;
 				}
 			}
 			$content = '<h2>' . wfMessage( 'wsps-special_status_card_done' )->text() . '</h2>';
@@ -89,39 +89,4 @@ class PSSpecialSMWQeury {
 			return $content;
 		}
 	}
-
-	public function doQuery() {
-		$query = self::getPost( 'wsps-query' );
-
-		if ( $query === false ) {
-			$error = self::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
-		} else {
-			$result = $this->doAsk( $query );
-
-			$nr = count( $result );
-
-			$form       = $render->renderDoQueryForm( $query, true );
-			$html       = $form;
-			$bodyResult = $render->renderDoQueryBody( $result );
-			$html       .= $bodyResult['html'];
-
-			$header = wfMessage( 'wsps-special_custom_query_result' )->text();
-			$header .= '<p>' . wfMessage( 'wsps-special_custom_query' )->text(
-				) . '<span class="uk-text-warning">' . htmlspecialchars( $query ) . '</span></p>';
-			$header .= wfMessage(
-				'wsps-special_custom_query_result_text1',
-				$nr
-			)->text();
-			$header .= wfMessage(
-				'wsps-special_custom_query_result_text2',
-				$bodyResult['active']
-			)->text();
-			$html   = $header . $html;
-			$out->addHTML( $style );
-			$out->addHTML( $html );
-
-			return true;
-		}
-	}
-
 }
