@@ -12,16 +12,16 @@ namespace PageSync\Handlers;
 
 use PageSync\Core\PSConverter;
 use PageSync\Core\PSCore;
-use WSpsRender;
+use PageSync\Helpers\PSRender;
 
 class WSpsConvertHandler {
 
 	/**
-	 * @param WSpsRender $render
+	 * @param PSRender $render
 	 *
 	 * @return string
 	 */
-	public function convertForReal( WSpsRender $render ) : string {
+	public function convertForReal( PSRender $render ) : string {
 		$result = PSConverter::convertFilesTov0999();
 
 		return $render->renderCard(
@@ -39,11 +39,11 @@ class WSpsConvertHandler {
 	}
 
 	/**
-	 * @param WSpsRender $render
+	 * @param PSRender $render
 	 *
 	 * @return string
 	 */
-	public function preview( WSpsRender $render ) : string {
+	public function preview( PSRender $render ) : string {
 		global $wgScript;
 		$markedFiles = PSConverter::checkFileConsistency(
 			false,

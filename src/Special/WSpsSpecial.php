@@ -240,32 +240,14 @@ class WSpsSpecial extends SpecialPage {
 			case "pedit":
 
 				$pAction = self::getPost( 'wsps-action' );
+				$peditSpecial = new PSSpecialEdit();
 				switch ( $pAction ) {
 					case "wsps-edit-information":
-						$description = self::getPost( 'description', false );
-						$tags = self::getPost( 'tags', false );
-						$pageId = self::getPost( 'id' );
-						if ( $pageId === false ) {
-							break;
-						}
-						if ( $description === false ) {
-							$description = '';
-						}
-						$pagePath = PSCore::getInfoFileFromPageID( $pageId );
-						if ( $pagePath['status'] === false ) {
-							$out->addHTML( $pagePath['info'] );
-							break;
-						}
-						if ( $tags === false ) {
-							$tags = [];
-						}
-						$result = PSCore::updateInfoFile( $pagePath['info'], $description, implode( ',', $tags ) );
-						if ( $result['status'] === false ) {
-							$out->addHTML( $pagePath['info'] );
-							break;
+						$res = $peditSpecial->editInformation();
+						if ( $res !== false ) {
+							$out->addHTML( $res );
 						}
 						break;
-
 					case "wsps-edit":
 						$pageId = self::getPost( 'id' );
 						if ( $pageId !== false ) {
@@ -280,28 +262,8 @@ class WSpsSpecial extends SpecialPage {
 									3
 								)
 							);
-							$pageInfo = json_decode(
-								file_get_contents( $pagePath['info'] ),
-								true
-							);
-
-							$body   = $render->renderEditEntry( $pageInfo );
-							$title  = PSCore::getPageTitle( $pageId );
-							$footer = $render->renderEditEntry(
-								$pageInfo,
-								true
-							);
-							$out->addHTML(
-								$render->renderCard(
-									$this->msg( 'wsps-special_table_header_edit' ),
-									$title,
-									$body,
-									$footer
-								)
-							);
-
+							$out->addHTML( $peditSpecial->edit( $render, $pagePath, $pageId ) );
 							return true;
-							break;
 						}
 				}
 				break;
@@ -508,41 +470,10 @@ class WSpsSpecial extends SpecialPage {
 
 				switch ( $pAction ) {
 					case "wsps-import-query" :
-						$query = self::getPost( 'wsps-query' );
-						$tags = self::getPost( 'tags', false );
-						if ( $tags !== false && is_array( $tags ) ) {
-							$ntags = implode( ',', $tags );
-						} else {
-							$ntags = "";
-						}
-
-						if ( $query === false ) {
-							$error = self::makeAlert( wfMessage( 'wsps-special_managed_query_not_found' )->text() );
-						} else {
-							$query       = base64_decode( $query );
-							$listOfPages = $this->doAsk( $query );
-							$nr          = count( $listOfPages );
-							$count       = 1;
-							foreach ( $listOfPages as $page ) {
-								if ( PSCore::isTitleInIndex( $page ) === false ) {
-									$pageId = PSCore::getPageIdFromTitle( $page );
-									if ( is_int( $pageId ) ) {
-										$result = PSCore::addFileForExport(
-											$pageId,
-											$usr,
-											$ntags
-										);
-									}
-									$count ++;
-								}
-							}
-							$content = '<h2>' . wfMessage( 'wsps-special_status_card_done' )->text() . '</h2>';
-							$content .= '<p>Added ' . ( $count - 1 ) . '/' . $nr . ' pages.</p>';
-							$out->addHTML( $content );
-
-							return true;
-						}
-						break;
+						$specialSMW = new PSSpecialSMWQeury();
+						$request = $this->getRequest();
+						$out->addHTML( $specialSMW->importQuery( $request, $usr ) );
+						return true;
 					case "doQuery" :
 						$query = self::getPost( 'wsps-query' );
 
