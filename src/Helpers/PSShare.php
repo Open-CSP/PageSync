@@ -697,7 +697,7 @@ class PSShare {
 		if ( $footer ) {
 			$html = $this->getFormHeader();
 			$html .= '<input type="hidden" name="wsps-action" value="wsps-do-download-install">';
-			$html .= '<input type="hidden" name="tmpfile" value="' . basename( $file['file'] ) . '">';
+			$html .= '<input type="hidden" name="tmpfile" value="' . $file['sharefile'] . '">';
 			$html .= '<div class="uk-form-controls">';
 			if ( $file['info']['version'][0] === '1' ) {
 				$html .= '<span class="uk-text-danger uk-text-emphasis">' . wfMessage( 'wsps-special_share_older' )->text() . '</span>';

@@ -116,11 +116,12 @@ class PSGitHub {
 	 * @return string
 	 */
 	public function renderListofGitHubFiles( array $data ) : string {
-		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
+		$html = '<input type="hidden" name="wsps-action" value="wsps-share-downloadurl">';
+		$html .= '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th></th><th>' . wfMessage( 'wsps-special_share_list_name' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_share_list_info' )->text() . '</th></tr>';
 		foreach ( $data as $listing ) {
-			$html .= '<tr><td class="wsps-td"><input type="radio" class="uk-radio" name="gitfile" ';
+			$html .= '<tr><td class="wsps-td"><input required="required" type="radio" class="uk-radio" name="gitfile" ';
 			$html .= 'value = "' . $listing['name'] . '"></td>';
 			$html .= '<td class="wsps-td">' . $listing['title'] . '<br><span class="uk-text-meta">' . $listing['name'];
 			$html .= '</span></td>';

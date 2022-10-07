@@ -33,6 +33,7 @@ class PSSpecialShare {
 		if ( $zipFile === false ) {
 			return WSpsSpecial::makeAlert( 'No Share file information found' );
 		}
+		$zipFile = $zipFile . '.zip';
 		global $IP;
 		$cmd = 'php ' . $IP . '/extensions/PageSync/maintenance/WSps.maintenance.php';
 		$cmd .= ' --user="' . $userName . '"';
@@ -59,9 +60,21 @@ class PSSpecialShare {
 	 * @return string
 	 */
 	public function showDownloadShareInformation( PSShare $share, PSRender $render ): string {
-		$fileUrl = WSpsSpecial::getPost( 'url' );
-
+		$fileUrl = WSpsSpecial::getPost( 'gitfile' );
 		if ( $fileUrl === false ) {
+			return WSpsSpecial::makeAlert( 'Missing Share Url' );
+		}
+		$gitHub = new PSGitHub();
+		$gitList = $gitHub->getFileList();
+		$found = false;
+		foreach ( $gitList as $gitEntry ) {
+			if ( $gitEntry['name'] === $fileUrl ) {
+				$found = true;
+				$tmpFileName = $fileUrl;
+				$fileUrl = $gitEntry['zip'];
+			}
+		}
+		if ( !$found ) {
 			return WSpsSpecial::makeAlert( 'Missing Share Url' );
 		}
 		$tempPath = PSConfig::$config['tempFilePath'];
@@ -75,6 +88,7 @@ class PSSpecialShare {
 		if ( $fileInfo['info'] === null || !isset( $fileInfo['info']['project'] ) ) {
 			return WSpsSpecial::makeAlert( 'Not a PageSync Share file' );
 		}
+		$fileInfo['sharefile'] = $tmpFileName;
 		$fileInfo['file'] = $tempPath . basename( $fileUrl );
 		$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $fileUrl ) );
 		$body = $share->renderShareFileInformation( $fileInfo );
@@ -127,7 +141,7 @@ class PSSpecialShare {
 	 */
 	public function showInstallShare( PSShare $share, PSRender $render ): string {
 		$gitHub = new PSGitHub();
-		$body = $share->getFormHeader() . $share->renderDownloadUrlForm();
+		$body = $share->getFormHeader();
 		$body .= $gitHub->renderListofGitHubFiles( $gitHub->getFileList() );
 		$footer = $share->renderDownloadUrlForm( true ) . '</form>';
 		return $render->renderCard( wfMessage( 'wsps-content_share' ), "", $body, $footer );
