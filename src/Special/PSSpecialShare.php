@@ -85,9 +85,6 @@ class PSSpecialShare {
 		}
 		$fileInfo = [];
 		$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $fileUrl ) );
-		echo "<pre>";
-		var_dump( $fileInfo['info']);
-		echo "</pre>";
 		if ( $fileInfo['info'] === null || !isset( $fileInfo['info']['project'] ) ) {
 			return WSpsSpecial::makeAlert( 'Not a PageSync Share file' );
 		}
