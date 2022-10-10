@@ -73,9 +73,12 @@ class PSGitHub {
 		return $ret;
 	}
 
+	/**
+	 * @return array|string
+	 */
 	public function getFileList() {
 		$content = $this->get( self::PAGESYNC_SHARED_FILES_REPO );
-		if ( ! $content ) {
+		if ( !$content ) {
 			return $this->error;
 		}
 		$content = json_decode(

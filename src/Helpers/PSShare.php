@@ -306,31 +306,34 @@ class PSShare {
 	}
 
 	/**
-	 * @param string $disclaimer
-	 * @param string|null $project
-	 * @param string|null $company
-	 * @param string|null $name
-	 * @param string|null $uName
+	 * @param string|false $disclaimer
+	 * @param string|false $project
+	 * @param string|false $company
+	 * @param string|false $name
+	 * @param string|false $uName
+	 * @param string|false $requirements
 	 *
 	 * @return array
 	 */
 	public function createNFOFile(
-		string $disclaimer,
-		?string $project,
-		?string $company,
-		?string $name,
-		?string $uName
+		$disclaimer,
+		$project,
+		$company,
+		$name,
+		$uName,
+		$requirements
 	) : array {
 		global $wgSitename;
 		$ret               = [];
 		$ret['sitename']   = $wgSitename;
-		$ret['disclaimer'] = $disclaimer;
-		$ret['project']    = $project === null ? '' : $project;
-		$ret['company']    = $company === null ? '' : $company;
-		$ret['name']       = $name === null ? '' : $name;
-		$ret['uname']      = $name === null ? '' : $uName;
+		$ret['disclaimer'] = $disclaimer === false ? '' : $disclaimer;
+		$ret['project']    = $project === false ? '' : $project;
+		$ret['company']    = $company === false ? '' : $company;
+		$ret['name']       = $name === false ? '' : $name;
+		$ret['uname']      = $name === false ? '' : $uName;
 		$datetime          = new DateTime();
 		$ret['date']       = $datetime->format( 'd-m-Y H:i:s' );
+		$ret['requirements'] = $requirements;
 
 		return $ret;
 	}
@@ -456,6 +459,10 @@ class PSShare {
 				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_name' )->text(
 					) . '</label>';
 				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="name" >';
+				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_requirements' )->text(
+					) . '</label>';
+				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="requirements" ><br>';
+				$doShareForm .= '<span class="uk-text-meta">' . wfMessage( 'wsps-special_share_requirements_sub' )->text() . '</span>';
 				break;
 		}
 
@@ -689,6 +696,27 @@ class PSShare {
 	}
 
 	/**
+	 * @param array|false $requirements
+	 *
+	 * @return string
+	 */
+	public function requirementsToHTML( $requirements ): string {
+		if ( $requirements === false ) {
+			return "";
+		}
+		$ret = '<ul>';
+		foreach ( $requirements as $requirement ) {
+			$line = $requirement['name'];
+			if ( isset( $requirement['version'] ) ) {
+				$line .= ' -v' . $requirement['version'];
+			}
+			$ret .= '<li>' . $line . '</li>';
+		}
+		$ret .= '</ul>';
+		return $ret;
+	}
+
+	/**
 	 * @param array $file
 	 *
 	 * @return string
@@ -745,6 +773,12 @@ class PSShare {
 		$html .= wfMessage( 'wsps-special_table_header_version' )->text();
 		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['version'] . '</td></tr>';
 
+		if ( isset( $file['info']['requirements'] ) ) {
+		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
+			$html .= wfMessage( 'wsps-special_share_requirements' )->text();
+			$requirements = $this->requirementsToHTML( $file['info']['requirements'] );
+			$html .= '</td><td class="uk-table-expand uk-text-primary">' . $requirements . '</td></tr>';
+		}
 		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
 		$html .= wfMessage( 'wsps-special_table_header_description' )->text();
 		$html .= '</td><td class="uk-table-expand uk-text-primary uk-text-italic">' . $file['info']['disclaimer'];

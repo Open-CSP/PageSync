@@ -85,6 +85,9 @@ class PSSpecialShare {
 		}
 		$fileInfo = [];
 		$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $fileUrl ) );
+		echo "<pre>";
+		var_dump( $fileInfo['info']);
+		echo "</pre>";
 		if ( $fileInfo['info'] === null || !isset( $fileInfo['info']['project'] ) ) {
 			return WSpsSpecial::makeAlert( 'Not a PageSync Share file' );
 		}
@@ -206,6 +209,39 @@ class PSSpecialShare {
 	}
 
 	/**
+	 * @param string $requirements
+	 *
+	 * @return array
+	 */
+	public function createRequirements( string $requirements ): array {
+		$req = [];
+		$t = 0;
+		if ( strpos( $requirements, ';' ) ) {
+			// We have multiple requirements
+			$require = explode( ';', $requirements );
+			foreach ( $require as $single ) {
+				if ( strpos( $single, ':' ) ) {
+					// We also have a version
+					$versioned = explode( ':', $single );
+					$req[$t]['name'] = $versioned[0];
+					$req[$t]['version'] = $versioned[1];
+				} else {
+					$req[$t]['name'] = $single;
+				}
+				$t++;
+			}
+		} elseif ( strpos( $requirements, ':' ) ) {
+			// We have a single requirement, but with a version
+			$versioned = explode( ':', $requirements );
+			$req[$t]['name'] = $versioned[0];
+			$req[$t]['version'] = $versioned[1];
+		} else {
+			$req[$t]['name'] = $requirements;
+		}
+		return $req;
+	}
+
+	/**
 	 * @param string $usr
 	 * @param PSShare $share
 	 * @param PSRender $render
@@ -215,6 +251,10 @@ class PSSpecialShare {
 	public function doShare( string $usr, PSShare $share, PSRender $render ) {
 		$project = WSpsSpecial::getPost( 'project' );
 		$company = WSpsSpecial::getPost( 'company' );
+		$requirements = WSpsSpecial::getPost( 'requirements' );
+		if ( $requirements !== false ) {
+			$requirements = $this->createRequirements( $requirements );
+		}
 		$name = WSpsSpecial::getPost( 'name' );
 		$disclaimer = WSpsSpecial::getPost( 'disclaimer' );
 		$uname = $usr;
@@ -241,7 +281,7 @@ class PSSpecialShare {
 		if ( empty( $pages ) ) {
 			return false;
 		}
-		$nfoContent = $share->createNFOFile( $disclaimer, $project, $company, $name, $uname );
+		$nfoContent = $share->createNFOFile( $disclaimer, $project, $company, $name, $uname, $requirements );
 		if ( $res = $share->createShareFile( $pages, $nfoContent ) !== true ) {
 			return $res;
 		} else {
