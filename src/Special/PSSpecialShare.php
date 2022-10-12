@@ -66,7 +66,7 @@ class PSSpecialShare {
 		}
 		$gitHub = new PSGitHub();
 		$fileUrl = $gitHub->getRepoUrl() . $fileUrl;
-		var_dump( $fileUrl );
+
 		// First remove any ZIP file in the temp folder
 		$store = $share->getExternalZipAndStoreIntemp( $fileUrl );
 		$tempPath = PSConfig::$config['tempFilePath'];
