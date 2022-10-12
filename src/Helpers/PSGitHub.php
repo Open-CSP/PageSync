@@ -15,8 +15,10 @@ use function wfMessage;
 class PSGitHub {
 
 	private const PAGESYNC_SHARED_FILES_REPO = 'https://api.github.com/repos/Open-CSP/PageSync-SharedFiles/contents/';
+	private const PAGESYNC_SHARED_FILES_INDEX = 'https://raw.githubusercontent.com/Open-CSP/PageSync-SharedFiles/main/index.json';
 
 	public string $error = '';
+	private array $index = [];
 
 	/**
 	 * @param string $url
@@ -57,60 +59,55 @@ class PSGitHub {
 		return false;
 	}
 
-	private function splitInfo( $info ) {
-		$ret          = [];
-		$data         = explode(
-			"\n",
-			$info
-		);
-		$ret['title'] = $data[0];
-		unset( $data[0] );
-		$ret['info'] = implode(
-			"\n",
-			$data
-		);
+	/**
+	 * @return array
+	 */
+	public function getIndex(): array {
+		return $this->index;
+	}
 
-		return $ret;
+	/**
+	 * @return array
+	 */
+	public function getCategoriesAndSubjects(): array {
+		$cats = [];
+		foreach ( $this->index['PageSync Share File Index'] as $entry ) {
+			$k = $entry['Category'];
+			$v = $entry['Subject'];
+			$cats[$k][] = $v;
+		}
+		return $cats;
+	}
+
+	/**
+	 * @param string $category
+	 * @param string $subject
+	 *
+	 * @return array $lst
+	 */
+	private function getFilesInfo( string $category, string $subject ): array {
+		$lst = [];
+		$t = 0;
+		foreach ( $this->index['PageSync Share File Index'] as $entry ) {
+
+			if ( $entry['Subject'] === $subject && $entry['Category'] === $category ) {
+				$lst[$t] = $entry;
+				$t++;
+			}
+		}
+		return $lst;
 	}
 
 	/**
 	 * @return array|string
 	 */
 	public function getFileList() {
-		$content = $this->get( self::PAGESYNC_SHARED_FILES_REPO );
+		$content = $this->get( self::PAGESYNC_SHARED_FILES_INDEX );
 		if ( !$content ) {
 			return $this->error;
 		}
-		$content = json_decode(
-			$content,
-			true
-		);
-
-		$lst = [];
-		$t   = 0;
-		foreach ( $content as $folder ) {
-			$folderContent = $this->get( self::PAGESYNC_SHARED_FILES_REPO . $folder['path'] . '/' );
-			$folderContent = json_decode(
-				$folderContent,
-				true
-			);
-			foreach ( $folderContent as $file ) {
-				$parts = pathinfo( $file['name'] );
-				if ( $parts['extension'] === 'info' ) {
-					$tmpInfo          = $this->splitInfo( file_get_contents( $file['download_url'] ) );
-					$lst[$t]['info']  = $tmpInfo['info'];
-					$lst[$t]['title'] = $tmpInfo['title'];
-					$lst[$t]['name']  = $parts['filename'];
-					$lst[$t]['zip']   = str_replace(
-						'.info',
-						'.zip',
-						$file['download_url']
-					);
-				}
-			}
-		}
-
-		return $lst;
+		$this->index = json_decode( $content, true );
+		return $this->index;
 	}
 
 	/**
