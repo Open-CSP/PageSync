@@ -65,19 +65,20 @@ class PSSpecialShare {
 			return WSpsSpecial::makeAlert( 'Missing Share Url' );
 		}
 		$gitHub = new PSGitHub();
-		$gitList = $gitHub->getFileList();
-		$found = false;
-		foreach ( $gitList as $gitEntry ) {
-			if ( $gitEntry['name'] === $fileUrl ) {
-				$found = true;
-				$tmpFileName = $fileUrl;
-				$fileUrl = $gitEntry['zip'];
-			}
-		}
-		if ( !$found ) {
-			return WSpsSpecial::makeAlert( 'Missing Share Url' );
-		}
+		$fileUrl = $gitHub->getRepoUrl() . $fileUrl;
+		var_dump( $fileUrl );
+		// First remove any ZIP file in the temp folder
+		$store = $share->getExternalZipAndStoreIntemp( $fileUrl );
 		$tempPath = PSConfig::$config['tempFilePath'];
+		if ( $store !== true ) {
+			return WSpsSpecial::makeAlert( $store );
+		}
+		$fileInfo = [];
+		$fileInfo['info'] = $share->getShareFileInfo( $tempPath . basename( $fileUrl ) );
+		if ( $fileInfo['info'] === null || !isset( $fileInfo['info']['project'] ) ) {
+			return WSpsSpecial::makeAlert( 'Not a PageSync Share file' );
+		}
+
 		// First remove any ZIP file in the temp folder
 		$store = $share->getExternalZipAndStoreIntemp( $fileUrl );
 		if ( $store !== true ) {
@@ -88,7 +89,7 @@ class PSSpecialShare {
 		if ( $fileInfo['info'] === null || !isset( $fileInfo['info']['project'] ) ) {
 			return WSpsSpecial::makeAlert( 'Not a PageSync Share file' );
 		}
-		$fileInfo['sharefile'] = $tmpFileName;
+		$fileInfo['sharefile'] = str_replace( '.zip', '', basename( $fileUrl ) );
 		$fileInfo['file'] = $tempPath . basename( $fileUrl );
 		$fileInfo['list'] = $share->getShareFileContent( $tempPath . basename( $fileUrl ) );
 		$body = $share->renderShareFileInformation( $fileInfo );
@@ -142,7 +143,7 @@ class PSSpecialShare {
 	public function showInstallShare( PSShare $share, PSRender $render ): string {
 		$gitHub = new PSGitHub();
 		$body = $share->getFormHeader();
-		$body .= $gitHub->renderListofGitHubFiles( $gitHub->getFileList() );
+		$body .= $gitHub->renderListofGitHubFiles();
 		$footer = $share->renderDownloadUrlForm( true ) . '</form>';
 		return $render->renderCard( wfMessage( 'wsps-content_share' ), "", $body, $footer );
 	}

@@ -16,9 +16,17 @@ class PSGitHub {
 
 	private const PAGESYNC_SHARED_FILES_REPO = 'https://api.github.com/repos/Open-CSP/PageSync-SharedFiles/contents/';
 	private const PAGESYNC_SHARED_FILES_INDEX = 'https://raw.githubusercontent.com/Open-CSP/PageSync-SharedFiles/main/index.json';
+	private const PAGESYNC_SHARED_FILES_URL = 'https://raw.githubusercontent.com/Open-CSP/PageSync-SharedFiles/main/';
 
 	public string $error = '';
 	private array $index = [];
+
+	/**
+	 * @return string
+	 */
+	public function getRepoUrl(): string {
+		return self::PAGESYNC_SHARED_FILES_URL;
+	}
 
 	/**
 	 * @param string $url
@@ -107,28 +115,41 @@ class PSGitHub {
 			return $this->error;
 		}
 		$this->index = json_decode( $content, true );
+		$this->index = $this->index['PageSync Share File Index'];
 		return $this->index;
 	}
 
 	/**
-	 * @param array $data
 	 *
 	 * @return string
 	 */
-	public function renderListofGitHubFiles( array $data ) : string {
+	public function renderListofGitHubFiles() : string {
+		$data = $this->getFileList();
 		$html = '<input type="hidden" name="wsps-action" value="wsps-share-downloadurl">';
-		$html .= '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
-		$html .= '<th></th><th>' . wfMessage( 'wsps-special_share_list_name' )->text() . '</th>';
-		$html .= '<th>' . wfMessage( 'wsps-special_share_list_info' )->text() . '</th></tr>';
-		foreach ( $data as $listing ) {
-			$html .= '<tr><td class="wsps-td"><input required="required" type="radio" class="uk-radio" name="gitfile" ';
-			$html .= 'value = "' . $listing['name'] . '"></td>';
-			$html .= '<td class="wsps-td">' . $listing['title'] . '<br><span class="uk-text-meta">' . $listing['name'];
-			$html .= '</span></td>';
-			$html .= '<td class="wsps-td">' . $listing['info'] . '</td></tr>';
+		foreach ( $data as $category=>$subject ) {
+			$html .= '<h4 class="uk-heading-bullet uk-margin-remove-top">'. $category .'</h4>';
+			foreach ( $subject as $subjectName=>$subjectLst ) {
+				$html      .= '<h5 class="uk-heading-line uk-margin-remove-top"><span>' . $subjectName . '</span></h5>';
+				$html      .= '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover uk-table-justify"><tr>';
+				$html      .= '<th></th><th>' . wfMessage( 'wsps-special_share_list_name' )->text() . '</th>';
+				$html      .= '<th>' . wfMessage( 'wsps-special_share_list_info' )->text() . '</th>';
+				$html      .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_share_requirements' )->text() . '</th></tr>';
+				foreach ( $subjectLst as $details ) {
+					$shareFile = $category . '/' . $subjectName . '/' . $details['PSShareFile'];
+					$html .= '<tr><td class="wsps-td"><input required="required" type="radio" class="uk-radio" name="gitfile" ';
+					$html .= 'value = "' . $shareFile . '"></td>';
+					$html .= '<td class="wsps-td">' . $details['Title'] . '<br><span class="uk-text-meta">' . $details['PSShareFile'];
+					$html .= '</span></td>';
+					$html .= '<td class="wsps-td">' . $details['Description'] . '</td>';
+					$html .= '<td class="wsps-td"><ul class="uk-list uk-list-divider">';
+					foreach ( $details['Requirements'] as $kName => $vVersion ) {
+						$html .= '<li class="uk-text-small">' . $kName . ' - ' . $vVersion . '</li>';
+					}
+					$html .= '</ul></td></tr>';
+				}
+				$html .= '</table>';
+			}
 		}
-		$html .= '</table>';
-
 		return $html;
 	}
 }

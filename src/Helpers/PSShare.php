@@ -550,7 +550,7 @@ class PSShare {
 		} else {
 			$downloadForm = '<input type="submit" class="uk-button uk-width-1-1 uk-button-primary" value="';
 			//$downloadForm .= wfMessage( 'wsps-error_file_consistency_btn_backup' )->text();
-			$downloadForm .= "Download and Preview Shared file";
+			$downloadForm .= "Preview Shared file";
 			$downloadForm .= '">';
 		}
 

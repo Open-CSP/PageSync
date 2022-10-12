@@ -451,7 +451,7 @@ class PSRender {
 		if ( $subTitle !== "" ) {
 			$content .= '<p class="uk-text-meta uk-margin-remove-top">' . $subTitle . '</p>';
 		}
-		$content .= '</div><div class="uk-card-body"><p class="uk-text-meta uk-margin-remove-top">' . $body . '</p></div>';
+		$content .= '</div><div class="uk-card-body uk-padding-remove-top"><p class="uk-text-meta uk-margin-remove-top">' . $body . '</p></div>';
 		if ( $footer !== "" ) {
 			$content .= '<div class="uk-card-footer"><p>' . $footer . '</p></div>';
 		}
