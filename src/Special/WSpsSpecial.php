@@ -458,7 +458,8 @@ class WSpsSpecial extends SpecialPage {
 					)
 				);
 				// First check if we have SMW
-				if ( ! ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' ) ) {
+				$specialSMW = new PSSpecialSMWQeury();
+				if ( !$specialSMW->isExtensionInstalled( 'SemanticMediaWiki' ) ) {
 					$out->addHTML( self::makeAlert( wfMessage( 'wsps-special_custom_query_we_need_smw' )->text() ) );
 					$out->addHTML( $style );
 
@@ -467,7 +468,7 @@ class WSpsSpecial extends SpecialPage {
 
 				$pAction = self::getPost( 'wsps-action' );
 				$error   = '';
-				$specialSMW = new PSSpecialSMWQeury();
+
 				switch ( $pAction ) {
 					case "wsps-import-query" :
 						$request = $this->getRequest();

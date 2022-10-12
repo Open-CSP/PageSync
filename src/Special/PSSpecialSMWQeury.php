@@ -4,6 +4,8 @@ namespace PageSync\Special;
 
 use ApiMain;
 use DerivativeRequest;
+use ExtensionRegistry;
+use MediaWiki\MediaWikiServices;
 use PageSync\Core\PSCore;
 use WebRequest;
 
@@ -55,6 +57,43 @@ class PSSpecialSMWQeury {
 		}
 	}
 
+	/**
+	 * @param string $name
+	 *
+	 * @return mixed
+	 */
+	public function getExtensionVersion( string $name ) {
+		global $wgVersion;
+		if ( strtolower( $name ) === "mediawiki" ) {
+			return $wgVersion;
+		}
+		return ExtensionRegistry::getInstance()->getAllThings()[$name]['version'];
+	}
+
+	/**
+	 * @param string $name
+	 *
+	 * @return bool
+	 */
+	public function isExtensionInstalled( string $name ): bool {
+		if ( strtolower( $name ) === "mediawiki" ) {
+			return true;
+		}
+		if ( !ExtensionRegistry::getInstance()->isLoaded(
+			$name
+		) ) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	/**
+	 * @param WebRequest $request
+	 * @param $usr
+	 *
+	 * @return string|void
+	 */
 	public function importQuery( WebRequest $request, $usr ) {
 		$query = WSpsSpecial::getPost( 'wsps-query' );
 		$tags = WSpsSpecial::getPost( 'tags', false );

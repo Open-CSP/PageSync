@@ -2,6 +2,8 @@
 
 namespace PageSync\Helpers;
 
+use PageSync\Special\PSSpecialSMWQeury;
+
 use function wfMessage;
 
 /**
@@ -124,6 +126,7 @@ class PSGitHub {
 	 * @return string
 	 */
 	public function renderListofGitHubFiles() : string {
+		$smw = new PSSpecialSMWQeury();
 		$data = $this->getFileList();
 		$html = '<input type="hidden" name="wsps-action" value="wsps-share-downloadurl">';
 		foreach ( $data as $category=>$subject ) {
@@ -133,7 +136,8 @@ class PSGitHub {
 				$html      .= '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover uk-table-justify"><tr>';
 				$html      .= '<th></th><th>' . wfMessage( 'wsps-special_share_list_name' )->text() . '</th>';
 				$html      .= '<th>' . wfMessage( 'wsps-special_share_list_info' )->text() . '</th>';
-				$html      .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_share_requirements' )->text() . '</th></tr>';
+				$html      .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_share_requirements' )->text() . '</th>';
+				$html      .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_share_requirements_installed' )->text() . '</th></tr>';
 				foreach ( $subjectLst as $details ) {
 					$shareFile = $category . '/' . $subjectName . '/' . $details['PSShareFile'];
 					$html .= '<tr><td class="wsps-td"><input required="required" type="radio" class="uk-radio" name="gitfile" ';
@@ -143,7 +147,19 @@ class PSGitHub {
 					$html .= '<td class="wsps-td">' . $details['Description'] . '</td>';
 					$html .= '<td class="wsps-td"><ul class="uk-list uk-list-divider">';
 					foreach ( $details['Requirements'] as $kName => $vVersion ) {
-						$html .= '<li class="uk-text-small">' . $kName . ' - ' . $vVersion . '</li>';
+						$html .= '<li class="uk-text-small">' . $kName . ' - ' . $vVersion;
+						$html .= '</li>';
+					}
+					$html .= '</ul></td>';
+					$html .= '<td class="wsps-td"><ul class="uk-list uk-list-divider">';
+					foreach ( $details['Requirements'] as $kName => $vVersion ) {
+						$html .= '<li class="uk-text-small">';
+						if ( $smw->isExtensionInstalled( $kName ) ) {
+							$html .=  'v' . $smw->getExtensionVersion( $kName );
+						} else {
+							$html .= ' <span uk-icon="ban" class="uk-text-danger"></span>';
+						}
+						$html .= '</li>';
 					}
 					$html .= '</ul></td></tr>';
 				}
