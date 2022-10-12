@@ -75,7 +75,7 @@ class PSShare {
 
 		$page = curl_exec( $ch );
 
-		if ( !$page ) {
+		if ( ! $page ) {
 			$result = PSMessageMaker::makeMessage(
 				false,
 				curl_error( $ch )
@@ -207,6 +207,7 @@ class PSShare {
 				'',
 				$name
 			);
+
 			return $withoutExtension;
 		} else {
 			return false;
@@ -218,7 +219,7 @@ class PSShare {
 	 *
 	 * @return array|null
 	 */
-	public function getShareFileContent( string $file ): ?array {
+	public function getShareFileContent( string $file ) : ?array {
 		$data = [];
 		$zip  = new ZipArchive();
 		if ( $zip->open( $file ) === true ) {
@@ -226,9 +227,15 @@ class PSShare {
 			for ( $i = 0; $i < $zip->numFiles; $i++ ) {
 				$name = $this->returnTitleFromFileName( $zip->getNameIndex( $i ) );
 				if ( $name !== false ) {
-					$content = json_decode( $zip->getFromIndex( $i ), true );
-					$nsId = PSNameSpaceUtils::getNSFromTitleString( $content['pagetitle'] );
-					$data['list'][$i] = PSNameSpaceUtils::titleForDisplay( $nsId, $content['pagetitle'] );
+					$content          = json_decode(
+						$zip->getFromIndex( $i ),
+						true
+					);
+					$nsId             = PSNameSpaceUtils::getNSFromTitleString( $content['pagetitle'] );
+					$data['list'][$i] = PSNameSpaceUtils::titleForDisplay(
+						$nsId,
+						$content['pagetitle']
+					);
 					if ( isset( $content['description'] ) ) {
 						$data['description'][$i] = $content['description'];
 					} else {
@@ -240,6 +247,7 @@ class PSShare {
 		} else {
 			return null;
 		}
+
 		return $data;
 	}
 
@@ -248,14 +256,15 @@ class PSShare {
 	 *
 	 * @return array|null
 	 */
-	public function getShareFileInfo( string $file ): ?array {
+	public function getShareFileInfo( string $file ) : ?array {
 		$data = [];
 		$zip  = new ZipArchive();
 		if ( $zip->open( $file ) === true ) {
-			$json = $zip->getArchiveComment();
+			$json  = $zip->getArchiveComment();
 			$count = $zip->numFiles;
 			if ( $json === null ) {
 				$zip->close();
+
 				return null;
 			}
 			$json = json_decode(
@@ -264,14 +273,16 @@ class PSShare {
 			);
 			if ( $json === null ) {
 				$zip->close();
+
 				return null;
 			}
 			$json['nroffiles'] = $count;
-			$data = $json;
+			$data              = $json;
 			$zip->close();
 		} else {
 			die( 'could not open : ' . $file );
 		}
+
 		return $data;
 	}
 
@@ -293,7 +304,7 @@ class PSShare {
 		$t = 0;
 		foreach ( $shareList as $shareFile ) {
 			$data[$t]['file'] = basename( $shareFile );
-			$nfo = $this->getShareFileInfo( $shareFile );
+			$nfo              = $this->getShareFileInfo( $shareFile );
 			if ( $nfo === null ) {
 				$data[$t]['file'] = "error";
 			} else {
@@ -324,15 +335,15 @@ class PSShare {
 		$requirements
 	) : array {
 		global $wgSitename;
-		$ret               = [];
-		$ret['sitename']   = $wgSitename;
-		$ret['disclaimer'] = $disclaimer === false ? '' : $disclaimer;
-		$ret['project']    = $project === false ? '' : $project;
-		$ret['company']    = $company === false ? '' : $company;
-		$ret['name']       = $name === false ? '' : $name;
-		$ret['uname']      = $name === false ? '' : $uName;
-		$datetime          = new DateTime();
-		$ret['date']       = $datetime->format( 'd-m-Y H:i:s' );
+		$ret                 = [];
+		$ret['sitename']     = $wgSitename;
+		$ret['disclaimer']   = $disclaimer === false ? '' : $disclaimer;
+		$ret['project']      = $project === false ? '' : $project;
+		$ret['company']      = $company === false ? '' : $company;
+		$ret['name']         = $name === false ? '' : $name;
+		$ret['uname']        = $name === false ? '' : $uName;
+		$datetime            = new DateTime();
+		$ret['date']         = $datetime->format( 'd-m-Y H:i:s' );
 		$ret['requirements'] = $requirements;
 
 		return $ret;
@@ -462,7 +473,9 @@ class PSShare {
 				$doShareForm .= '<label class="uk-form-label">' . wfMessage( 'wsps-special_share_requirements' )->text(
 					) . '</label>';
 				$doShareForm .= '<input type="text"" class="uk-input uk-width-1-1" name="requirements" ><br>';
-				$doShareForm .= '<span class="uk-text-meta">' . wfMessage( 'wsps-special_share_requirements_sub' )->text() . '</span>';
+				$doShareForm .= '<span class="uk-text-meta">' . wfMessage(
+						'wsps-special_share_requirements_sub'
+					)->text() . '</span>';
 				break;
 		}
 
@@ -558,10 +571,14 @@ class PSShare {
 	}
 
 	public function isZipfile( $data ) {
-		$fileHeader="\x50\x4b\x03\x04";
-		if ( strpos( $data, $fileHeader ) === false ) {
+		$fileHeader = "\x50\x4b\x03\x04";
+		if ( strpos(
+				 $data,
+				 $fileHeader
+			 ) === false ) {
 			return false;
 		}
+
 		return true;
 	}
 
@@ -570,10 +587,10 @@ class PSShare {
 	 *
 	 * @return array
 	 */
-	public function getFileInfoList( string $path ): array {
+	public function getFileInfoList( string $path ) : array {
 		$fList = glob( $path . "*.info" );
-		$data = [];
-		if ( $fList !== false && !empty ( $fList ) ) {
+		$data  = [];
+		if ( $fList !== false && ! empty ( $fList ) ) {
 			foreach ( $fList as $infoFile ) {
 				if ( file_exists( $infoFile ) ) {
 					$data[] = json_decode(
@@ -584,35 +601,63 @@ class PSShare {
 			}
 		}
 		if ( !empty( $data ) ) {
-			array_multisort( array_map( 'strtotime', array_column( $data, 'changed' ) ),
+			array_multisort(
+				array_map(
+					'strtotime',
+					array_column(
+						$data,
+						'changed'
+					)
+				),
 				SORT_DESC,
-				$data );
+				$data
+			);
 		}
 
 		return $data;
 	}
 
-	public function getExternalZipAndStoreIntemp( $fileUrl ) {
+	/**
+	 * @param string $fileUrl
+	 *
+	 * @return bool|string
+	 */
+	public function getExternalZipAndStoreIntemp( string $fileUrl ) {
 		$tempPath = PSConfig::$config['tempFilePath'];
 		// First remove any ZIP file in the temp folder
-		array_map( 'unlink', glob( $tempPath . "*.zip" ) );
+		array_map(
+			'unlink',
+			glob( $tempPath . "*.zip" )
+		);
 		$zipFile = @file_get_contents( $fileUrl );
 		if ( $zipFile === false || $this->isZipfile( $zipFile ) === false ) {
 			return 'Could not load Share url. Not a valid ZIP file or it can not be downloaded.';
 		}
-		if ( !file_put_contents( $tempPath . basename( $fileUrl ), $zipFile ) ) {
+		if ( !file_put_contents(
+			$tempPath . basename( $fileUrl ),
+			$zipFile
+		) ) {
 			return 'Could not save Share File to Temp folder';
 		}
+
 		return true;
 	}
 
-	public function extractTempZip( $zipFile ) {
+	/**
+	 * @param string $zipFile
+	 *
+	 * @return false|string
+	 */
+	public function extractTempZip( string $zipFile ) {
 		$zipFileAndPath = PSConfig::$config['tempFilePath'] . $zipFile;
 		if ( !file_exists( $zipFileAndPath ) ) {
 			return false;
 		}
-		$zipTempPath = PSConfig::$config['tempFilePath'] . basename( $zipFile, '.zip' );
-		$zip       = new ZipArchive();
+		$zipTempPath = PSConfig::$config['tempFilePath'] . basename(
+				$zipFile,
+				'.zip'
+			);
+		$zip         = new ZipArchive();
 		if ( file_exists( $zipTempPath ) ) {
 			$back = new WSpsHooksBackup();
 			$back->removeRecursively(
@@ -627,6 +672,7 @@ class PSShare {
 		if ( $zip->open( $zipFileAndPath ) === true ) {
 			$zip->extractTo( $zipTempPath );
 			$zip->close();
+
 			return $zipTempPath . '/';
 		} else {
 			return false;
@@ -638,8 +684,12 @@ class PSShare {
 	 *
 	 * @return string
 	 */
-	private function replaceUnderScoreWithSpace( string $name ): string {
-		return str_replace( '_', ' ', $name );
+	private function replaceUnderScoreWithSpace( string $name ) : string {
+		return str_replace(
+			'_',
+			' ',
+			$name
+		);
 	}
 
 	/**
@@ -679,6 +729,10 @@ class PSShare {
 		$txt .= $file['info']['version'];
 		$txt .= "\n*** ";
 
+		$txt .= wfMessage( 'wsps-special_table_header_version' )->text() . ': ';
+		$txt .= $file['info']['requirements'];
+		$txt .= "\n*** ";
+
 		$txt .= wfMessage( 'wsps-special_table_header_description' )->text() . ': ';
 		$txt .= $file['info']['disclaimer'];
 		$txt .= "\n***************************\n";
@@ -687,11 +741,17 @@ class PSShare {
 
 		$t = 1;
 		foreach ( $file['list']['list'] as $k => $entry ) {
-			$txt .= str_pad( $t, 4, '0', STR_PAD_LEFT ) . '. ';
+			$txt .= str_pad(
+						$t,
+						4,
+						'0',
+						STR_PAD_LEFT
+					) . '. ';
 			$txt .= $entry . " (";
 			$txt .= $file['list']['description'][$k] . ")\n";
 			$t++;
 		}
+
 		return $txt . "\n\n";
 	}
 
@@ -700,7 +760,7 @@ class PSShare {
 	 *
 	 * @return string
 	 */
-	public function requirementsToHTML( $requirements ): string {
+	public function requirementsToHTML( $requirements ) : string {
 		if ( $requirements === false ) {
 			return "";
 		}
@@ -713,6 +773,7 @@ class PSShare {
 			$ret .= '<li>' . $line . '</li>';
 		}
 		$ret .= '</ul>';
+
 		return $ret;
 	}
 
@@ -721,19 +782,22 @@ class PSShare {
 	 *
 	 * @return string
 	 */
-	public function renderShareFileInformation( array $file, $footer = false ): string {
+	public function renderShareFileInformation( array $file, $footer = false ) : string {
 		if ( $footer ) {
 			$html = $this->getFormHeader();
 			$html .= '<input type="hidden" name="wsps-action" value="wsps-do-download-install">';
 			$html .= '<input type="hidden" name="tmpfile" value="' . $file['sharefile'] . '">';
 			$html .= '<div class="uk-form-controls">';
 			if ( $file['info']['version'][0] === '1' ) {
-				$html .= '<span class="uk-text-danger uk-text-emphasis">' . wfMessage( 'wsps-special_share_older' )->text() . '</span>';
+				$html .= '<span class="uk-text-danger uk-text-emphasis">' . wfMessage(
+						'wsps-special_share_older'
+					)->text() . '</span>';
 			} else {
 				$html .= '<label><input class="uk-checkbox" type="checkbox" name="agreed" required="required"> I agree with the description</label>';
 				$html .= '<input type="submit" class="uk-button uk-inline uk-button-primary uk-margin-large-left uk-width-1-4" value="Install files">';
 			}
 			$html .= '</div></form>';
+
 			return $html;
 		}
 		$html = '<div class="uk-grid-divider uk-child-width-expand@s" uk-grid>';
@@ -774,10 +838,10 @@ class PSShare {
 		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['version'] . '</td></tr>';
 
 		if ( isset( $file['info']['requirements'] ) ) {
-		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
-			$html .= wfMessage( 'wsps-special_share_requirements' )->text();
+			$html         .= '<tr><td class="uk-table-shrink uk-text-bold">';
+			$html         .= wfMessage( 'wsps-special_share_requirements' )->text();
 			$requirements = $this->requirementsToHTML( $file['info']['requirements'] );
-			$html .= '</td><td class="uk-table-expand uk-text-primary">' . $requirements . '</td></tr>';
+			$html         .= '</td><td class="uk-table-expand uk-text-primary">' . $requirements . '</td></tr>';
 		}
 		$html .= '<tr><td class="uk-table-shrink uk-text-bold">';
 		$html .= wfMessage( 'wsps-special_table_header_description' )->text();
@@ -791,7 +855,7 @@ class PSShare {
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page_title' )->text();
 		$html .= '</th><th>' . wfMessage( 'wsps-special_table_header_description' )->text();
 		$html .= '</th></tr>';
-		$t = 1;
+		$t    = 1;
 		foreach ( $file['list']['list'] as $k => $entry ) {
 			$html .= '<tr><td class="uk-table-shrink uk-text-bold">' . $t . '</td>';
 			$html .= '<td class="wsps-td uk-text-primary">' . $entry . '</td>';
@@ -800,8 +864,8 @@ class PSShare {
 			$t++;
 		}
 		$html .= '</table></div></div>';
-		return $html;
 
+		return $html;
 	}
 
 	/**
