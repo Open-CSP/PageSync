@@ -158,11 +158,11 @@ class PSRender {
 				if ( is_array( $tags ) ) {
 					foreach ( $tags as $tag ) {
 						if ( !empty( $tag ) ) {
-							$htmlTags .= '<span class="uk-badge">' . $tag . '</span>';
+							$htmlTags .= '<span class="uk-badge uk-text-nowrap">' . $tag . '</span>';
 						}
 					}
 				} else {
-					$htmlTags .= '<span class="uk-badge">' . $tags . '</span>';
+					$htmlTags .= '<span class="uk-badge uk-text-nowrap">' . $tags . '</span>';
 				}
 			}
 			$html   .= '<td class="wsps-td uk-text-center">' . $htmlTags . '</td>';
@@ -214,11 +214,11 @@ class PSRender {
 				if ( is_array( $tags ) ) {
 					foreach ( $tags as $tag ) {
 						if ( !empty( $tag ) ) {
-							$htmlTags .= '<span class="uk-badge">' . $tag . '</span>';
+							$htmlTags .= '<span class="uk-badge uk-text-nowrap">' . $tag . '</span>';
 						}
 					}
 				} else {
-					$htmlTags .= '<span class="uk-badge">' . $tags . '</span>';
+					$htmlTags .= '<span class="uk-badge uk-text-nowrap">' . $tags . '</span>';
 				}
 			}
 			$html   .= '<td class="wsps-td uk-text-center">' . $htmlTags . '</td>';
@@ -352,7 +352,7 @@ class PSRender {
 			} else {
 				$pageId = PSCore::getPageIdFromTitle( $page );
 				if ( $pageId === false || $pageId === 0 ) {
-					$button = '<span class="uk-badge" style="color:white; background-color:#666;"><strong>N/A</strong></span>';
+					$button = '<span class="uk-badge uk-text-nowrap" style="color:white; background-color:#666;"><strong>N/A</strong></span>';
 				} else {
 					$button = '<a class="wsps-toggle-special" data-id="' . $pageId . '"></a>';
 				}

@@ -729,9 +729,11 @@ class PSShare {
 		$txt .= $file['info']['version'];
 		$txt .= "\n*** ";
 
-		$txt .= wfMessage( 'wsps-special_table_header_version' )->text() . ': ';
-		$txt .= $file['info']['requirements'];
-		$txt .= "\n*** ";
+		if ( isset( $file['info']['requirements'] ) ) {
+			$txt .= wfMessage( 'wsps-special_share_requirements' )->text() . ': ';
+			$txt .= $this->requirementsToConsole( $file['info']['requirements'] );
+			$txt .= "\n*** ";
+		}
 
 		$txt .= wfMessage( 'wsps-special_table_header_description' )->text() . ': ';
 		$txt .= $file['info']['disclaimer'];
@@ -774,6 +776,26 @@ class PSShare {
 		}
 		$ret .= '</ul>';
 
+		return $ret;
+	}
+
+	/**
+	 * @param array|false $requirements
+	 *
+	 * @return string
+	 */
+	public function requirementsToConsole( $requirements ) : string {
+		if ( $requirements === false ) {
+			return "";
+		}
+		$ret = "";
+		foreach ( $requirements as $requirement ) {
+			$line = $requirement['name'];
+			if ( isset( $requirement['version'] ) ) {
+				$line .= ' -v' . $requirement['version'];
+			}
+			$ret .= '* ' . $line . PHP_EOL;
+		}
 		return $ret;
 	}
 
