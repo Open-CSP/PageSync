@@ -3033,6 +3033,7 @@ select.uk-form-width-xsmall {
   justify-content: center;
   align-items: center;
   line-height: 0;
+  white-space: nowrap;
 }
 /*
  * Required for `a`
