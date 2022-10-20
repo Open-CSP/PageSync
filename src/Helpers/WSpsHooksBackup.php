@@ -1,5 +1,17 @@
 <?php
 
+namespace PageSync\Helpers;
+
+use DateTime;
+use PageSync\Core\PSConfig;
+use PageSync\Core\PSCore;
+use WSpsHooks;
+
+use ZipArchive;
+
+use function count;
+use function wfMessage;
+
 /**
  * Created by  : Wikibase Solution
  * Project     : csp
@@ -18,10 +30,10 @@ class WSpsHooksBackup {
 	 * @return bool
 	 */
 	public function deleteBackupFile( string $backupFile ) : bool {
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
-		$path = WSpsHooks::$config['exportPath'];
+		$path = PSConfig::$config['exportPath'];
 		if ( file_exists( $path . $backupFile ) ) {
 			unlink( $path . $backupFile );
 
@@ -70,7 +82,7 @@ class WSpsHooksBackup {
 	 *
 	 * @return bool
 	 */
-	private function isDirEmpty( string $dir ): bool {
+	private function isDirEmpty( string $dir ) : bool {
 		$handle = opendir( $dir );
 		while ( false !== ( $entry = readdir( $handle ) ) ) {
 			if ( $entry != "." && $entry != ".." ) {
@@ -89,8 +101,11 @@ class WSpsHooksBackup {
 	 *
 	 * @return bool
 	 */
-	private function getVersionFromBackupName( string $name ) {
-		$tmp = explode( '_', $name );
+	private function getVersionFromBackupName( string $name ): bool {
+		$tmp = explode(
+			'_',
+			$name
+		);
 		if ( count( $tmp ) < 3 ) {
 			return false;
 		}
@@ -98,6 +113,7 @@ class WSpsHooksBackup {
 		if ( $fVersion[0] === '1' ) {
 			return false;
 		}
+
 		return true;
 	}
 
@@ -109,29 +125,47 @@ class WSpsHooksBackup {
 	 * @return array
 	 */
 	public function restoreBackupFile( string $backupFile ) : array {
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
 
 		if ( $this->getVersionFromBackupName( $backupFile ) === false ) {
-			return [ false, wfMessage( 'wsps-special_backup_restore_file_failure_old', $backupFile )->text() ];
+			return [
+				false,
+				wfMessage(
+					'wsps-special_backup_restore_file_failure_old',
+					$backupFile
+				)->text()
+			];
 		}
 
-		$path      = \WSpsHooks::$config['exportPath'];
-		$indexPath = \WSpsHooks::$config['filePath'];
+		$path      = PSConfig::$config['exportPath'];
+		$indexPath = PSConfig::$config['filePath'];
 		$zip       = new ZipArchive();
 		if ( $zip->open( $path . $backupFile ) === true ) {
 			$this->removeRecursively(
 				$indexPath,
 				$indexPath
 			);
-			WSpsHooks::setConfig(); // re-initiate deleted folder
+			PSCore::setConfig(); // re-initiate deleted folder
 			$zip->extractTo( $indexPath );
 			$zip->close();
 
-			return [ true, wfMessage( 'wsps-special_backup_restore_file_success', $backupFile )->text() ];
+			return [
+				true,
+				wfMessage(
+					'wsps-special_backup_restore_file_success',
+					$backupFile
+				)->text()
+			];
 		} else {
-			return [ false, wfMessage( 'wsps-special_backup_restore_file_failure', $backupFile )->text() ];
+			return [
+				false,
+				wfMessage(
+					'wsps-special_backup_restore_file_failure',
+					$backupFile
+				)->text()
+			];
 		}
 	}
 
@@ -139,17 +173,17 @@ class WSpsHooksBackup {
 	 * Create a backup file
 	 */
 	public static function createZipFileBackup() {
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
-		$path            = WSpsHooks::$config['exportPath'];
-		$indexPath       = WSpsHooks::$config['filePath'];
+		$path            = PSConfig::$config['exportPath'];
+		$indexPath       = PSConfig::$config['filePath'];
 		$version         = str_replace(
 			'.',
 			'-',
-			( WSpsHooks::$config['version'] )
+			( PSConfig::$config['version'] )
 		);
-		$allFileinfo     = WSpsHooks::getAllPageInfo();
+		$allFileinfo     = PSCore::getAllPageInfo();
 		$addUploadedFile = [];
 		foreach ( $allFileinfo as $fileToCheck ) {
 			if ( isset( $fileToCheck['isFile'] ) && $fileToCheck['isFile'] === true ) {
@@ -200,11 +234,11 @@ class WSpsHooksBackup {
 	 * @return array
 	 */
 	public function getBackupList() : array {
-		$data =[];
-		if ( WSpsHooks::$config === false ) {
-			WSpsHooks::setConfig();
+		$data = [];
+		if ( PSConfig::$config === false ) {
+			PSCore::setConfig();
 		}
-		$path       = WSpsHooks::$config['exportPath'];
+		$path       = PSConfig::$config['exportPath'];
 		$backupList = glob( $path . "backup_*.zip" );
 		if ( empty( $backupList ) ) {
 			return $data;

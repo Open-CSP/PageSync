@@ -1,6 +1,6 @@
 {
   "name": "PageSync",
-  "version": "2.0.10",
+  "version": "2.1.0",
   "author": [
     "Sen-Sai"
   ],
@@ -15,40 +15,24 @@
       "ext-zip": "*"
     }
   },
-  "AutoloadClasses": {
-    "ApiWSps": "ApiWSps.php",
-    "WSpsHooks": "WSpsHooks.php",
-    "WSpsSpecial": "specials/WSps_special.php",
-    "WSpsHooksBackup": "assets/classes/WSpsHooksBackup.class.php",
-    "WSpsBackupHandler": "specials/handlers/WSpsBackupHandler.php",
-    "WSpsShareHandler": "specials/handlers/WSpsShareHandler.php",
-    "WSpsConvertHandler": "specials/handlers/WSpsConvertHandler.php",
-    "PSShare": "assets/classes/PSShare.class.php",
-    "WSpsConfig": "assets/classes/WSpsConfig.class.php"
-  },
+
   "ExtensionMessagesFiles": {
     "WSpsAlias": "WSps.i18n.alias.php",
     "WSpsMagic": "WSps.i18n.magic.php"
   },
   "APIModules": {
-    "wsps": "ApiWSps"
+    "wsps": "PageSync\\API\\ApiWSps"
   },
   "Hooks": {
-    "ParserFirstCallInit": [
-      "WSpsHooks::onParserFirstCallInit"
-    ],
-    "AdminLinks": [
-      "WSpsHooks::addToAdminLinks"
-    ],
-    "PageSaveComplete": [
-      "WSpsHooks::pageSaved"
-    ],
-    "ArticleDelete": [
-      "WSpsHooks::onArticleDelete"
-    ],
-    "SkinTemplateNavigation::Universal": [
-      "WSpsHooks::nav"
-    ]
+    "ParserFirstCallInit" : "PageSync\\HookHandler::onParserFirstCallInit",
+    "BeforePageDisplay" : "PageSync\\HookHandler::onBeforePageDisplay",
+    "AdminLinks": "PageSync\\HookHandler::addToAdminLinks",
+    "PageSaveComplete": "PageSync\\HookHandler::pageSaved",
+    "ArticleDelete": "PageSync\\HookHandler::onArticleDelete",
+    "SkinTemplateNavigation::Universal": "PageSync\\HookHandler::nav"
+  },
+  "AutoloadNamespaces": {
+    "PageSync\\": "src/"
   },
   "MessagesDirs": {
     "WSPageSync": [
@@ -60,22 +44,22 @@
     "remoteExtPath": "PageSync"
   },
   "SpecialPages": {
-    "WSps": "WSpsSpecial"
+    "WSps": "PageSync\\Special\\WSpsSpecial"
   },
   "config": {
     "PageSync": {
-      "allowedGroups": [
-        "sysop"
-      ],
-      "filePath": "",
-      "tempFilePath": "",
-      "fileNameSpaces": [
-        6
-      ],
-      "contentSlotsToBeSynced": "all",
-      "maintenance": {
-        "doNotRestoreThesePages": [],
-        "restoreFrom": ""
+      "value":  {
+        "allowedGroups": [],
+        "filePath": "",
+        "tempFilePath": "",
+        "fileNameSpaces": [
+          6
+        ],
+        "contentSlotsToBeSynced": "all",
+        "maintenance": {
+          "doNotRestoreThesePages": [],
+          "restoreFrom": ""
+        }
       }
     }
   },
@@ -104,5 +88,5 @@
       ]
     }
   },
-  "manifest_version": 1
+  "manifest_version": 2
 }
