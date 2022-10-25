@@ -1,6 +1,6 @@
 {
   "name": "PageSync",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "author": [
     "Sen-Sai"
   ],
@@ -24,6 +24,7 @@
     "wsps": "PageSync\\API\\ApiWSps"
   },
   "Hooks": {
+    "BeforePageDisplay" : "PageSync\\HookHandler::onBeforePageDisplay",
     "ParserFirstCallInit" : "PageSync\\HookHandler::onParserFirstCallInit",
     "AdminLinks": "PageSync\\HookHandler::addToAdminLinks",
     "PageSaveComplete": "PageSync\\Core\\PSCore::pageSaved",
