@@ -1,6 +1,6 @@
 {
   "name": "PageSync",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "author": [
     "Sen-Sai"
   ],
@@ -25,9 +25,8 @@
   },
   "Hooks": {
     "ParserFirstCallInit" : "PageSync\\HookHandler::onParserFirstCallInit",
-    "BeforePageDisplay" : "PageSync\\HookHandler::onBeforePageDisplay",
     "AdminLinks": "PageSync\\HookHandler::addToAdminLinks",
-    "PageSaveComplete": "PageSync\\HookHandler::pageSaved",
+    "PageSaveComplete": "PageSync\\Core\\PSCore::pageSaved",
     "ArticleDelete": "PageSync\\HookHandler::onArticleDelete",
     "SkinTemplateNavigation::Universal": "PageSync\\HookHandler::nav"
   },
