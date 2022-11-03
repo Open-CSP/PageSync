@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.1.3 Maintenance script color difference between success and skipped
 * 2.1.2 Add before pagedisplay hook back in
 * 2.1.1 fixed bug when synced page was altered
 * 2.1.0 Add Installing Shared file from PageSync Repo

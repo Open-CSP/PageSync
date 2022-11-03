@@ -712,7 +712,7 @@ class importPagesIntoWiki extends Maintenance {
 					$skipCount++;
 					if ( !$silent ) {
 						$this->output(
-							"\n\e[42mSkipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
+							"\n\e[43mSkipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'] . "\e[0m\n"
 						);
 					} else {
 						$collectedMessages[] = "Skipped no change for " . $page['pagetitle'] . " and slots " . $page['slots'];
