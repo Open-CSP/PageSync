@@ -11,6 +11,7 @@
 namespace PageSync\Core;
 
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\SlotRecord;
 use WikiPage;
 
 class PSNameSpaceUtils {
@@ -87,5 +88,4 @@ class PSNameSpaceUtils {
 			return false;
 		}
 	}
-
 }

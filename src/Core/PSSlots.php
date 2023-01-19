@@ -78,6 +78,10 @@ class PSSlots {
 			if ( $content_object === null ) {
 				continue;
 			}
+
+			// Get Model ID
+			$contentModelID = $content_object->getContentHandler()->getModelID();
+
 			$content_handler = MediaWikiServices::getInstance()->getContentHandlerFactory()->getContentHandler(
 				$content_object->getModel()
 			);
@@ -88,7 +92,8 @@ class PSSlots {
 				continue;
 			}
 
-			$slot_contents[$slot_role] = $contentOfSLot;
+			$slot_contents[$slot_role]['content'] = $contentOfSLot;
+			$slot_contents[$slot_role]['model'] = $contentModelID;
 		}
 
 		return $slot_contents;
