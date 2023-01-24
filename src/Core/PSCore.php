@@ -132,6 +132,7 @@ class PSCore {
 	 * @param string $uname
 	 * @param int $id
 	 * @param array $slots
+	 * @param array $models
 	 * @param bool|array $isFile
 	 * @param false|string $changed
 	 * @param string $description
@@ -146,6 +147,7 @@ class PSCore {
 		string $uname,
 		int $id,
 		array $slots,
+		array $models,
 		$isFile,
 		$changed = false,
 		string $description = "",
@@ -167,6 +169,10 @@ class PSCore {
 		$infoContent['slots']     = implode(
 			',',
 			$slots
+		);
+		$infoContent['models']     = implode(
+			',',
+			$models
 		);
 
 		if ( $isFile !== false ) {
@@ -685,7 +691,6 @@ class PSCore {
 		$index = self::getFileIndex();
 
 		$ns = PSNameSpaceUtils::getNSFromId( $id );
-
 		// add or replace page
 		$index[$fname] = $title;
 
@@ -710,8 +715,10 @@ class PSCore {
 		//Set content for info file
 
 		$slots = [];
+		$models = [];
 		foreach ( $slotsContents as $k => $v ) {
 			$slots[] = $k;
+			$models[] = $v['model'];
 		}
 		$description = '';
 		if ( !$nTags ) {
@@ -742,6 +749,7 @@ class PSCore {
 			$uname,
 			$id,
 			$slots,
+			$models,
 			$isFile,
 			$date,
 			$description,
@@ -770,7 +778,9 @@ class PSCore {
 		}
 		//set wiki filenames
 		$storeResults = [];
-		foreach ( $slotsContents as $slotName => $slotContent ) {
+		foreach ( $slotsContents as $slotName => $slotContentArray ) {
+			$slotContent = $slotContentArray['content'];
+			$slotModel = $slotContentArray['model'];
 			$wikiFile = self::setWikiName(
 				$fname,
 				$slotName

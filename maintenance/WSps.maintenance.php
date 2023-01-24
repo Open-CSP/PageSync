@@ -568,7 +568,7 @@ class importPagesIntoWiki extends Maintenance {
 				if ( $resultFileUpload !== 'different user' ) {
 					$successCount++;
 					if ( !$silent ) {
-						$this->output( "Uploaded " . $page['fileoriginalname'] . "\n" );
+						$this->output( "\n\e[42mUploaded " . $page['fileoriginalname'] . "\e[0m\n" );
 					} else {
 						$collectedMessages[] = "Uploaded " . $page['fileoriginalname'];
 					}
@@ -582,6 +582,11 @@ class importPagesIntoWiki extends Maintenance {
 			);
 
 			$ns = $page['ns'];
+			if ( isset( $page['models'] ) ) {
+				$pageModels = explode( ',', $page['models'] );
+			} else {
+				$pageModels = null;
+			}
 			$nTitle2 = PSNameSpaceUtils::titleForDisplay( $ns, $pageName );
 			$title = Title::newFromText( $nTitle2 );
 			if ( !$silent ) {
@@ -644,16 +649,21 @@ class importPagesIntoWiki extends Maintenance {
 				}
 			}
 
-			foreach ( $pageSlots as $slot ) {
+			foreach ( $pageSlots as $slotCounter=>$slot ) {
 				if ( !$silent ) {
 					echo "\nGetting content for slot $slot.";
 				}
-				$content[ $slot ] = PSCore::getFileContent(
+				if ( $pageModels !== null ) {
+					$content[ $slot ]['model'] = $pageModels[$slotCounter];
+				} else {
+					$content[ $slot ]['model'] = null;
+				}
+				$content[ $slot ]['content'] = PSCore::getFileContent(
 					$page['filename'],
 					$slot,
 					$this->filePath
 				);
-				if ( false === $content[ $slot ] ) {
+				if ( false === $content[ $slot ]['content'] ) {
 					$failCount++;
 					if ( !$silent ) {
 						$this->output(
@@ -662,7 +672,7 @@ class importPagesIntoWiki extends Maintenance {
 					} else {
 						$collectedMessages[] = "Failed " . $page['pagetitle'] . " with slot: " . $slot . ". Could not find file:" . $page['filename'];
 					}
-					unset( $content[$slot] );
+					unset( $content[$slot]);
 				}
 			}
 			$result = PSSlots::editSlots(

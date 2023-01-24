@@ -78,6 +78,10 @@ class PSSlots {
 			if ( $content_object === null ) {
 				continue;
 			}
+
+			// Get Model ID
+			$contentModelID = $content_object->getContentHandler()->getModelID();
+
 			$content_handler = MediaWikiServices::getInstance()->getContentHandlerFactory()->getContentHandler(
 				$content_object->getModel()
 			);
@@ -87,8 +91,9 @@ class PSSlots {
 			if ( empty( $contentOfSLot ) && $slot_role !== 'main' ) {
 				continue;
 			}
-
-			$slot_contents[$slot_role] = $contentOfSLot;
+			// TODO: Change all slots arrays to support model
+			$slot_contents[$slot_role]['content'] = $contentOfSLot;
+			$slot_contents[$slot_role]['model'] = $contentModelID;
 		}
 
 		return $slot_contents;
@@ -117,15 +122,32 @@ class PSSlots {
 		$old_revision_record = $wikipage_object->getRevisionRecord();
 		$slot_role_registry  = MediaWikiServices::getInstance()->getSlotRoleRegistry();
 
-		foreach ( $text as $slot_name => $content ) {
+		foreach ( $text as $slot_name => $slotInfo ) {
+			$content = $slotInfo['content'];
+			$sModel = $slotInfo['model'];
+			if ( $sModel !== null ) {
+				$currentModels = MediaWikiServices::getInstance()->getContentHandlerFactory()->getContentModels();
+				if ( !in_array(
+					$sModel,
+					$currentModels
+				) ) {
+					$status = false;
+					$errors[] = wfMessage(
+						"wsps-error_unknown-content-model",
+						$slot_name
+					);
+					unset( $text[$slot_name] );
+					continue;
+				}
+			}
 			//echo "\nWorking with $slot_name";
 			// Make sure the slot we are editing exists
 			if ( !$slot_role_registry->isDefinedRole( $slot_name ) ) {
 				$status   = false;
 				$errors[] = wfMessage(
-					"wsslots-apierror-unknownslot",
+					"wsps-error_unknown-slot",
 					$slot_name
-				); // TODO: Update message name
+				);
 				unset( $text[$slot_name] );
 				continue;
 			}
@@ -134,12 +156,16 @@ class PSSlots {
 				echo "\nSlot $slot_name is empty. Removing..";
 				$page_updater->removeSlot( $slot_name );
 			} else {
-				// Set the content for the slot we want to edit
-				if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
-					$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()
-													->getModelID();
+				if ( $sModel === null ) {
+					// Set the content for the slot we want to edit
+					if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
+						$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()
+														->getModelID();
+					} else {
+						$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
+					}
 				} else {
-					$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
+					$model_id = $sModel;
 				}
 
 				$slot_content = ContentHandler::makeContent(
@@ -152,7 +178,7 @@ class PSSlots {
 					$slot_content
 				);
 				if ( $slot_name !== SlotRecord::MAIN ) {
-					$page_updater->addTag( 'wsslots-slot-edit' ); // TODO: Update message name
+					$page_updater->addTag( 'wsps-content-edit-tag' );
 				}
 			}
 		}

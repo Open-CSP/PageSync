@@ -58,6 +58,7 @@ class PSConverter {
 				$json['username'],
 				$json['pageid'],
 				$json['slots'],
+				[],
 				$json['isFile'],
 				$json['changed'],
 				$json['description'],
@@ -182,6 +183,7 @@ class PSConverter {
 	 * Full function to convert synced file to version 0.9.9.9+
 	 *
 	 * @return array
+	 * @deprecated
 	 */
 	public static function convertFilesTov0999() : array {
 		if ( PSConfig::$config !== false ) {
@@ -246,6 +248,7 @@ class PSConverter {
 	 * @param bool $returnFileNames
 	 *
 	 * @return array|bool|int
+	 * @deprecated
 	 */
 	public static function checkFileConsistency( bool $returnCnt = false, bool $returnFileNames = false ) {
 		if ( PSConfig::$config === false ) {
