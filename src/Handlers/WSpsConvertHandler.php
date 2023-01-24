@@ -20,6 +20,7 @@ class WSpsConvertHandler {
 	 * @param PSRender $render
 	 *
 	 * @return string
+	 * @deprecated
 	 */
 	public function convertForReal( PSRender $render ) : string {
 		$result = PSConverter::convertFilesTov0999();
