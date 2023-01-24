@@ -656,7 +656,7 @@ class importPagesIntoWiki extends Maintenance {
 				if ( $pageModels !== null ) {
 					$content[ $slot ]['model'] = $pageModels[$slotCounter];
 				} else {
-					$content[ $slot ]['model'] = 'wikitext';
+					$content[ $slot ]['model'] = null;
 				}
 				$content[ $slot ]['content'] = PSCore::getFileContent(
 					$page['filename'],

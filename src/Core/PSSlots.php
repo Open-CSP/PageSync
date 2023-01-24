@@ -125,15 +125,20 @@ class PSSlots {
 		foreach ( $text as $slot_name => $slotInfo ) {
 			$content = $slotInfo['content'];
 			$sModel = $slotInfo['model'];
-			$currentModels = MediaWikiServices::getInstance()->getContentHandlerFactory()->getContentModels();
-			if ( !in_array( $sModel, $currentModels ) ) {
-				$status   = false;
-				$errors[] = wfMessage(
-					"wsps-error_unknown-content-model",
-					$slot_name
-				);
-				unset( $text[$slot_name] );
-				continue;
+			if ( $sModel !== null ) {
+				$currentModels = MediaWikiServices::getInstance()->getContentHandlerFactory()->getContentModels();
+				if ( !in_array(
+					$sModel,
+					$currentModels
+				) ) {
+					$status = false;
+					$errors[] = wfMessage(
+						"wsps-error_unknown-content-model",
+						$slot_name
+					);
+					unset( $text[$slot_name] );
+					continue;
+				}
 			}
 			//echo "\nWorking with $slot_name";
 			// Make sure the slot we are editing exists
@@ -151,18 +156,17 @@ class PSSlots {
 				echo "\nSlot $slot_name is empty. Removing..";
 				$page_updater->removeSlot( $slot_name );
 			} else {
-
-				/*
-				// Set the content for the slot we want to edit
-				if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
-
-					$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()
-													->getModelID();
+				if ( $sModel === null ) {
+					// Set the content for the slot we want to edit
+					if ( $old_revision_record !== null && $old_revision_record->hasSlot( $slot_name ) ) {
+						$model_id = $old_revision_record->getSlot( $slot_name )->getContent()->getContentHandler()
+														->getModelID();
+					} else {
+						$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
+					}
 				} else {
-					$model_id = $slot_role_registry->getRoleHandler( $slot_name )->getDefaultModel( $title_object );
+					$model_id = $sModel;
 				}
-				*/
-				$model_id = $sModel;
 
 				$slot_content = ContentHandler::makeContent(
 					$content,
