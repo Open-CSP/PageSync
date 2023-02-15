@@ -62,3 +62,9 @@
     background-image: url(tag-on.png) !important;
 
 }
+
+/* to make WSForm tokens full width */
+.select2-container {
+    width: 100% !important;
+    margin-bottom:  1rem !important;
+}

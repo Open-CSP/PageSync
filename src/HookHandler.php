@@ -12,6 +12,7 @@ use PageSync\Core\PSConfig;
 use PageSync\Core\PSConverter;
 use PageSync\Core\PSCore;
 use Parser;
+use RequestContext;
 use Skin;
 use SkinTemplate;
 use User;
@@ -107,7 +108,8 @@ class HookHandler {
 	 * @return bool|void
 	 */
 	public static function nav( SkinTemplate &$sktemplate, array &$links ) {
-		global $wgUser, $wgScript;
+		global $wgScript;
+		$user = RequestContext::getMain()->getUser();
 		$title = null;
 		$url   = str_replace(
 			'index.php',
@@ -118,7 +120,7 @@ class HookHandler {
 		if ( empty(
 		array_intersect(
 			PSConfig::$config['allowedGroups'],
-			MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $wgUser )
+			MediaWikiServices::getInstance()->getUserGroupManager()->getUserEffectiveGroups( $user )
 		)
 		) ) {
 			return;
@@ -169,7 +171,7 @@ class HookHandler {
 				) ) {
 				$tags  = PSCore::getTagsFromPage( $articleId );
 				$class .= ' wsps-active';
-				if ( ! empty( $tags ) ) {
+				if ( !empty( $tags ) ) {
 					$classt .= ' wspst-active';
 				}
 			} else {
