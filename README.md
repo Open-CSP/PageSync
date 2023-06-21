@@ -1,4 +1,4 @@
-PageSync
+PageSync for MediaWiki 1.39.x
 
 <img alt="PageSync" width="300" src="assets/images/pagesync.png">
 
@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.1.5 Added more 1.39 support for Maintenance Script
 * 2.1.4 Content aware slots
 * 2.1.3 Maintenance script color difference between success and skipped
 * 2.1.2 Add before pagedisplay hook back in

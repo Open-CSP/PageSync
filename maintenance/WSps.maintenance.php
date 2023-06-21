@@ -2,6 +2,7 @@
 
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
+use MediaWiki\User\UserRigorOptions;
 use PageSync\Core\PSConfig;
 use PageSync\Core\PSConverter;
 use PageSync\Core\PSCore;
@@ -115,7 +116,7 @@ class importPagesIntoWiki extends Maintenance {
 		bool $checkSameUser = false
 	) {
 		global $wgUser;
-		if ( ! file_exists( $filePath ) ) {
+		if ( !file_exists( $filePath ) ) {
 			return 'Cannot find file : ' . $filePath;
 		}
 
@@ -158,12 +159,7 @@ class importPagesIntoWiki extends Maintenance {
 		$publishOptions = [];
 		$handler        = MediaHandler::getHandler( $props['mime'] );
 		if ( $handler ) {
-			$metadata = \Wikimedia\AtEase\AtEase::quietCall(
-				'unserialize',
-				$props['metadata']
-			);
-
-			$publishOptions['headers'] = $handler->getContentHeaders( $metadata );
+			$publishOptions['headers'] = $handler->getContentHeaders( $props['metadata'] );
 		} else {
 			$publishOptions['headers'] = [];
 		}
@@ -173,7 +169,7 @@ class importPagesIntoWiki extends Maintenance {
 			$publishOptions
 		);
 
-		if ( ! $archive->isGood() ) {
+		if ( !$archive->isGood() ) {
 			return $archive->getWikiText(
 				false,
 				false,
@@ -224,10 +220,9 @@ class importPagesIntoWiki extends Maintenance {
 	 * @throws MWException
 	 */
 	public function execute() {
-
 		$collectedMessages = [];
 
-		if ( wfReadOnly() ) {
+		if ( MediaWikiServices::getInstance()->getReadOnlyMode()->isReadOnly() ) {
 			$this->fatalError( "Wiki is in read-only mode; you'll need to disable it for import to work." );
 		}
 
@@ -329,8 +324,11 @@ class importPagesIntoWiki extends Maintenance {
 
 				return;
 			}
-			$user = User::newFromName( $userName );
-			if ( !$user ) {
+
+			$user = MediaWikiServices::getInstance()
+									 ->getUserFactory()
+									 ->newFromName( (string)$userName, UserRigorOptions::RIGOR_VALID );
+			if ( !$user || $user === null ) {
 				if ( !$silent ) {
 					$this->fatalError( "Invalid username\n" );
 				} else {
@@ -429,9 +427,11 @@ class importPagesIntoWiki extends Maintenance {
 			return;
 		}
 
-		$user = User::newFromName( $user );
+		$user = MediaWikiServices::getInstance()
+								 ->getUserFactory()
+								 ->newFromName( (string)$user, UserRigorOptions::RIGOR_VALID );
 
-		if ( ! $user ) {
+		if ( !$user ) {
 			if ( !$silent ) {
 				$this->fatalError( "Invalid username\n" );
 			} else {
@@ -603,7 +603,7 @@ class importPagesIntoWiki extends Maintenance {
 				continue;
 			}
 			try {
-				$wikiPageObject = WikiPage::factory( $title );
+				$wikiPageObject = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
 			} catch ( MWException $e ) {
 				if ( !$silent ) {
 					echo "Could not create a WikiPage Object from title " . $title->getText(
