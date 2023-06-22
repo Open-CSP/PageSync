@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.1.5 Version bumb due to REL1_39 updates
 * 2.1.4 Content aware slots
 * 2.1.3 Maintenance script color difference between success and skipped
 * 2.1.2 Add before pagedisplay hook back in
