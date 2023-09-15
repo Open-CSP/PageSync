@@ -589,7 +589,7 @@ class WSpsSpecial extends SpecialPage {
 		$data = PSCore::getAllPageInfo();
 		$nr   = count( $data );
 		$filter = new Filters();
-		$html = $filter->JavaScriptMainPageFilter();
+		$html = $filter->javaScriptMainPageFilter();
 		$html .= wfMessage(
 			'wsps-special_count',
 			$nr

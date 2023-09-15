@@ -8,12 +8,10 @@
         <div class="uk-card-body">
             <p>Here you can do a SMQ Query on all pages in the wiki and it will give you a list of all pages that are
                 also PageSynced. You can then do more action with that list.</p>
+            <p>%%smw-installed%%</p>
         </div>
         <div class="uk-card-footer">
-            <form action="" method="post">
-                <input type="hidden" name="wsps-clean-smw" />
-                <input type="submit" value="Make SMQ Qeury" class="uk-button uk-button-primary uk-width-1-1" />
-            </form>
+            %%form-header%%
         </div>
     </div>
     </div>
@@ -27,9 +25,10 @@
         </div>
         <div class="uk-card-body">
             <p>Use existing tags to select PageSynced pages and do more action with them.<br><br></p>
+            %%tags%%
         </div>
         <div class="uk-card-footer">
-            <form action="" method="post">
+            %%form-header%%
                 <input type="hidden" name="wsps-clean-tags" />
                 <input type="submit" value="Use Tags" class="uk-button uk-button-primary uk-width-1-1" />
             </form>
