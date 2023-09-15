@@ -97,11 +97,13 @@ class Filters {
 		}
 		$search  = [
 			'%%form-header%%',
+			'%%form-header2%%',
 			'%%tags%%',
 			'%%smw-installed%%'
 		];
 		$replace = [
 			$formHeader,
+			$this->getFormHeader(),
 			$this->renderCreateSelectTagsForm(),
 			$smwInstalled
 		];
