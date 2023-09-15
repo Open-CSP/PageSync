@@ -18,6 +18,7 @@ use PageSync\Core\PSCore;
 use PageSync\Handlers\WSpsBackupHandler;
 use PageSync\Handlers\WSpsConvertHandler;
 use PageSync\Handlers\WSpsShareHandler;
+use PageSync\Helpers\Filters;
 use PageSync\Helpers\PSGitHub;
 use PageSync\Helpers\PSRender;
 use PageSync\Helpers\PSShare;
@@ -298,6 +299,18 @@ class WSpsSpecial extends SpecialPage {
 					return true;
 				}
 				break;
+			case "clean":
+				$out->addHTML(
+					$this->setResourcesAndMenu(
+						$render,
+						4
+					)
+				);
+				$filter = new Filters();
+				$body = $filter->renderIndexOptions( $render );
+				$out->addHTML( $render->renderCard( wfMessage( 'wsps-special_clean_header' ), "Cleaning data", $body, '' ) );
+				return true;
+				break;
 			case "share":
 				$out->addHTML(
 					$this->setResourcesAndMenu(
@@ -575,7 +588,9 @@ class WSpsSpecial extends SpecialPage {
 
 		$data = PSCore::getAllPageInfo();
 		$nr   = count( $data );
-		$html = wfMessage(
+		$filter = new Filters();
+		$html = $filter->JavaScriptMainPageFilter();
+		$html .= wfMessage(
 			'wsps-special_count',
 			$nr
 		)->text();
@@ -587,6 +602,7 @@ class WSpsSpecial extends SpecialPage {
 		}
 		$out->addHTML( '<h3>' . $this->msg( 'wsps-content' ) . '</h3>' );
 		$out->addHTML( $style );
+		// Add search part here
 		$out->addHTML( $html );
 
 		return true;

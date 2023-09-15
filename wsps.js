@@ -303,4 +303,3 @@ function wspsTags (id, un, type, tags = '') {
 		tags: tags
 	});
 }
-
