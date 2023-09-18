@@ -317,10 +317,12 @@ class WSpsSpecial extends SpecialPage {
 				switch( $pAction ) {
 					case "wsps-clean-tags":
 						$tagList = $filter->getTagsList();
-						if( $tagList === false ) {
+						if ( $tagList === false ) {
 							$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_clean_tags-error' )->text() ) );
 						} else {
 							$out->addHTML( $render->renderListOfPages( $tagList ) );
+							$tags = $filter->getTagsFromPost();
+							$out->addHTML( $filter->renderActionOptions( $render, $tags ) );
 						}
 						break;
 					case "wsps-clean-smw":

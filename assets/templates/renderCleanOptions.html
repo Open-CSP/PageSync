@@ -1,0 +1,30 @@
+<div class="uk-section uk-section-muted">
+    <div class="uk-container">
+        <h3>Perform actions on the above list</h3>
+        %%form-header%%
+        %%form-delete-tags%%
+<ul class="uk-tab-bottom" uk-tab>
+    <li class="uk-active"><a href="#">Tag Actions</a></li>
+    <li><a href="#">Page Actions</a></li>
+</ul>
+<ul class="uk-switcher uk-margin">
+    <li><div class="primary" uk-alert>
+        <p>
+        Choose one more tags to be deleted. This will keep the pages within PageSync and will only remove the tag(s) and
+        therefor remove that(those) tag(s) from the (PageSync-)system.
+        </p></div>
+        <input type="submit" name="wsps-action" value="Remove/Delete chosen tag(s)" class="uk-button uk-button-primary uk-width-1-1" />
+        </form>
+    </li>
+    <li><div class="primary" uk-alert>
+        <p>
+            Choose one more tags to remove the pages with those tags from PageSync. The pages are only removed from PageSync
+            and will still exist in the Wiki. As it will remove all pages with the chosen tag(s), that(those) tag(s) will be deleted
+            also and removed from the (PageSync-)system.
+        </p></div>
+        <input type="submit" name="wsps-action" value="Remove/Delete pages from chosen tag(s)" class="uk-button uk-button-primary uk-width-1-1" />
+        </form>
+    </li>
+</ul>
+    </div>
+</div>

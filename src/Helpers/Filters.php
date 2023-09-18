@@ -39,8 +39,18 @@ class Filters {
 		return $searchField . $js;
 	}
 
+	/**
+	 * @return false|mixed
+	 */
+	public function getTagsFromPost() {
+		return WSpsSpecial::getPost( "tags", false );
+	}
+
+	/**
+	 * @return array|false|string
+	 */
 	public function getTagsList() {
-		$tags = WSpsSpecial::getPost( "tags", false );
+		$tags = $this->getTagsFromPost();
 		$type = WSpsSpecial::getPost( "wsps-select-type", true );
 		$share = new PSShare();
 		if ( $tags === false ) {
@@ -63,27 +73,61 @@ class Filters {
 		return $pages;
 	}
 
-	public function renderCreateSelectTagsForm( bool $returnSubmit = false ) : string {
+	/**
+	 * @param PSRender $render
+	 * @param array $tags
+	 *
+	 * @return string
+	 */
+	public function renderActionOptions( PSRender $render, array $tags ):string {
+		$search  = [
+			'%%form-header%%',
+			'%%form-delete-tags%%'
+		];
+		$replace = [
+			$this->getFormHeader(),
+			$this->renderCreateSelectTagsForm( false, $tags, false )
+		];
+
+		return str_replace(
+			$search,
+			$replace,
+			$render->getTemplate( 'renderCleanOptions' )
+		);
+	}
+
+	/**
+	 * @param bool $returnSubmit
+	 * @param bool|array $tags
+	 *
+	 * @return string
+	 */
+	public function renderCreateSelectTagsForm( bool $returnSubmit = false, $tags = false, $options = true ) : string {
 		global $IP;
 		if ( !$returnSubmit ) {
 			$selectTagsForm = '<fieldset class="uk-fieldset uk-margin">';
 			$selectTagsForm .= '<legend class="uk-legend">';
 			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_tags' )->text() . '</legend>';
 			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
-			$tags           = PSCore::getAllTags();
+			if ( $tags === false ) {
+				$tags = PSCore::getAllTags();
+			}
 			foreach ( $tags as $tag ) {
 				if ( !empty( $tag ) ) {
 					$selectTagsForm .= '<option value="' . $tag . '">' . $tag . '</option>';
 				}
 			}
 			$selectTagsForm .= '</select>';
-			$selectTagsForm .= '<p><input type="radio" id="ws-all" class="uk-radio" name="wsps-select-type" checked="checked" value="all">';
-			$selectTagsForm .= ' <label for="ws-all" class="uk-form-label">';
-			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_options1' )->text() . '</label><br>';
-			$selectTagsForm .= '<input type="radio" id="ws-one" class="uk-radio" name="wsps-select-type" value="one">';
-			$selectTagsForm .= ' <label for="ws-one" class="uk-form-label">';
-			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_options2' )->text() . '</label><br>';
-			$selectTagsForm .= '</p></fieldset>';
+			if ( $options ) {
+				$selectTagsForm .= '<p><input type="radio" id="ws-all" class="uk-radio" name="wsps-select-type" checked="checked" value="all">';
+				$selectTagsForm .= ' <label for="ws-all" class="uk-form-label">';
+				$selectTagsForm .= wfMessage( 'wsps-special_share_choose_options1' )->text() . '</label><br>';
+				$selectTagsForm .= '<input type="radio" id="ws-one" class="uk-radio" name="wsps-select-type" value="one">';
+				$selectTagsForm .= ' <label for="ws-one" class="uk-form-label">';
+				$selectTagsForm .= wfMessage( 'wsps-special_share_choose_options2' )->text() . '</label><br>';
+				$selectTagsForm .= '</p>';
+			}
+			$selectTagsForm .= '</fieldset>';
 			$selectTagsForm .= '<script>' . file_get_contents(
 					$IP . '/extensions/PageSync/assets/js/loadSelect2.js'
 				) . '</script>';
