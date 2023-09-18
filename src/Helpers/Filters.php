@@ -93,6 +93,7 @@ class Filters {
 			$smwInstalled = WSpsSpecial::makeAlert( wfMessage( 'wsps-special_custom_query_we_need_smw' )->text() );
 			$formHeader = '';
 		} else {
+			$smwInstalled = $this->renderSMWQeuryForm();
 			$formHeader = $this->formSMWQuery();
 		}
 		$search  = [
@@ -113,5 +114,17 @@ class Filters {
 			$replace,
 			$render->getTemplate( 'renderCleanIndex' )
 		);
+	}
+
+	private function renderSMWQeuryForm() {
+		$content = '<label class="uk-form-label uk-text-medium" for="wsps-query">';
+		$content .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
+		$content .= '</label>';
+		$content .= '<div class="uk-form-controls">';
+		$content .= '<input class="uk-input" name="wsps-query" type="text" placeholder="';
+		$content .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
+		$content .= '">';
+		$content .= '</div>';
+		return $content;
 	}
 }
