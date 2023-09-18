@@ -307,9 +307,34 @@ class WSpsSpecial extends SpecialPage {
 					)
 				);
 				$filter = new Filters();
-				$body = $filter->renderIndexOptions( $render );
-				$out->addHTML( $render->renderCard( wfMessage( 'wsps-special_clean_header' ), "Cleaning data", $body, '' ) );
+				$pAction = self::getPost( 'wsps-action' );
+				if ( $pAction === false ) {
+
+					$body = $filter->renderIndexOptions( $render );
+					$out->addHTML( $render->renderCard( wfMessage( 'wsps-special_clean_header' ), "Cleaning data", $body, '' ) );
+					return true;
+				}
+				switch( $pAction ) {
+					case "wsps-clean-tags":
+						$tagList = $filter->getTagsList();
+						if( $tagList === false ) {
+							$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_clean_tags-error' )->text() ) );
+						} else {
+							$out->addHTML( $render->renderListOfPages( $tagList ) );
+						}
+						break;
+					case "wsps-clean-smw":
+						$query = self::getPost( 'wsps-query' );
+						if ( $query === false ) {
+							$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() ) );
+						} else {
+							$result = $this->doAsk( $query );
+							$out->addHTML( "<pre>" . print_r( $result, true ) . "</pre>" );
+						}
+						break;
+				}
 				return true;
+
 				break;
 			case "share":
 				$out->addHTML(

@@ -134,6 +134,7 @@
   "wsps-special_status_card_failed": " failed to get ID",
   "wsps-special_status_card_done": "All done!",
   "wsps-special_clean_header": "PageSync detailed administration",
+  "wsps-special_clean_tags-error": "No tags chosen or no pages with these tags",
   "apihelp-wsps-description": "PageSync API module",
   "apihelp-wsps-summary": "PageSync API module",
   "apihelp-wsps-param-what": "Action to take; valid values are 'add', 'remove', 'gettags' and 'updatetags'",

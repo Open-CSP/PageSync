@@ -23,14 +23,6 @@ class Filters {
 		}
 	}
 
-	/**
-	 * @return string
-	 */
-	public function formSMWQuery(): string {
-		return $this->getFormHeader() . '<input type="hidden" name="wsps-clean-smw" />
-                <input type="submit" value="Make SMQ Qeury" class="uk-button uk-button-primary uk-width-1-1" />
-            </form>';
-	}
 
 	/**
 	 * @return string
@@ -47,11 +39,34 @@ class Filters {
 		return $searchField . $js;
 	}
 
+	public function getTagsList() {
+		$tags = WSpsSpecial::getPost( "tags", false );
+		$type = WSpsSpecial::getPost( "wsps-select-type", true );
+		$share = new PSShare();
+		if ( $tags === false ) {
+			return false;
+		}
+		switch ( $type ) {
+			case "all":
+				$pages = $share->returnPagesWithAllTage( $tags );
+				break;
+			case "one":
+				$pages = $share->returnPagesWithAtLeastOneTag( $tags );
+				break;
+			default:
+				return WSpsSpecial::makeAlert( 'No type select recognized' );
+				break;
+		}
+		if ( empty( $pages ) ) {
+			return false;
+		}
+		return $pages;
+	}
+
 	public function renderCreateSelectTagsForm( bool $returnSubmit = false ) : string {
 		global $IP;
 		if ( !$returnSubmit ) {
-			$selectTagsForm = '<input type="hidden" name="wsps-action" value="wsps-share-select-tags">';
-			$selectTagsForm .= '<fieldset class="uk-fieldset uk-margin">';
+			$selectTagsForm = '<fieldset class="uk-fieldset uk-margin">';
 			$selectTagsForm .= '<legend class="uk-legend">';
 			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_tags' )->text() . '</legend>';
 			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
@@ -94,7 +109,7 @@ class Filters {
 			$formHeader = '';
 		} else {
 			$smwInstalled = $this->renderSMWQeuryForm();
-			$formHeader = $this->formSMWQuery();
+			$formHeader = $this->getFormHeader();
 		}
 		$search  = [
 			'%%form-header%%',
