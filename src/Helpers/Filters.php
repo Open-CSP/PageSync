@@ -24,6 +24,21 @@ class Filters {
 	}
 
 
+	public function getListFromTitle( $titles ) {
+		$data = [];
+		foreach( $titles as $page ) {
+			if ( PSCore::isTitleInIndex( $page ) ) {
+				$id = PSCore::getPageIdFromTitle( $page );
+				$infoFile = PSCore::getInfoFileFromPageID( $id );
+				if ( $infoFile['status'] === true ) {
+					$data[] = json_decode( file_get_contents( $infoFile['info'] ),
+						true );
+				}
+			}
+		}
+		return $data;
+	}
+
 	/**
 	 * @return string
 	 */

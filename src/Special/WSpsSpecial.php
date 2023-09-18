@@ -329,7 +329,11 @@ class WSpsSpecial extends SpecialPage {
 							$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() ) );
 						} else {
 							$result = $this->doAsk( $query );
-							$out->addHTML( "<pre>" . print_r( $result, true ) . "</pre>" );
+							if ( $result === false ) {
+								$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() ) );
+							}
+							$list = $filter->getListFromTitle( $result );
+							$out->addHTML( $render->renderListOfPages( $list ));
 						}
 						break;
 				}
