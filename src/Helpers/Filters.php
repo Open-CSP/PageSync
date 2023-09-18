@@ -86,7 +86,7 @@ class Filters {
 		];
 		$replace = [
 			$this->getFormHeader(),
-			$this->renderCreateSelectTagsForm( false, $tags, false )
+			$this->renderCreateSelectTagsForm( false, $tags, false, true )
 		];
 
 		return str_replace(
@@ -98,22 +98,34 @@ class Filters {
 
 	/**
 	 * @param bool $returnSubmit
-	 * @param bool|array $tags
+	 * @param mixed $tags
+	 * @param bool $options
+	 * @param bool $multiple
 	 *
 	 * @return string
 	 */
-	public function renderCreateSelectTagsForm( bool $returnSubmit = false, $tags = false, $options = true ) : string {
+	public function renderCreateSelectTagsForm(
+		bool $returnSubmit = false,
+		$tags = false,
+		bool $options = true,
+		bool $multiple = true
+	) : string {
 		global $IP;
-		if ( !$returnSubmit ) {
+		if ( $multiple ) {
+			$multiple = ' multiple="multiple"';
+		} else {
+			$multiple = '';
+		}
+		if ( ! $returnSubmit ) {
 			$selectTagsForm = '<fieldset class="uk-fieldset uk-margin">';
 			$selectTagsForm .= '<legend class="uk-legend">';
 			$selectTagsForm .= wfMessage( 'wsps-special_share_choose_tags' )->text() . '</legend>';
-			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]" multiple="multiple" >';
+			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]"' . $multiple . ' >';
 			if ( $tags === false ) {
 				$tags = PSCore::getAllTags();
 			}
 			foreach ( $tags as $tag ) {
-				if ( !empty( $tag ) ) {
+				if ( ! empty( $tag ) ) {
 					$selectTagsForm .= '<option value="' . $tag . '">' . $tag . '</option>';
 				}
 			}
