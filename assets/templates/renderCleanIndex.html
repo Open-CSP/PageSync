@@ -3,18 +3,16 @@
         <div class="uk-card uk-card-default">
             %%form-header%%
             <div class="uk-card-header uk-background-muted">
-                <h3 class="uk-card-title uk-margin-remove-bottom uk-text-bold">SMQ Query</h3>
-                <p class="uk-text-meta uk-margin-remove-top">Needs Semantic MediaWiki</p>
+                <h3 class="uk-card-title uk-margin-remove-bottom uk-text-bold">%%wsps-special_clean_smw_header%%</h3>
+                <p class="uk-text-meta uk-margin-remove-top">%%wsps-special_clean_smw_subheader%%</p>
             </div>
             <div class="uk-card-body">
-                <p>Here you can do a SMQ Query on all pages in the wiki and it will give you a list of all pages that
-                    are
-                    also PageSynced. You can then do more actions with that list.</p>
+                <p>%%wsps-special_clean_smw_paragraph%%</p>
                 <p>%%smw-installed%%</p>
             </div>
             <div class="uk-card-footer">
                 <input type="hidden" name="wsps-action" value="wsps-clean-smw" />
-                <input type="submit" value="Make SMQ Qeury" class="uk-button uk-button-primary uk-width-1-1" />
+                <input type="submit" value="%%wsps-special_clean_smw_submit%%" class="uk-button uk-button-primary uk-width-1-1" />
             </div>
             </form>
         </div>
@@ -24,17 +22,17 @@
             %%form-header%%
             <div class="uk-card-header uk-background-muted">
 
-                <h3 class="uk-card-title uk-margin-remove-bottom uk-text-bold">Tag select</h3>
-                <p class="uk-text-meta uk-margin-remove-top">Use existing tags</p>
+                <h3 class="uk-card-title uk-margin-remove-bottom uk-text-bold">%%wsps-special_clean_tag_header%%</h3>
+                <p class="uk-text-meta uk-margin-remove-top">%%wsps-special_clean_tag_subheader%%</p>
 
             </div>
             <div class="uk-card-body">
-                <p>Use existing tags to select PageSynced pages and do more actions with them.<br><br></p>
+                <p>%%wsps-special_clean_tag_paragraph%%<br><br></p>
                 %%tags%%
             </div>
             <div class="uk-card-footer">
                 <input type="hidden" name="wsps-action" value="wsps-clean-tags"/>
-                <input type="submit" value="Use Tags" class="uk-button uk-button-primary uk-width-1-1"/>
+                <input type="submit" value="%%wsps-special_clean_tag_submit%%" class="uk-button uk-button-primary uk-width-1-1"/>
             </div>
             </form>
         </div>

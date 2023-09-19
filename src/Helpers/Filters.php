@@ -139,7 +139,8 @@ class Filters {
 	public function javaScriptMainPageFilter(): string {
 		$searchField = PHP_EOL . '<div class="uk-inline uk-float-right uk-margin-bottom">';
 		$searchField .= '<a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: search"></a>';
-		$searchField .= '<input class="uk-input" type="search" id="filterTableSearch" placeholder="Search synced files">';
+		$searchField .= '<input class="uk-input" type="search" id="filterTableSearch" placeholder="';
+		$searchField .= wfMessage( 'wsps-special_search_index' ) . '">';
 		$searchField .= '</div>' . PHP_EOL;
 		$js = "<script>document.getElementById( 'filterTableSearch' ).addEventListener( 'keyup', function() {
 		   let search = document.getElementById( 'filterTableSearch' ).value.toUpperCase();
@@ -191,11 +192,25 @@ class Filters {
 	public function renderActionOptions( PSRender $render, array $tags ):string {
 		$search  = [
 			'%%form-header%%',
-			'%%form-delete-tags%%'
+			'%%form-delete-tags%%',
+			'%%wsps-special_clean_tags_h3%%',
+			'%%wsps-special_clean_tags_tabs_tag%%',
+			'%%wsps-special_clean_tags_tabs_page%%',
+			'%%wsps-special_clean_tags_tag_intro%%',
+			'%%wsps-special_clean_tags_tag_submit%%',
+			'%%wsps-special_clean_tags_page_intro%%',
+			'%%wsps-special_clean_tags_page_submit%%'
 		];
 		$replace = [
 			$this->getFormHeader(),
-			$this->renderCreateSelectTagsForm( false, $tags, false, true )
+			$this->renderCreateSelectTagsForm( false, $tags, false, true ),
+			wfMessage( 'wsps-special_clean_tags_h3' ),
+			wfMessage( 'wsps-special_clean_tags_tabs_tag' ),
+			wfMessage( 'wsps-special_clean_tags_tabs_page' ),
+			wfMessage( 'wsps-special_clean_tags_tag_intro' ),
+			wfMessage( 'wsps-special_clean_tags_tag_submit' ),
+			wfMessage( 'wsps-special_clean_tags_page_intro' ),
+			wfMessage( 'wsps-special_clean_tags_page_submit' )
 		];
 
 		return str_replace(
@@ -228,7 +243,7 @@ class Filters {
 		if ( ! $returnSubmit ) {
 			$selectTagsForm = '<fieldset class="uk-fieldset uk-margin">';
 			$selectTagsForm .= '<legend class="uk-legend">';
-			$selectTagsForm .= 'Tags to use' . '</legend>';
+			$selectTagsForm .= wfMessage( 'wsps-special_clean_tags_to_use' ). '</legend>';
 			$selectTagsForm .= '<select id="ps-tags" class="uk-with-1-1" name="tags[]"' . $multiple . ' >';
 			if ( $tags === false ) {
 				$tags = PSCore::getAllTags();
@@ -272,12 +287,12 @@ class Filters {
 		$html = '';
 		if ( empty( $result ) ) {
 			$html .= '<div class="uk-alert-warning" uk-alert>' . PHP_EOL;
-			$html .= '<p>No tags have been removed and no pages were affected.</p></div>';
+			$html .= '<p>' . wfMessage( 'wsps-special_clean_tags_no_change' ) . '</p></div>';
 			return $html;
 		}
 		if ( isset( $result['tags'] ) ) {
 			$html .= '<div class="uk-alert-success" uk-alert>' . PHP_EOL;
-			$html .= '<p>The following tag(s) has(have) been removed from PageSync<br><ul>';
+			$html .= '<p>' . wfMessage( 'special_clean_tags_changes' ) . '<br><ul>';
 			foreach ( $result['tags'] as $tag ) {
 				$html .= '<li>' . '<span class="uk-badge uk-text-nowrap">' . $tag . '</span>' . '</li>' . PHP_EOL;
 			}
@@ -286,14 +301,15 @@ class Filters {
 		$html .= '</ul></p>';
 		$nrOfPagesInvolved = count( $result );
 		if ( $nrOfPagesInvolved > 1 ) {
-			$html .= '<p>A total of ' . count( $result ) . ' pages have been affected.</p>';
+			$html .= '<p>' . wfMessage( 'wsps-special_clean_tags_pages_affected_plural', $nrOfPagesInvolved );
+			$html .= '</p>';
 		} else {
-			$html .= '<p>' . count( $result ) . ' page has been affected.</p>';
-		}
+			$html .= '<p>' . $nrOfPagesInvolved . ' ' . wfMessage( 'wsps-special_clean_tags_pages_affected' );
+			}$html .= '</p>';
 		$html .= '</div>' . PHP_EOL;
 		if ( !$includeTags ) {
 			$html .= '<div class="uk-section uk-section-default"><div class="uk-container">';
-			$html .= '<h3>These pages were removed from PageSync</h3>';
+			$html .= '<h3>' . wfMessage( 'wsps-special_clean_tags_pages_removed' ) . '</h3>';
 		}
 		$html .= '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
@@ -351,12 +367,28 @@ class Filters {
 		}
 		$search  = [
 			'%%form-header%%',
+			'%%wsps-special_clean_smw_header%%',
+			'%%wsps-special_clean_smw_subheader%%',
+			'%%wsps-special_clean_smw_paragraph%%',
+			'%%wsps-special_clean_smw_submit%%',
+			'%%wsps-special_clean_tag_header%%',
+			'%%wsps-special_clean_tag_subheader%%',
+			'%%wsps-special_clean_tag_paragraph%%',
+			'%%wsps-special_clean_tag_submit%%',
 			'%%form-header2%%',
 			'%%tags%%',
 			'%%smw-installed%%'
 		];
 		$replace = [
 			$formHeader,
+			wfMessage( 'wsps-special_clean_smw_header' ),
+			wfMessage( 'wsps-special_clean_smw_subheader' ),
+			wfMessage( 'wsps-special_clean_smw_paragraph' ),
+			wfMessage( 'wsps-special_clean_smw_submit' ),
+			wfMessage( 'wsps-special_clean_tag_header' ),
+			wfMessage( 'wsps-special_clean_tag_subheader' ),
+			wfMessage( 'wsps-special_clean_tag_paragraph' ),
+			wfMessage( 'wsps-special_clean_tag_submit' ),
 			$this->getFormHeader(),
 			$this->renderCreateSelectTagsForm(),
 			$smwInstalled
