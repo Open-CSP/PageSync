@@ -100,10 +100,14 @@ class PSCore {
 	 *
 	 * @return false|string Either Title as string or false
 	 */
-	public static function getPageTitle( int $id ) {
+	public static function getPageTitle( int $id, bool $fullTitle = false ) {
 		$article = WikiPage::newFromId( $id );
 		if ( $article instanceof WikiPage ) {
-			return $article->getTitle()->getText();
+			if ( $fullTitle ) {
+				return $article->getTitle()->getFullText();
+			} else {
+				return $article->getTitle()->getText();
+			}
 		} else {
 			return false;
 		}

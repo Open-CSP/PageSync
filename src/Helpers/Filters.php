@@ -24,8 +24,34 @@ class Filters {
 		}
 	}
 
+	/**
+	 * @param string $userName
+	 *
+	 * @return array
+	 */
+	public function removePagesFromSMW( string $userName ): array {
+		$pagesInvolved = [];
+		$nr = 0;
+		$ids = WSpsSpecial::getPost( 'ids' );
+		if ( $ids === false ) {
+			return $pagesInvolved;
+		}
+		$ids = json_decode( base64_decode( $ids ), true );
+		foreach ( $ids as $singlePageID ) {
+			$pagesInvolved[$nr]['page'] = PSCore::getPageTitle( $singlePageID, true );
+			$pagesInvolved[$nr]['tags'] = '';
+			$nr++;
+			$result = PSCore::removeFileForExport( $singlePageID, $userName );
+		}
+		return $pagesInvolved;
+	}
 
-	public function removePagesWithTags( string $userName ) {
+	/**
+	 * @param string $userName
+	 *
+	 * @return array
+	 */
+	public function removePagesWithTags( string $userName ): array {
 		$nrOfPages = 0;
 		$idsToBeRemoved = [];
 		$pagesInvolved = [];
@@ -115,12 +141,31 @@ class Filters {
 		$pagesInvolved['tags'] = array_unique( $allTagsRemoved );
 
 		return $pagesInvolved;
-
 	}
 
-	public function getListFromTitle( $titles ) {
+	/**
+	 * @param array $titles
+	 *
+	 * @return array
+	 */
+	public function getIDArray( array $titles ): array {
 		$data = [];
-		foreach( $titles as $page ) {
+		foreach ( $titles as $page ) {
+			if ( PSCore::isTitleInIndex( $page ) ) {
+				$data[] = PSCore::getPageIdFromTitle( $page );
+			}
+		}
+		return $data;
+	}
+
+	/**
+	 * @param array $titles
+	 *
+	 * @return array
+	 */
+	public function getListFromTitle( array $titles ): array {
+		$data = [];
+		foreach ( $titles as $page ) {
 			if ( PSCore::isTitleInIndex( $page ) ) {
 				$id = PSCore::getPageIdFromTitle( $page );
 				$infoFile = PSCore::getInfoFileFromPageID( $id );
@@ -181,6 +226,34 @@ class Filters {
 			return false;
 		}
 		return $pages;
+	}
+
+	/**
+	 * @param PSRender $render
+	 * @param array $ids
+	 *
+	 * @return string
+	 */
+	public function renderSMWOptions( PSRender $render, array $ids ): string {
+		$search  = [
+			'%%form-header%%',
+			'%%wsps-special_clean_page_h3%%',
+			'%%wsps-special_clean_smw_intro%%',
+			'%%wsps-special_clean_smw_page_submit%%',
+			'%%ids%%'
+		];
+		$replace = [
+			$this->getFormHeader(),
+			wfMessage( 'wsps-special_clean_page_h3' ),
+			wfMessage( 'wsps-special_clean_smw_intro' ),
+			wfMessage( 'wsps-special_clean_smw_page_submit' ),
+			base64_encode( json_encode( $ids ) )
+		];
+		return str_replace(
+			$search,
+			$replace,
+			$render->getTemplate( 'renderCleanSMWOptions' )
+		);
 	}
 
 	/**
@@ -276,13 +349,13 @@ class Filters {
 		return $selectTagsForm;
 	}
 
-
 	/**
-	 * @param array $pages
+	 * @param array $result
+	 * @param bool $includeTags
 	 *
 	 * @return string
 	 */
-	public function renderListOfAffectedPages( array $result, $includeTags = true ) : string {
+	public function renderListOfAffectedPages( array $result, bool $includeTags = true ) : string {
 		global $wgScript;
 		$html = '';
 		if ( empty( $result ) ) {
@@ -297,8 +370,8 @@ class Filters {
 				$html .= '<li>' . '<span class="uk-badge uk-text-nowrap">' . $tag . '</span>' . '</li>' . PHP_EOL;
 			}
 			unset( $result['tags'] );
+			$html .= '</ul></p>';
 		}
-		$html .= '</ul></p>';
 		$nrOfPagesInvolved = count( $result );
 		if ( $nrOfPagesInvolved > 1 ) {
 			$html .= '<p>' . wfMessage( 'wsps-special_clean_tags_pages_affected_plural', $nrOfPagesInvolved );

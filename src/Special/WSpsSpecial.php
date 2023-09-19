@@ -314,6 +314,9 @@ class WSpsSpecial extends SpecialPage {
 					$out->addHTML( $render->renderCard( wfMessage( 'wsps-special_clean_header' ), "Cleaning data", $body, '' ) );
 					return true;
 				}
+				$switchRemoveTags = wfMessage( 'wsps-special_clean_tags_tag_submit' );
+				$switchRemovePages = wfMessage( 'wsps-special_clean_tags_page_submit' );
+				$switchRemovePagesSMW = wfMessage( 'wsps-special_clean_smw_page_submit' );
 				switch ( $pAction ) {
 					case "wsps-clean-tags":
 						$tagList = $filter->getTagsList();
@@ -335,15 +338,33 @@ class WSpsSpecial extends SpecialPage {
 								$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() ) );
 							}
 							$list = $filter->getListFromTitle( $result );
-							$out->addHTML( $render->renderListOfPages( $list ));
+							if ( empty( $list ) ) {
+								$out->addHTML( 'No result' );
+							} else {
+								$ids = $filter->getIDArray( $result );
+								$out->addHTML(
+									'<a href="#anchor"><span class="uk-label">Go to bottom of the list</span></a>'
+								);
+								$out->addHTML( $render->renderListOfPages( $list ) );
+								$out->addHTML(
+									$filter->renderSMWOptions(
+										$render,
+										$ids
+									)
+								);
+							}
 						}
 						break;
-					case 'Remove/Delete chosen tag(s)':
+					case $switchRemoveTags:
 						$result = $filter->removeTags( $user->getName() );
 						$out->addHTML( $filter->renderListOfAffectedPages( $result ) );
 						break;
-					case 'Remove/Delete pages from chosen tag(s)':
+					case $switchRemovePages:
 						$result = $filter->removePagesWithTags( $user->getName() ) ;
+						$out->addHTML( $filter->renderListOfAffectedPages( $result, false ) );
+						break;
+					case $switchRemovePagesSMW:
+						$result = $filter->removePagesFromSMW( $user->getName() );
 						$out->addHTML( $filter->renderListOfAffectedPages( $result, false ) );
 						break;
 				}
