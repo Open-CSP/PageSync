@@ -295,7 +295,7 @@ class WSpsSpecial extends SpecialPage {
 				}
 				if ( PSConverter::checkFileConsistency2() === false ) {
 					// Preview files affected
-					$out->addHTML('<p>Please use maintenance script with --convert-2-version-2 first</p>' );
+					$out->addHTML( '<p>Please use maintenance script with --convert-2-version-2 first</p>' );
 					return true;
 				}
 				break;
@@ -314,13 +314,15 @@ class WSpsSpecial extends SpecialPage {
 					$out->addHTML( $render->renderCard( wfMessage( 'wsps-special_clean_header' ), "Cleaning data", $body, '' ) );
 					return true;
 				}
-				switch( $pAction ) {
+				switch ( $pAction ) {
 					case "wsps-clean-tags":
 						$tagList = $filter->getTagsList();
-						if( $tagList === false ) {
+						if ( $tagList === false ) {
 							$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_clean_tags-error' )->text() ) );
 						} else {
 							$out->addHTML( $render->renderListOfPages( $tagList ) );
+							$tags = $filter->getTagsFromPost();
+							$out->addHTML( $filter->renderActionOptions( $render, $tags ) );
 						}
 						break;
 					case "wsps-clean-smw":
@@ -335,6 +337,9 @@ class WSpsSpecial extends SpecialPage {
 							$list = $filter->getListFromTitle( $result );
 							$out->addHTML( $render->renderListOfPages( $list ));
 						}
+						break;
+					case 'Remove/Delete chosen tag(s)':
+						$tags = $filter->getTagsFromPost();
 						break;
 				}
 				return true;
