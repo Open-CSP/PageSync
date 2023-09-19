@@ -81,6 +81,7 @@
   "wsps-special_table_header_user": "User",
   "wsps-special_table_header_date": "Date",
   "wsps-special_table_header_tags": "Tags",
+  "wsps-special_table_header_tags_removed": "Tag(s) removed",
   "wsps-special_table_header_edit": "Edit",
   "wsps-special_table_header_sync": "Sync",
   "wsps-special_table_header_moddate": "Modification date",

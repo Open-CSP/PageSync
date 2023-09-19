@@ -339,7 +339,12 @@ class WSpsSpecial extends SpecialPage {
 						}
 						break;
 					case 'Remove/Delete chosen tag(s)':
-						$tags = $filter->getTagsFromPost();
+						$result = $filter->removeTags( $user->getName() );
+						$out->addHTML( $filter->renderListOfAffectedPages( $result ) );
+						break;
+					case 'Remove/Delete pages from chosen tag(s)':
+						$result = $filter->removePagesWithTags( $user->getName() ) ;
+						$out->addHTML( $filter->renderListOfAffectedPages( $result, false ) );
 						break;
 				}
 				return true;
