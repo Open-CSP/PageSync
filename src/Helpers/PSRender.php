@@ -28,6 +28,7 @@ class PSRender {
 		$resources = '<link rel="stylesheet" href="' . $dir . 'css/uikit.min.css" />';
 		$resources .= '<script src="' . $dir . 'js/uikit.min.js"></script>';
 		$resources .= '<script src="' . $dir . 'js/uikit-icons.min.js"></script>';
+		$resources .= '<script src="' . $dir . 'js/FilterTable.js"></script>';
 		$resources .= '<link rel="stylesheet" href="' . $dir . 'css/select2.min.css" />';
 		return $resources;
 	}
@@ -183,7 +184,7 @@ class PSRender {
 	function renderIndexPage( array $data, string $wgScript ) : string {
 		global $wgScript;
 		$formHeader = '<form style="display:inline-block;" method="post" action="' . $wgScript . '/Special:WSps?action=pedit">';
-		$html = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
+		$html = '<table style="width:100%;" id="PSindexTable" class="uk-table uk-table-small uk-table-striped uk-table-hover"><tr>';
 		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_slots' )->text() . '</th>';
 		$html .= '<th>' . wfMessage( 'wsps-special_table_header_user' )->text() . '</th>';
@@ -394,6 +395,7 @@ class PSRender {
 		$item1class = '';
 		$item2class = '';
 		$item3class = '';
+		$item4class = '';
 		if ( $active === 1 ) {
 			$item1class = 'uk-active';
 		}
@@ -403,15 +405,20 @@ class PSRender {
 		if ( $active === 3 ) {
 			$item3class = 'uk-active';
 		}
+		if ( $active === 4 ) {
+			$item4class = 'uk-active';
+		}
 		$search  = [
 			'%%baseUrl%%',
 			'%%logo%%',
 			'%%item1class%%',
 			'%%item2class%%',
 			'%%item3class%%',
+			'%%item4class%%',
 			'%%wsps-special_menu_sync_custom_query%%',
 			'%%wsps-special_menu_backup_files%%',
-			'%%wsps-special_menu_share_files%%'
+			'%%wsps-special_menu_share_files%%',
+			'%%wsps-special_menu_clean-up%%'
 		];
 		$replace = [
 			$baseUrl,
@@ -419,9 +426,11 @@ class PSRender {
 			$item1class,
 			$item2class,
 			$item3class,
+			$item4class,
 			wfMessage( 'wsps-special_menu_sync_custom_query' )->text(),
 			wfMessage( 'wsps-special_menu_backup_files' )->text(),
-			wfMessage( 'wsps-special_menu_share_files' )->text()
+			wfMessage( 'wsps-special_menu_share_files' )->text(),
+			wfMessage( 'wsps-special_menu_clean-up' )->text()
 		];
 
 		$ret = str_replace(
