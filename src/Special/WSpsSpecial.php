@@ -18,6 +18,7 @@ use PageSync\Core\PSCore;
 use PageSync\Handlers\WSpsBackupHandler;
 use PageSync\Handlers\WSpsConvertHandler;
 use PageSync\Handlers\WSpsShareHandler;
+use PageSync\Helpers\Filters;
 use PageSync\Helpers\PSGitHub;
 use PageSync\Helpers\PSRender;
 use PageSync\Helpers\PSShare;
@@ -298,6 +299,78 @@ class WSpsSpecial extends SpecialPage {
 					return true;
 				}
 				break;
+			case "clean":
+				$out->addHTML(
+					$this->setResourcesAndMenu(
+						$render,
+						4
+					)
+				);
+				$filter = new Filters();
+				$pAction = self::getPost( 'wsps-action' );
+				if ( $pAction === false ) {
+
+					$body = $filter->renderIndexOptions( $render );
+					$out->addHTML( $render->renderCard( wfMessage( 'wsps-special_clean_header' ), "Cleaning data", $body, '' ) );
+					return true;
+				}
+				$switchRemoveTags = wfMessage( 'wsps-special_clean_tags_tag_submit' );
+				$switchRemovePages = wfMessage( 'wsps-special_clean_tags_page_submit' );
+				$switchRemovePagesSMW = wfMessage( 'wsps-special_clean_smw_page_submit' );
+				switch ( $pAction ) {
+					case "wsps-clean-tags":
+						$tagList = $filter->getTagsList();
+						if ( $tagList === false ) {
+							$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_clean_tags-error' )->text() ) );
+						} else {
+							$out->addHTML( $render->renderListOfPages( $tagList ) );
+							$tags = $filter->getTagsFromPost();
+							$out->addHTML( $filter->renderActionOptions( $render, $tags ) );
+						}
+						break;
+					case "wsps-clean-smw":
+						$query = self::getPost( 'wsps-query' );
+						if ( $query === false ) {
+							$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() ) );
+						} else {
+							$result = $this->doAsk( $query );
+							if ( $result === false ) {
+								$out->addHTML( WSpsSpecial::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() ) );
+							}
+							$list = $filter->getListFromTitle( $result );
+							if ( empty( $list ) ) {
+								$out->addHTML( 'No result' );
+							} else {
+								$ids = $filter->getIDArray( $result );
+								$out->addHTML(
+									'<a href="#anchor"><span class="uk-label">Go to bottom of the list</span></a>'
+								);
+								$out->addHTML( $render->renderListOfPages( $list ) );
+								$out->addHTML(
+									$filter->renderSMWOptions(
+										$render,
+										$ids
+									)
+								);
+							}
+						}
+						break;
+					case $switchRemoveTags:
+						$result = $filter->removeTags( $user->getName() );
+						$out->addHTML( $filter->renderListOfAffectedPages( $result ) );
+						break;
+					case $switchRemovePages:
+						$result = $filter->removePagesWithTags( $user->getName() ) ;
+						$out->addHTML( $filter->renderListOfAffectedPages( $result, false ) );
+						break;
+					case $switchRemovePagesSMW:
+						$result = $filter->removePagesFromSMW( $user->getName() );
+						$out->addHTML( $filter->renderListOfAffectedPages( $result, false ) );
+						break;
+				}
+				return true;
+
+				break;
 			case "share":
 				$out->addHTML(
 					$this->setResourcesAndMenu(
@@ -575,7 +648,9 @@ class WSpsSpecial extends SpecialPage {
 
 		$data = PSCore::getAllPageInfo();
 		$nr   = count( $data );
-		$html = wfMessage(
+		$filter = new Filters();
+		$html = $filter->javaScriptMainPageFilter();
+		$html .= wfMessage(
 			'wsps-special_count',
 			$nr
 		)->text();

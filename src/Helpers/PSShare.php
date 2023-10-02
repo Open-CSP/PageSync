@@ -493,7 +493,7 @@ class PSShare {
 
 		//$smw = ExtensionRegistry::getInstance()->isLoaded( 'SemanticMediaWiki' );
 		$smw = false;
-		if ( ! $returnSubmit ) {
+		if ( !$returnSubmit ) {
 			$selectTagsForm = '<input type="hidden" name="wsps-action" value="wsps-share-select-tags">';
 			$selectTagsForm .= '<div class="uk-grid-small" uk-grid>';
 			if ( $smw ) {
