@@ -10,6 +10,7 @@
 
 namespace PageSync\Special;
 
+use MediaWiki\MediaWikiServices;
 use PageSync\Core\PSConfig;
 use PageSync\Core\PSCore;
 use PageSync\Helpers\PSGitHub;
@@ -143,6 +144,18 @@ class PSSpecialShare {
 	public function showInstallShare( PSShare $share, PSRender $render ): string {
 		$gitHub = new PSGitHub();
 		$body = $share->getFormHeader();
+		$fileRepo = MediaWikiServices::getInstance()->getRepoGroup()->getLocalRepo();
+		$possibleFiles = $fileRepo->findFilesByPrefix( 'PageSync_', 100 );
+		if ( !empty( $possibleFiles ) ) {
+			foreach ( $possibleFiles as $file ){
+				$canonicalURL = $file->getLocalRefPath();
+				if ( $canonicalURL === false ) {
+					$canonicalURL = $file->getCanonicalUrl();
+				}
+				var_dump( $canonicalURL );
+			}
+		}
+
 		$body .= $gitHub->renderListofGitHubFiles();
 		$footer = $share->renderDownloadUrlForm( true ) . '</form>';
 		return $render->renderCard( wfMessage( 'wsps-content_share' ), "", $body, $footer );

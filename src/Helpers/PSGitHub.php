@@ -122,7 +122,6 @@ class PSGitHub {
 	}
 
 	/**
-	 *
 	 * @return string
 	 */
 	public function renderListofGitHubFiles() : string {
