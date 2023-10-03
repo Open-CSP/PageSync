@@ -2,6 +2,7 @@
 
 namespace PageSync\Helpers;
 
+use MediaWiki\MediaWikiServices;
 use PageSync\Special\PSSpecialSMWQeury;
 
 use function wfMessage;
