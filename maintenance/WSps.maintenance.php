@@ -206,7 +206,9 @@ class importPagesIntoWiki extends Maintenance {
 		if ( $special && !empty( $collectedMessage ) ) {
 			$message = '<p><ul><li>' . $message . '</li>';
 			foreach ( $collectedMessage as $msg ) {
-				$message .= '<li>' . $msg . '</li>';
+				if ( !empty( $msg ) ) {
+					$message .= '<li>' . $msg . '</li>';
+				}
 			}
 			$message .= '</ul></p>';
 			echo $status . '|' . $message;
@@ -464,10 +466,10 @@ class importPagesIntoWiki extends Maintenance {
 			if ( $zipFromTemp === false ) {
 				$store = $share->getExternalZipAndStoreIntemp( $zipFile );
 				if ( $store !== true ) {
-					if ( !$silent ) {
+					if ( !$silent && !$special) {
 						$this->fatalError( $store );
 					} else {
-						$this->returnOutput( $store );
+						$this->returnOutput( 'Errors found', 'error', [ $store ], $special );
 					}
 
 					return;
