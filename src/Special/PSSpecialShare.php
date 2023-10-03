@@ -152,7 +152,7 @@ class PSSpecialShare {
 	public function showInstallShare( PSShare $share, PSRender $render ): string {
 		$gitHub = new PSGitHub();
 		$body = $share->getFormHeader();
-		$body .= $gitHub->renderListofGitHubFiles();
+		$body .= $gitHub->renderListofGitHubFiles( $share );
 		$footer = $share->renderDownloadUrlForm( true ) . '</form>';
 		return $render->renderCard( wfMessage( 'wsps-content_share' ), "", $body, $footer );
 	}
