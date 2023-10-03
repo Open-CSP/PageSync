@@ -257,7 +257,6 @@ class PSShare {
 	 * @return array|null
 	 */
 	public function getShareFileInfo( string $file ) : ?array {
-		$data = [];
 		$zip  = new ZipArchive();
 		if ( $zip->open( $file ) === true ) {
 			$json  = $zip->getArchiveComment();
@@ -280,7 +279,7 @@ class PSShare {
 			$data              = $json;
 			$zip->close();
 		} else {
-			die( 'could not open : ' . $file );
+			return null;
 		}
 
 		return $data;

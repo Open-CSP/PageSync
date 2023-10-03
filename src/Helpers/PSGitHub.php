@@ -129,6 +129,8 @@ class PSGitHub {
 		$smw = new PSSpecialSMWQeury();
 		$fileRepo = MediaWikiServices::getInstance()->getRepoGroup()->getLocalRepo();
 		$wikiFiles = $fileRepo->findFilesByPrefix( 'PageSync_', 100 );
+		$sub = wfMessage( 'wsps-special_share_list_wikifile_subject' )->text();
+		$cat = wfMessage( 'wsps-special_share_list_wikifile_category' )->text();
 		if ( !empty( $wikiFiles ) ) {
 			$filesInWiki = [];
 			$t = 0;
@@ -137,8 +139,10 @@ class PSGitHub {
 				$fName = $file->getName();
 				$fInfo = $share->getShareFileInfo( $file->getLocalRefPath() );
 
-				$sub = wfMessage( 'wsps-special_share_list_wikifile_subject' )->text();
-				$cat = wfMessage( 'wsps-special_share_list_wikifile_category' )->text();
+				if ( $fInfo === null ) {
+					continue;
+				}
+
 				if ( isset( $fInfo['version'] ) && ( version_compare( $fInfo['version'], '2.1.0' ) < 0 ) ) {
 					$filesInWiki[$sub][$cat][$t]['Requirements'] = false;
 					$filesInWiki[$sub][$cat][$t]['Description'] = wfMessage(
@@ -157,15 +161,16 @@ class PSGitHub {
 					}
 				}
 				$filesInWiki[$sub][$cat][$t]['Title'] = $fInfo['project'];
-				$filesInWiki[$sub][$cat][$t]['PSShareFile'] = "<a href='" . $file->getTitle()->getFullURL() . "'>" . $fName . '</a>';
-				$filesInWiki[$sub][$cat][$t]['total'] = $fInfo;
+				$filesInWiki[$sub][$cat][$t]['PSShareFile'] = $file->getTitle()->getFullURL();
+				$filesInWiki[$sub][$cat][$t]['PSShareFileLink'] = '<a href="' . $file->getTitle()->getFullURL() . '">' . $fName . '</a>';
+				//$filesInWiki[$sub][$cat][$t]['total'] = $fInfo;
 				$t++;
 			}
 		}
 		$data = $this->getFileList();
-		$data = array_merge( $data, $filesInWiki );
+		$data = array_merge( $filesInWiki, $data );
 		$html = '<input type="hidden" name="wsps-action" value="wsps-share-downloadurl">';
-		foreach ( $data as $category=>$subject ) {
+		foreach ( $data as $category => $subject ) {
 			$html .= '<h4 class="uk-heading-bullet uk-margin-remove-top">'. $category .'</h4>';
 			foreach ( $subject as $subjectName=>$subjectLst ) {
 				$html      .= '<h5 class="uk-heading-line uk-margin-remove-top"><span>' . $subjectName . '</span></h5>';
@@ -182,7 +187,12 @@ class PSGitHub {
 						$html .= '<tr><td class="wsps-td"><input required="required" type="radio" class="uk-radio" name="gitfile" ';
 						$html .= 'value = "' . $shareFile . '"></td>';
 					}
-					$html .= '<td class="wsps-td">' . $details['Title'] . '<br><span class="uk-text-meta">' . $details['PSShareFile'];
+					$html .= '<td class="wsps-td">' . $details['Title'] . '<br><span class="uk-text-meta">';
+					if ( $category !== $sub ) {
+						$html .= $details['PSShareFile'];
+					} else {
+						$html .= $details['PSShareFileLink'];
+					}
 					$html .= '</span></td>';
 					$html .= '<td class="wsps-td">' . $details['Description'] . '</td>';
 					$html .= '<td class="wsps-td"><ul class="uk-list uk-list-divider">';
