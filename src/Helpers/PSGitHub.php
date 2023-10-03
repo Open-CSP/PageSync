@@ -161,7 +161,7 @@ class PSGitHub {
 					}
 				}
 				$filesInWiki[$sub][$cat][$t]['Title'] = $fInfo['project'];
-				$filesInWiki[$sub][$cat][$t]['PSShareFile'] = $file->getTitle()->getFullURL();
+				$filesInWiki[$sub][$cat][$t]['PSShareFile'] = $file->getLocalRefPath();
 				$filesInWiki[$sub][$cat][$t]['PSShareFileLink'] = '<a href="' . $file->getTitle()->getFullURL() . '">' . $fName . '</a>';
 				//$filesInWiki[$sub][$cat][$t]['total'] = $fInfo;
 				$t++;
@@ -180,7 +180,11 @@ class PSGitHub {
 				$html      .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_share_requirements' )->text() . '</th>';
 				$html      .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_share_requirements_installed' )->text() . '</th></tr>';
 				foreach ( $subjectLst as $details ) {
-					$shareFile = $category . '/' . $subjectName . '/' . $details['PSShareFile'];
+					if ( $category !== $sub ) {
+						$shareFile = $category . '/' . $subjectName . '/' . $details['PSShareFile'];
+					} else {
+						$shareFile = 'WIKI:' . $details['PSShareFile'];
+					}
 					if ( $details['Requirements'] === false ) {
 						$html .= '<tr><td></td>';
 					} else {
