@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.6.1 Small bugfix
 * 2.6.0 Added support for installing PageSync Shared files that have been uploaded to the wiki.
 * 2.5.0 Added administrative function to manage tags and synced pages
 * 2.1.5 Version bumb due to REL1_39 updates

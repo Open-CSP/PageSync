@@ -131,8 +131,8 @@ class PSGitHub {
 		$wikiFiles = $fileRepo->findFilesByPrefix( 'PageSync_', 100 );
 		$sub = wfMessage( 'wsps-special_share_list_wikifile_subject' )->text();
 		$cat = wfMessage( 'wsps-special_share_list_wikifile_category' )->text();
+		$filesInWiki = [];
 		if ( !empty( $wikiFiles ) ) {
-			$filesInWiki = [];
 			$t = 0;
 			foreach ( $wikiFiles as $file ) {
 
