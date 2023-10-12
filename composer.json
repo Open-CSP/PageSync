@@ -1,5 +1,5 @@
 {
-  "name": "wikibase-solutions/page-sync",
+  "name": "open-csp/page-sync",
   "type": "mediawiki-extension",
   "description": "import and export wiki pages",
   "keywords": [
