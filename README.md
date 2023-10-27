@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.6.3 version bump only due to change in 1.39 branch
 * 2.6.2 Composer reflecting to Open CSP
 * 2.6.1 Small bugfix
 * 2.6.0 Added support for installing PageSync Shared files that have been uploaded to the wiki.
