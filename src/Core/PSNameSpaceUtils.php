@@ -81,7 +81,7 @@ class PSNameSpaceUtils {
 	 * @return false|string Either Title as string or false
 	 */
 	public static function getNSFromId( int $id ) {
-		$article = WikiPage::newFromId( $id );
+		$article = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id, 'fromdb' );
 		if ( $article instanceof WikiPage ) {
 			return $article->getTitle()->getNamespace();
 		} else {
