@@ -49,10 +49,7 @@ class PSSpecialShare {
 		}
 		$cmd .= ' --summary="Installed via PageSync Special page"';
 		$cmd .= ' --special';
-		//echo $cmd;
-
 		$result = shell_exec( $cmd );
-		//echo $result;
 		$res = explode( '|', $result );
 		if ( $res[0] === 'ok' ) {
 			return WSpsSpecial::makeAlert( $res[1], 'success' );
