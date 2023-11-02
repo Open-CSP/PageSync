@@ -11,7 +11,7 @@
   ],
   "license": "GPL-2.0-or-later",
   "require": {
-    "php": ">=7.3.19 < 8.1",
+    "php": ">=7.3.19 < 8.2",
     "ext-zip": "*",
     "ext-json": "*",
     "ext-readline": "*"
