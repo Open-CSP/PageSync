@@ -31,6 +31,7 @@ class PSConfig {
 			file_get_contents( $IP . '/extensions/PageSync/extension.json' ),
 			true
 		);
+		self::$config = [];
 		self::$config['version'] = $json['version'];
 	}
 
