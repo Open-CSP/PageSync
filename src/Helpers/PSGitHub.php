@@ -2,6 +2,7 @@
 
 namespace PageSync\Helpers;
 
+use MediaWiki\MediaWikiServices;
 use PageSync\Special\PSSpecialSMWQeury;
 
 use function wfMessage;
@@ -125,11 +126,48 @@ class PSGitHub {
 	 *
 	 * @return string
 	 */
-	public function renderListofGitHubFiles() : string {
+	public function renderListofGitHubFiles( PSShare $share ) : string {
 		$smw = new PSSpecialSMWQeury();
+		$fileRepo = MediaWikiServices::getInstance()->getRepoGroup()->getLocalRepo();
+		$wikiFiles = $fileRepo->findFilesByPrefix( 'PageSync_', 100 );
+		$sub = wfMessage( 'wsps-special_share_list_wikifile_subject' )->text();
+		$cat = wfMessage( 'wsps-special_share_list_wikifile_category' )->text();
+		$filesInWiki = [];
+		if ( !empty( $wikiFiles ) ) {
+			$t = 0;
+			foreach ( $wikiFiles as $file ) {
+				$fName = $file->getName();
+				$fInfo = $share->getShareFileInfo( $file->getLocalRefPath() );
+				if ( $fInfo === null ) {
+					continue;
+				}
+				if ( isset( $fInfo['version'] ) && ( version_compare( $fInfo['version'], '2.1.0' ) < 0 ) ) {
+					$filesInWiki[$sub][$cat][$t]['Requirements'] = false;
+					$filesInWiki[$sub][$cat][$t]['Description'] = wfMessage(
+						'wsps-special_share_file_incompatible',
+						$fInfo['version'] );
+				} else {
+					$filesInWiki[$sub][$cat][$t]['Description'] = $fInfo['disclaimer'];
+					foreach ( $fInfo['requirements'] as $requirement ) {
+						$name = $requirement['name'];
+						if ( isset( $requirement['version'] ) ) {
+							$version = $requirement['version'];
+						} else {
+							$version = '-';
+						}
+						$filesInWiki[$sub][$cat][$t]['Requirements'][$name] = $version;
+					}
+				}
+				$filesInWiki[$sub][$cat][$t]['Title'] = $fInfo['project'];
+				$filesInWiki[$sub][$cat][$t]['PSShareFile'] = $file->getLocalRefPath();
+				$filesInWiki[$sub][$cat][$t]['PSShareFileLink'] = '<a href="' . $file->getTitle()->getFullURL() . '">' . $fName . '</a>';
+				$t++;
+			}
+		}
 		$data = $this->getFileList();
+		$data = array_merge( $filesInWiki, $data );
 		$html = '<input type="hidden" name="wsps-action" value="wsps-share-downloadurl">';
-		foreach ( $data as $category=>$subject ) {
+		foreach ( $data as $category => $subject ) {
 			$html .= '<h4 class="uk-heading-bullet uk-margin-remove-top">'. $category .'</h4>';
 			foreach ( $subject as $subjectName=>$subjectLst ) {
 				$html      .= '<h5 class="uk-heading-line uk-margin-remove-top"><span>' . $subjectName . '</span></h5>';
@@ -139,27 +177,43 @@ class PSGitHub {
 				$html      .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_share_requirements' )->text() . '</th>';
 				$html      .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_share_requirements_installed' )->text() . '</th></tr>';
 				foreach ( $subjectLst as $details ) {
-					$shareFile = $category . '/' . $subjectName . '/' . $details['PSShareFile'];
-					$html .= '<tr><td class="wsps-td"><input required="required" type="radio" class="uk-radio" name="gitfile" ';
-					$html .= 'value = "' . $shareFile . '"></td>';
-					$html .= '<td class="wsps-td">' . $details['Title'] . '<br><span class="uk-text-meta">' . $details['PSShareFile'];
+					if ( $category !== $sub ) {
+						$shareFile = $category . '/' . $subjectName . '/' . $details['PSShareFile'];
+					} else {
+						$shareFile = 'WIKI:' . $details['PSShareFile'];
+					}
+					if ( $details['Requirements'] === false ) {
+						$html .= '<tr><td></td>';
+					} else {
+						$html .= '<tr><td class="wsps-td"><input required="required" type="radio" class="uk-radio" name="gitfile" ';
+						$html .= 'value = "' . $shareFile . '"></td>';
+					}
+					$html .= '<td class="wsps-td">' . $details['Title'] . '<br><span class="uk-text-meta">';
+					if ( $category !== $sub ) {
+						$html .= $details['PSShareFile'];
+					} else {
+						$html .= $details['PSShareFileLink'];
+					}
 					$html .= '</span></td>';
 					$html .= '<td class="wsps-td">' . $details['Description'] . '</td>';
 					$html .= '<td class="wsps-td"><ul class="uk-list uk-list-divider">';
-					foreach ( $details['Requirements'] as $kName => $vVersion ) {
-						$html .= '<li class="uk-text-small">' . $kName . ' - ' . $vVersion;
-						$html .= '</li>';
-					}
-					$html .= '</ul></td>';
-					$html .= '<td class="wsps-td"><ul class="uk-list uk-list-divider">';
-					foreach ( $details['Requirements'] as $kName => $vVersion ) {
-						$html .= '<li class="uk-text-small">';
-						if ( $smw->isExtensionInstalled( $kName ) ) {
-							$html .=  'v' . $smw->getExtensionVersion( $kName );
-						} else {
-							$html .= ' <span uk-icon="ban" class="uk-text-danger"></span>';
+					if ( $details['Requirements'] !== false ) {
+						foreach ( $details['Requirements'] as $kName => $vVersion ) {
+							$html .= '<li class="uk-text-small">' . $kName . ' - ' . $vVersion;
+							$html .= '</li>';
 						}
-						$html .= '</li>';
+						$html .= '</ul></td>';
+						$html .= '<td class="wsps-td"><ul class="uk-list uk-list-divider">';
+
+						foreach ( $details['Requirements'] as $kName => $vVersion ) {
+							$html .= '<li class="uk-text-small">';
+							if ( $smw->isExtensionInstalled( $kName ) ) {
+								$html .= 'v' . $smw->getExtensionVersion( $kName );
+							} else {
+								$html .= ' <span uk-icon="ban" class="uk-text-danger"></span>';
+							}
+							$html .= '</li>';
+						}
 					}
 					$html .= '</ul></td></tr>';
 				}

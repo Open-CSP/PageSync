@@ -1,5 +1,5 @@
 {
-  "name": "wikibase-solutions/page-sync",
+  "name": "open-csp/page-sync",
   "type": "mediawiki-extension",
   "description": "import and export wiki pages",
   "keywords": [
@@ -11,7 +11,7 @@
   ],
   "license": "GPL-2.0-or-later",
   "require": {
-    "php": ">=7.3.19 < 8.1",
+    "php": ">=7.3.19 < 8.2",
     "ext-zip": "*",
     "ext-json": "*",
     "ext-readline": "*"

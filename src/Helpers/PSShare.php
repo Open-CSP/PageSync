@@ -280,7 +280,7 @@ class PSShare {
 			$data              = $json;
 			$zip->close();
 		} else {
-			die( 'could not open : ' . $file );
+			return null;
 		}
 
 		return $data;
@@ -815,15 +815,19 @@ class PSShare {
 						'wsps-special_share_older'
 					)->text() . '</span>';
 			} else {
-				$html .= '<label><input class="uk-checkbox" type="checkbox" name="agreed" required="required"> I agree with the description</label>';
-				$html .= '<input type="submit" class="uk-button uk-inline uk-button-primary uk-margin-large-left uk-width-1-4" value="Install files">';
+				$html .= '<label><input class="uk-checkbox" type="checkbox" name="agreed" required="required"> ';
+				$html .= wfMessage( 'wsps-special_share_installing_agree' ) . '</label>';
+				$html .= '<input type="submit"';
+				$html .= 'class="uk-button uk-inline uk-button-primary uk-margin-large-left uk-width-1-4"';
+				$html .= 'value="' . wfMessage( 'wsps-special_share_installing_install_files' ) . '">';
 			}
 			$html .= '</div></form>';
 
 			return $html;
 		}
 		$html = '<div class="uk-grid-divider uk-child-width-expand@s" uk-grid>';
-		$html .= '<div><h2 class="uk-heading-bullet uk-heading-small">File Information</h2>';
+		$html .= '<div><h2 class="uk-heading-bullet uk-heading-small">';
+		$html .= wfMessage( 'wsps-special_share_installing_file_info' ) . '</h2>';
 		$html .= '<table class="uk-table uk-table-small">';
 
 		$html .= '<tr></tr><td class="uk-table-shrink uk-text-bold">';
@@ -832,7 +836,8 @@ class PSShare {
 
 		$html .= '<tr></tr><td class="uk-table-shrink uk-text-bold">';
 		$html .= 'Contains';
-		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['nroffiles'] . ' file(s)</td></tr>';
+		$html .= '</td><td class="uk-table-expand uk-text-primary">' . $file['info']['nroffiles'];
+		$html .= ' ' . wfMessage( 'wsps-special_share_installing_files' ) . '</td></tr>';
 
 		$html .= '<tr></tr><td class="uk-table-shrink uk-text-bold">';
 		$html .= wfMessage( 'wsps-special_table_header_project' )->text();
@@ -872,9 +877,10 @@ class PSShare {
 
 		$html .= '</table></div>';
 
-		$html .= '<div><h2 class="uk-heading-bullet uk-heading-small">File Contents</h2>';
-		$html .= '<table style="width:100%;" class="uk-table uk-table-striped uk-table-hover uk-table-small"><thead><tr>';
-		$html .= '<th>#</th><th>' . wfMessage( 'wsps-special_table_header_page_title' )->text();
+		$html .= '<div><h2 class="uk-heading-bullet uk-heading-small">';
+		$html .= wfMessage( 'wsps-special_share_installing_content' ) . '</h2>';
+		$html .= '<table style="width:100%;" class="uk-table uk-table-striped uk-table-hover uk-table-small"><thead>';
+		$html .= '<tr><th>#</th><th>' . wfMessage( 'wsps-special_table_header_page_title' )->text();
 		$html .= '</th><th>' . wfMessage( 'wsps-special_table_header_description' )->text();
 		$html .= '</th></tr>';
 		$t    = 1;

@@ -11,6 +11,7 @@
 namespace PageSync\Core;
 
 use DateTime;
+use File;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Storage\EditResult;
@@ -240,15 +241,16 @@ class PSCore {
 				$canonicalURL = $f->getCanonicalUrl();
 			}
 			$baseName  = $f->getName();
-			$fileOwner = $f->getUser();
+			$fileOwner = $f->getUploader( File::RAW );
 			$isFile    = [
 				'url'        => $canonicalURL,
 				'name'       => $baseName,
-				'owner'      => $fileOwner,
+				'owner'      => $fileOwner->getName(),
 				'storedfile' => self::makeDataStoreName( $fname )
 			];
 		}
 		$slotContent = PSSlots::getSlotsContentForPage( $id );
+
 		if ( $slotContent === false || empty( $slotContent ) ) {
 			return PSMessageMaker::makeMessage(
 				false,
