@@ -15,6 +15,7 @@ use MediaWiki\MediaWikiServices;
 use PageSync\Core\PSConfig;
 use PageSync\Core\PSConverter;
 use PageSync\Core\PSCore;
+use PageSync\Core\PSNameSpaceUtils;
 use PageSync\Handlers\WSpsBackupHandler;
 use PageSync\Handlers\WSpsConvertHandler;
 use PageSync\Handlers\WSpsShareHandler;
@@ -73,7 +74,7 @@ class WSpsSpecial extends SpecialPage {
 	 */
 	public static function getPost( string $name, bool $checkIfEmpty = true ) {
 		if ( $checkIfEmpty ) {
-			if ( isset( $_POST[$name] ) && ! empty( $_POST[$name] ) ) {
+			if ( isset( $_POST[$name] ) && !empty( $_POST[$name] ) ) {
 				return $_POST[$name];
 			} else {
 				return false;
@@ -548,48 +549,104 @@ class WSpsSpecial extends SpecialPage {
 						$out->addHTML( $specialSMW->importQuery( $request, $usr ) );
 						$error = $specialSMW->error;
 						return true;
+					case "wsps-import-query-ns" :
+						$specialNS = new PSSpecialNSQuery();
+						$request = $this->getRequest();
+						$out->addHTML( $specialNS->importQuery( $request, $usr ) );
+						$error = $specialSMW->error;
+						return true;
 					case "doQuery" :
 						$query = self::getPost( 'wsps-query' );
 
 						if ( $query === false ) {
-							$error = self::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
+							$error .= self::makeAlert( wfMessage( 'wsps-special_custom_query_not_found' )->text() );
 						} else {
 							$result = $this->doAsk( $query );
+							if ( $result !== false ) {
+								$nr = count( $result );
+								$form       = $render->renderDoQueryForm( $query, true );
+								$html       = $form;
+								$bodyResult = $render->renderDoQueryBody( $result );
+								$html       .= $bodyResult['html'];
+								$header = wfMessage( 'wsps-special_custom_query_result' )->text();
+								$header .= '<p>' . wfMessage( 'wsps-special_custom_query' )->text(
+									) . '<span class="uk-text-warning">' . htmlspecialchars( $query ) . '</span></p>';
+								$header .= wfMessage(
+									'wsps-special_custom_query_result_text1',
+									$nr
+								)->text();
+								$header .= wfMessage(
+									'wsps-special_custom_query_result_text2',
+									$bodyResult['active']
+								)->text();
+								$html   = $header . $html;
+								$out->addHTML( $style );
+								$out->addHTML( $html );
 
-							$nr = count( $result );
-
-							$form       = $render->renderDoQueryForm( $query, true );
-							$html       = $form;
-							$bodyResult = $render->renderDoQueryBody( $result );
-							$html       .= $bodyResult['html'];
-
-							$header = wfMessage( 'wsps-special_custom_query_result' )->text();
-							$header .= '<p>' . wfMessage( 'wsps-special_custom_query' )->text(
-								) . '<span class="uk-text-warning">' . htmlspecialchars( $query ) . '</span></p>';
-							$header .= wfMessage(
-								'wsps-special_custom_query_result_text1',
-								$nr
-							)->text();
-							$header .= wfMessage(
-								'wsps-special_custom_query_result_text2',
-								$bodyResult['active']
-							)->text();
-							$html   = $header . $html;
-							$out->addHTML( $style );
-							$out->addHTML( $html );
-
-							return true;
+								return true;
+							} else {
+								$error .= self::makeAlert( wfMessage( 'wsps-special_custom_query_incorrect' ) );
+							}
 						}
+						break;
+					case "doQueryNS":
+						$ns = self::getPost( 'wsps-ns-query' );
+						$startsWith = self::getPost( 'wsps-ns-start' );
+						if ( $ns === false ) {
+							$ns = 0;
+						}
+						$nsQuery = new PSSpecialNSQuery();
+						$request = $this->getRequest();
+						$data = $nsQuery->getPagesFromNS( $request, (int)$ns, $startsWith );
+						if ( $data === false ) {
+							$error .= self::makeAlert( wfMessage( 'wsps-special_custom_ns_query_error_no_results' )->text() );
+							break;
+						}
+
+						$form       = $render->renderDoQueryForm( $ns, true, true );
+						$filter = new Filters();
+						$html = $filter->javaScriptMainPageFilter( true );
+						$html       .= $form;
+						$bodyResult = $render->renderDoNSQueryBody( $data );
+						$nr = $bodyResult['total'];
+						$html       .= $bodyResult['html'];
+						$header = wfMessage( 'wsps-special_custom_ns_query_result' )->text();
+						$nsName = PSNameSpaceUtils::getNameSpaceNameFromID( $ns );
+						$header .= '<p><span class="uk-text-warning">' . wfMessage( 'wsps-special_custom_ns_query', $nsName )->text();
+						if ( $startsWith ) {
+							$header .= ' ' . wfMessage( 'wsps-special_custom_ns_query_start', $startsWith )->text();
+						}
+						$header .= '</span></p>';
+						$header .= wfMessage(
+							'wsps-special_custom_query_result_text1',
+							$nr
+						)->text();
+						$header .= wfMessage(
+							'wsps-special_custom_query_result_text2',
+							$bodyResult['active']
+						)->text();
+						$html = $header . $html;
+						$out->addHTML( $style );
+						$out->addHTML( $html );
+
+						return true;
+
 						break;
 					case false :
 						break;
 				}
 
 				if ( $error !== '' ) {
-					echo $error;
+					$out->addHTML( $error );
 				}
-
+				$out->addHTML( '<div class="uk-child-width-1-2@m uk-grid-divider uk-grid-medium uk-grid-match" uk-grid>' );
 				$out->addHTML( $render->renderCustomQuery() );
+				$ns = MediaWikiServices::getInstance()->getContentLanguage()->getNamespaces();
+				unset( $ns[-2] );
+				unset( $ns[-1] );
+				$ns[0] = 'Main';
+				$out->addHTML( $render->renderNameSpaceQuery( $ns ));
+				$out->addHTML( '</div>' );
 
 				return true;
 		}
