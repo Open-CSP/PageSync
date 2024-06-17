@@ -43,5 +43,5 @@ function wachtff (method, both = false) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-	wachtff(setSelect2);
+	wachtff(setSelect2, true);
 });
