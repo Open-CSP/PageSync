@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.6.5 Maintenance script rebuild-index now by default is verbose. Added function to add pages NS and title search. i18n changes
 * 2.6.3 Fixed a 1.39 only adding file issue
 * 2.6.2 Composer reflecting to Open CSP
 * 2.6.1 Version bump due to REL 1.35

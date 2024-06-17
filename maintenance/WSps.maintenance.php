@@ -378,12 +378,18 @@ class importPagesIntoWiki extends Maintenance {
 			}
 			$path          = PSConfig::$config['exportPath'];
 			$infoFilesList = glob( $path . "*.info" );
+			if ( !$silent ) {
+				echo "\nFound " . count( $infoFilesList ) . " .info files.\n";
+			}
 			$cnt           = 0;
 			$index = [];
 			foreach ( $infoFilesList as $infoFile ) {
 				$content = json_decode( file_get_contents( $infoFile ), true );
 				$fName = $content['filename'];
 				$fTitle = $content['pagetitle'];
+				if ( !$silent ) {
+					echo $cnt+1 . "\tRestoring " . $fTitle . "\n";
+				}
 				$index[$fName] = $fTitle;
 				$cnt++;
 			}

@@ -22,6 +22,9 @@ class PSNameSpaceUtils {
 	 * @return string
 	 */
 	public static function getNameSpaceNameFromID( int $ns ): string {
+		if ( $ns === 0 ) {
+			return "main";
+		}
 		return MediaWikiServices::getInstance()->getContentLanguage()->getFormattedNsText( $ns );
 	}
 
