@@ -181,15 +181,23 @@ class Filters {
 	/**
 	 * @return string
 	 */
-	public function javaScriptMainPageFilter(): string {
-		$searchField = PHP_EOL . '<div class="uk-inline uk-float-right uk-margin-bottom">';
-		$searchField .= '<a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: search"></a>';
+	public function javaScriptMainPageFilter( $nsQuery = false ): string {
+		$tableID = 'PSindexTable';
+		$function = 'filterTable';
+		$float = "right";
+		if ( $nsQuery ) {
+			$tableID = 'PSNSindexTable';
+			$function = 'PSfilterNSTable';
+			$float = "left";
+		}
+		$searchField = PHP_EOL . '<div class="uk-inline uk-float-' . $float . ' uk-margin-bottom">';
+		$searchField .= '<a class="uk-form-icon uk-form-icon-flip" href="#" uk-icon="icon: search"></a>';
 		$searchField .= '<input class="uk-input" type="search" id="filterTableSearch" placeholder="';
 		$searchField .= wfMessage( 'wsps-special_search_index' ) . '">';
 		$searchField .= '</div>' . PHP_EOL;
 		$js = "<script>document.getElementById( 'filterTableSearch' ).addEventListener( 'keyup', function() {
 		   let search = document.getElementById( 'filterTableSearch' ).value.toUpperCase();
-           filterTable( search, 'PSindexTable' );
+           " . $function . "( search, '" . $tableID . "' );
 		} );</script>";
 		return $searchField . $js;
 	}
@@ -365,7 +373,7 @@ class Filters {
 		}
 		if ( isset( $result['tags'] ) ) {
 			$html .= '<div class="uk-alert-success" uk-alert>' . PHP_EOL;
-			$html .= '<p>' . wfMessage( 'special_clean_tags_changes' ) . '<br><ul>';
+			$html .= '<p>' . wfMessage( 'wsps-special_clean_tags_changes' ) . '<br><ul>';
 			foreach ( $result['tags'] as $tag ) {
 				$html .= '<li>' . '<span class="uk-badge uk-text-nowrap">' . $tag . '</span>' . '</li>' . PHP_EOL;
 			}

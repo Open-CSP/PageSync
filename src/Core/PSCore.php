@@ -282,6 +282,19 @@ class PSCore {
 	}
 
 	/**
+	 * @param int $pageID
+	 *
+	 * @return bool
+	 */
+	public static function isPageIDInIndex( int $pageID ): bool {
+		$index = self::getFileIndex();
+		return in_array(
+			self::getPageTitleForFileName( $pageID ),
+			$index
+		);
+	}
+
+	/**
 	 * @param string $title
 	 *
 	 * @return false|mixed
@@ -292,11 +305,7 @@ class PSCore {
 		$id = $tObject->getArticleID();
 		$ns = $tObject->getNamespace();
 
-		$index = self::getFileIndex();
-		if ( in_array(
-			self::getPageTitleForFileName( $id ),
-			$index
-		) ) {
+		if ( self::isPageIDInIndex( $id ) ) {
 			$fname    = self::cleanFileName( self::getPageTitleForFileName( $id ) );
 			$infoFile = self::setInfoName( $fname );
 			if ( file_exists( $infoFile ) ) {

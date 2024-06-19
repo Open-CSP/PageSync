@@ -10,6 +10,7 @@
 
 namespace PageSync\Helpers;
 
+use MediaWiki\MediaWikiServices;
 use PageSync\Core\PSCore;
 use PageSync\Core\PSNameSpaceUtils;
 
@@ -54,10 +55,16 @@ class PSRender {
 	 *
 	 * @return string
 	 */
-	public function renderDoQueryForm( string $query, bool $addTagsOption = false ): string {
+	public function renderDoQueryForm( string $query, bool $addTagsOption = false, bool $nsQuery = false ): string {
 		global $IP;
-		$form = '<form method="post" class="uk-form-horizontal">';
-		$form .= '<input type="hidden" name="wsps-action" value="wsps-import-query">';
+		$action = "wsps-import-query";
+		$id = '';
+		if ( $nsQuery ) {
+			$action .= '-ns';
+			$id = ' id = "PSNSindexTable"';
+		}
+		$form = '<form' . $id . ' method="post" class="uk-form-horizontal">';
+		$form .= '<input type="hidden" name="wsps-action" value="' . $action . '">';
 		$form .= '<input type="hidden" name="wsps-query" value="' . base64_encode( $query ) . '">';
 		if ( $addTagsOption ) {
 			$form       .= '<div class="uk-margin uk-align-right"><label class="uk-form-label" for="ps-tags">';
@@ -75,7 +82,9 @@ class PSRender {
 		$form .= '<input type="submit" class="uk-button uk-button-primary uk-width-1-1 uk-margin-small-bottom uk-text-large" value="' . wfMessage(
 				'wsps-special_custom_query_add_results'
 			)->text() . '">';
-		$form .= '</form>';
+		if ( !$nsQuery ) {
+			$form .= '</form>';
+		}
 
 		return $form;
 	}
@@ -304,30 +313,115 @@ class PSRender {
 	}
 
 	/**
+	 * @param array $nameSpaces
+	 *
+	 * @return string
+	 */
+	public function renderNameSpaceQuery( array $nameSpaces ) : string {
+		$body = '<form method="POST" class="uk-form-horizontal">';
+		$body .= '<input type="hidden" name="wsps-action" value="doQueryNS">';
+		$body .= '<label class="uk-form-label uk-text-medium" for="wsps-ns-query">';
+		$body .= wfMessage( 'wsps-special_custom_ns_query_card_label' )->text();
+		$body .= '</label>';
+		$body .= '<div class="uk-form-controls">';
+		$body .= '<select class="uk-select" name="wsps-ns-query">';
+		foreach ( $nameSpaces as $id => $nameSpace ) {
+			$body .= '<option value="' . $id . '">' . $nameSpace . '</option>';
+		}
+		$body .= '</select></div>';
+		$body .= '<label class="uk-form-label uk-text-medium" for="wsps-ns-start">';
+		$body .= wfMessage( 'wsps-special_custom_ns_query_card_label_start' )->text();
+		$body .= '</label>';
+		$body .= '<div class="uk-form-controls">';
+		$body .= '<input type="text" class="uk-input" name="wsps-ns-start">';
+		$body .= '</div>';
+		$footer = '<input type="submit" class="uk-width-1-2 uk-align-center uk-margin-remove-bottom uk-button uk-button-primary" value="';
+		$footer .= wfMessage( 'wsps-special_custom_query_card_submit' )->text();
+		$footer .= '"></form>';
+		return $this->renderCard2(
+			wfMessage( 'wsps-special_custom_ns_query_card_header' )->text(),
+			wfMessage( 'wsps-special_custom_ns_query_card_subheader' )->text(),
+			$body,
+			$footer,
+			true
+		);
+	}
+
+	/**
 	 * @return string
 	 */
 	public function renderCustomQuery() : string {
-		$content = '<h3 class="uk-card-title uk-margin-remove-bottom">' . wfMessage(
-				'wsps-special_custom_query_card_header'
-			)->text() . '</h3>';
-		$content .= '<p class="uk-text-meta uk-margin-remove-top">' . wfMessage(
-				'wsps-special_custom_query_card_subheader'
-			)->text() . '</p>';
-		$content .= '<form method="POST" class="uk-form-horizontal uk-margin-large">';
-		$content .= '<input type="hidden" name="wsps-action" value="doQuery">';
-		$content .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
-		$content .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
-		$content .= '</label>';
-		$content .= '<div class="uk-form-controls">';
-		$content .= '<input class="uk-input" name="wsps-query" type="text" placeholder="';
-		$content .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
-		$content .= '">';
-		$content .= '</div>';
-		$content .= '<input type="submit" class="uk-button uk-button-default" value="';
-		$content .= wfMessage( 'wsps-special_custom_query_card_submit' )->text();
-		$content .= '"></form>';
+		$body = '<form method="POST" class="uk-form-horizontal">';
+		$body .= '<input type="hidden" name="wsps-action" value="doQuery">';
+		$body .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
+		$body .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
+		$body .= '</label>';
+		$body .= '<div class="uk-form-controls">';
+		$body .= '<input class="uk-input" name="wsps-query" type="text" placeholder="';
+		$body .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
+		$body .= '">';
+		$body .= '</div>';
+		$footer = '<input type="submit" class="uk-width-1-2 uk-align-center uk-margin-remove-bottom uk-button uk-button-primary" value="';
+		$footer .= wfMessage( 'wsps-special_custom_query_card_submit' )->text() . '">';
+		$footer .= '</form>';
+		return $this->renderCard2(
+			wfMessage( 'wsps-special_custom_query_card_header' )->text(),
+			wfMessage( 'wsps-special_custom_query_card_subheader' )->text(),
+			$body,
+			$footer,
+			true
+		);
+	}
 
-		return $content;
+
+	/**
+	 * @param array $result
+	 *
+	 * @return array
+	 */
+	public function renderDoNSQueryBody( array $result ) : array {
+		global $wgScript;
+		$html   = '<table style="width:100%;" class="uk-table uk-table-small uk-table-striped uk-table-hover">';
+		$html   .= '<thead><tr><th class="uk-table-shrink">#</th>';
+		$html   .= '<th class="uk-table-shrink">' . wfMessage( 'wsps-special_custom_ns_query_table_pageid' ) . '</th>';
+		$html   .= '<th class="uk-table-expand">' . wfMessage( 'wsps-special_table_header_page' )->text() . '</th>';
+		$html   .= '<th class="uk-table-shrink">' . wfMessage( 'wsps-special_table_header_sync' )->text() . '</th>';
+		$html   .= '</tr></thead><tbody>';
+		$row    = 1;
+		$active = 0;
+		foreach ( $result as $k => $page ) {
+			if ( !isset( $page['pageid'] ) || !isset( $page['title'] ) ) {
+				unset( $result[$k] );
+				continue;
+			}
+			$formInput = '<input type="hidden" name="psids[]" value="' . $page['pageid'] . '">';
+			$html   .= '<tr><td>' . $row . $formInput . '</td>';
+
+			$html   .= '<td>' . $page['pageid'] . '</td>';
+			$html   .= '<td><a target="_blank" href="' . $wgScript . '?title=' . $page['title'] . '">' . $page['title'] . '</a></td>';
+			$pageId = PSCore::isTitleInIndex( $page['title'] );
+			if ( $pageId !== false ) {
+				$button = '<a class="wsps-toggle-special wsps-active" data-id="' . $pageId . '"></a>';
+				$active++;
+			} else {
+				$pageId = $page['pageid'];
+				if ( $pageId === false || $pageId === 0 ) {
+					$button = '<span class="uk-badge uk-text-nowrap" style="color:white; background-color:#666;"><strong>N/A</strong></span>';
+				} else {
+					$button = '<a class="wsps-toggle-special" data-id="' . $pageId . '"></a>';
+				}
+			}
+			$html .= '<td>' . $button . '</td>';
+			$html .= '</tr>';
+			$row++;
+		}
+		$html .= '</tbody></table></form>';
+
+		return [
+			'html'   => $html,
+			'active' => $active,
+			'total' => $row-1
+		];
 	}
 
 	/**
@@ -451,20 +545,55 @@ class PSRender {
 	 * @param string $subTitle
 	 * @param string $body
 	 * @param string $footer
+	 * @param bool $small
 	 *
 	 * @return string
 	 */
-	public function renderCard( string $title, string $subTitle, string $body, string $footer = "" ) : string {
-		$content = '<div class="uk-card uk-card-default">';
+	public function renderCard2( string $title, string $subTitle, string $body, string $footer = "", $small = false ) : string {
+		if ( $small ) {
+			$size = ' uk-card-small';
+		} else {
+			$size = '';
+		}
+		$content = '<div><div class="uk-card uk-card-default uk-box-shadow-bottom' . $size . '">';
+		$content .= '<div class="uk-card-header uk-background-muted"><h3 class="uk-card-title uk-margin-remove-bottom">' . $title . '</h3>';
+		if ( $subTitle !== "" ) {
+			$content .= '<p class="uk-text-meta uk-margin-remove-top">' . $subTitle . '</p>';
+		}
+		$content .= '</div><div class="uk-card-body uk-height-small uk-"><p class="uk-text-meta">' . $body . '</p></div>';
+		if ( $footer !== "" ) {
+			$content .= '<div class="uk-card-footer uk-background-muted"><p>' . $footer . '</p></div>';
+		}
+		$content .= '</div></div>';
+
+		return $content;
+	}
+
+	/**
+	 * @param string $title
+	 * @param string $subTitle
+	 * @param string $body
+	 * @param string $footer
+	 * @param bool $small
+	 *
+	 * @return string
+	 */
+	public function renderCard( string $title, string $subTitle, string $body, string $footer = "", $small = false ) : string {
+		if ( $small ) {
+			$size = ' uk-card-small';
+		} else {
+			$size = '';
+		}
+		$content = '<div><div class="uk-card uk-card-default' . $size . '">';
 		$content .= '<div class="uk-card-header"><h3 class="uk-card-title uk-margin-remove-bottom">' . $title . '</h3>';
 		if ( $subTitle !== "" ) {
 			$content .= '<p class="uk-text-meta uk-margin-remove-top">' . $subTitle . '</p>';
 		}
-		$content .= '</div><div class="uk-card-body uk-padding-remove-top"><p class="uk-text-meta uk-margin-remove-top">' . $body . '</p></div>';
+		$content .= '</div><div class="uk-card-body"><p class="uk-text-meta">' . $body . '</p></div>';
 		if ( $footer !== "" ) {
 			$content .= '<div class="uk-card-footer"><p>' . $footer . '</p></div>';
 		}
-		$content .= '</div>';
+		$content .= '</div></div>';
 
 		return $content;
 	}
