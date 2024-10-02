@@ -13,8 +13,8 @@ use function count;
 use function wfMessage;
 
 /**
- * Created by  : Wikibase Solution
- * Project     : csp
+ * Created by  : Open CSP
+ * Project     : PageSync
  * Filename    : WSpsHooksBackup.class.php
  * Description :
  * Date        : 15-10-2021

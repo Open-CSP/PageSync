@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\extensions\PageSync\src\Core\PSAnalyzer;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\User\UserRigorOptions;
@@ -88,6 +89,8 @@ class importPagesIntoWiki extends Maintenance {
 			'special',
 			'Used for the Special page. Same as silent option, but result is in the following format. success : "ok|description", error: "error|error message".'
 		);
+
+		$this->addOption( 'analyze', 'Show the internal status of PageSync and its files' );
 
 		$this->addOption(
 			'skip-if-page-is-changed-in-wiki',
@@ -287,6 +290,12 @@ class importPagesIntoWiki extends Maintenance {
 			$skipped = $result['skipped'];
 			echo "\nWorked with $cnt file(s), skipped $skipped files and index Rebuild.\nDone!\n";
 			die();
+		}
+
+		if ( $this->hasOption( 'analyze' ) ) {
+			$analyzer = new PSAnalyzer();
+			$analyzer->analyze();
+			return;
 		}
 
 		if ( PSConverter::checkFileConsistency2() === false ) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by  : Wikibase Solutions
+ * Created by  : Open CSP
  * Project     : PageSync
  * Filename    : PSConverter.php
  * Description :

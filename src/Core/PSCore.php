@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by  : Wikibase Solutions
+ * Created by  : Open CSP
  * Project     : PageSync
  * Filename    : PSCore.php
  * Description :
@@ -63,6 +63,17 @@ class PSCore {
 			'_',
 			strtolower( $fname )
 		);
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function getFilesFromServer(): array {
+		if ( PSConfig::$config === false ) {
+			self::setConfig();
+		}
+		$path = PSConfig::$config['exportPath'];
+		return glob( $path . "*.info" );
 	}
 
 	/**

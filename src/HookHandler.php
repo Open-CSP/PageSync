@@ -49,14 +49,14 @@ class HookHandler {
 	 */
 	public static function addToAdminLinks( ALTree &$adminLinksTree ) : bool {
 		global $wgServer;
-		$wsSection = $adminLinksTree->getSection( 'WikiBase Solutions' );
+		$wsSection = $adminLinksTree->getSection( 'Open CSP' );
 		if ( $wsSection === null ) {
-			$section = new ALSection( 'WikiBase Solutions' );
+			$section = new ALSection( 'Open CSP' );
 			$adminLinksTree->addSection(
 				$section,
 				wfMessage( 'adminlinks_general' )->text()
 			);
-			$wsSection     = $adminLinksTree->getSection( 'WikiBase Solutions' );
+			$wsSection     = $adminLinksTree->getSection( 'Open CSP' );
 			$extensionsRow = new ALRow( 'extensions' );
 			$wsSection->addRow( $extensionsRow );
 		}
