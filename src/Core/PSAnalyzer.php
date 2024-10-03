@@ -314,7 +314,7 @@ class PSAnalyzer {
 				// sleep( 1 );
 			} else {
 				$indexErrors++;
-				$this->addError( "index2server", self::FILE_IN_INDEX_NOT_ON_SERVER, $k );
+				$this->addError( "server2wiki", self::FILE_IN_INDEX_NOT_ON_SERVER, $k );
 				echo Colors::cEcho(
 					str_pad( $number . $k, 100, "." ),
 					"yellow",
@@ -327,7 +327,7 @@ class PSAnalyzer {
 			$i++;
 		}
 		echo "\033[K";
-		echo Colors::cEcho( "Checking if Index entry exists on server (index2server)",
+		echo Colors::cEcho( "Checking if files on server are in sync with Wiki (server2wiki)",
 			"blue+bold",
 			true,
 			$indexErrors . " error(s) found",
