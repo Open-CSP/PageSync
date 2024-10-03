@@ -295,14 +295,14 @@ class PSAnalyzer {
 		} else {
 			$this->indexList = $indexList;
 		}
-		echo Colors::cEcho( "Analyzing files...", "blue+bold", true, "", "START", true );
-		echo Colors::cEcho( "------------------", "white", false, "", "", true );
+		echo Colors::cEcho( "Analyzing...", "blue+bold", true, "", "START", true );
+		echo Colors::cEcho( "--------------------", "white", false, "", "", true );
 		echo Colors::cEcho( "PageSync index path  : " . $psIndexPathColor, "white" );
 		echo Colors::cEcho( "PageSync export path : " . $psExportPathColor, "white" );
 		echo "\n";
 		if ( empty( $this->indexList ) === false && empty( $this->serverFullList ) ) {
 			echo Colors::cEcho( "Index and server files are empty. Nothing to work on", "white", false, "", "", true );
-			echo Colors::cEcho( "Analyzing files   ", "blue+bold", true, "", "END", true );
+			echo Colors::cEcho( "Analyzing...", "blue+bold", true, "", "END", true );
 			return;
 		}
 		if ( empty( $this->indexList ) && !empty( $this->serverFullList ) ) {
@@ -312,7 +312,7 @@ class PSAnalyzer {
 				$i++;
 				echo Colors::cEcho( str_pad( $i, 3 ) . " : " . $file, "yellow", false, "", "", true );
 			}
-			echo Colors::cEcho( "Analyzing files   ", "blue+bold", true, "", "END", true );
+			echo Colors::cEcho( "Analyzing...", "blue+bold", true, "", "END", true );
 			return;
 		}
 
@@ -328,10 +328,12 @@ class PSAnalyzer {
 		$this->totalErrors += $this->checkIndex();
 		$this->totalErrors += $this->checkServerFiles();
 		$this->totalErrors += $this->checkInfoFiles();
-		echo Colors::cEcho( "Analyzing files   ",
+		echo "\n\n";
+		echo Colors::cEcho( "--------------------", "white", false, "", "", true );
+		echo Colors::cEcho( "Analyzing...",
 			"blue+bold",
 			true,
-			$this->totalErrors . " erros(s) found analyzing",
+			$this->totalErrors . " error(s) found",
 			"END",
 			true );
 		if ( $this->totalErrors === 0 ) {
