@@ -111,7 +111,7 @@ class PSAnalyzer {
 	 */
 	private function checkInfoFiles(): int {
 		$keys = [ 'filename','pagetitle', 'ns', 'username', 'changed', 'pageid', 'slots', 'models',
-			'isFile', 'description', 'tags', 'changes' ];
+			'isFile', 'description', 'tags' ];
 		echo Colors::cEcho( "Checking .info File structure (info-structure)",
 			"blue+bold",
 			true,
@@ -125,8 +125,8 @@ class PSAnalyzer {
 			$pathInfo = pathinfo( $infoFile );
 			$infoFileName = $pathInfo['filename'];
 			$number = str_pad( $i, 5 ) . ": ";
-			foreach ( $info as $k => $v ) {
-				if ( !in_array( $k, $keys ) ) {
+			foreach ( $keys as $k ) {
+				if ( !array_key_exists( $k, $info ) ) {
 					$indexErrors++;
 					$this->addError( "info-structure", "Missing variable in .info file: " . $k, $infoFileName );
 					echo Colors::cEcho(
