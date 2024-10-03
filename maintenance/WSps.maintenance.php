@@ -1,6 +1,6 @@
 <?php
 
-use MediaWiki\extensions\PageSync\src\Core\PSAnalyzer;
+use PageSync\Core\PSAnalyzer;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\User\UserRigorOptions;
@@ -231,7 +231,7 @@ class importPagesIntoWiki extends Maintenance {
 			$this->fatalError( "Wiki is in read-only mode; you'll need to disable it for import to work." );
 		}
 
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$versionCurrent = PSConfig::$config['version'];
@@ -317,7 +317,7 @@ class importPagesIntoWiki extends Maintenance {
 				}
 			}
 			echo "\n[Rebuilding files from index --RUN--]\n";
-			if ( PSConfig::$config === false ) {
+			if ( empty( PSConfig::$config ) ) {
 				PSCore::setConfig();
 			}
 			$indexFile = PSCore::getFileIndex();
@@ -382,7 +382,7 @@ class importPagesIntoWiki extends Maintenance {
 				}
 			}
 			echo "\n[Rebuilding index file from file structure --RUN--]\n";
-			if ( PSConfig::$config === false ) {
+			if ( empty( PSConfig::$config ) ) {
 				PSCore::setConfig();
 			}
 			$path          = PSConfig::$config['exportPath'];
@@ -465,7 +465,7 @@ class importPagesIntoWiki extends Maintenance {
 		$skipCount    = 0;
 
 		PSCore::setConfig();
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			if ( !$silent ) {
 				$this->fatalError( wfMessage( 'wsps-api-error-no-config-body' )->text() . "\n" );
 			} else {

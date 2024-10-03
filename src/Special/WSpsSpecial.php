@@ -177,11 +177,11 @@ class WSpsSpecial extends SpecialPage {
 		$usr            = $user->getName();
 		$groups         = $user->getGroups();
 		$showAnyMessage = false;
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			$out->addHTML( '<p>' . wfMessage( 'wsps-api-error-no-config-body' )->text() . '</p>' );
 
 			return true;

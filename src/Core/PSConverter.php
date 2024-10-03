@@ -251,7 +251,7 @@ class PSConverter {
 	 * @deprecated
 	 */
 	public static function checkFileConsistency( bool $returnCnt = false, bool $returnFileNames = false ) {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 
@@ -291,7 +291,7 @@ class PSConverter {
 	 * @return array|bool|int
 	 */
 	public static function checkFileConsistency2( bool $returnCnt = false, bool $returnFileNames = false ) {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 

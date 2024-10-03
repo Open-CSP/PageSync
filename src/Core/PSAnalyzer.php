@@ -8,16 +8,16 @@
  * Time        : 12:07
  */
 
-namespace MediaWiki\extensions\PageSync\src\Core;
+namespace PageSync\Core;
 
-
-use PageSync\Core\PSCore;
 
 class PSAnalyzer {
 
 	public function analyze() {
 		$fileStored = PSCore::getFilesFromServer();
 		$index = PSCore::getFileIndex();
+		var_dump( count( $fileStored ) );
+		var_dump( count( $index ) );
 		var_dump( $fileStored, $index );
 	}
 

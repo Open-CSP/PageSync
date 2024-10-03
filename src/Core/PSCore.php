@@ -69,7 +69,7 @@ class PSCore {
 	 * @return array
 	 */
 	public static function getFilesFromServer(): array {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			self::setConfig();
 		}
 		$path = PSConfig::$config['exportPath'];
@@ -83,10 +83,10 @@ class PSCore {
 	 * @return array|false|mixed
 	 */
 	public static function getFileIndex() {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			self::setConfig();
 		}
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			return false;
 		}
 
@@ -446,10 +446,10 @@ class PSCore {
 	 * @return array|false all pages and their detailed info
 	 */
 	public static function getAllPageInfo( $customPath = false ) {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			self::setConfig();
 		}
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			return false;
 		}
 		$filesPath = PSConfig::$config['exportPath'];

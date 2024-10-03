@@ -49,7 +49,7 @@ class ApiWSps extends ApiBase {
 		}
 		$userName = $user->getName();
 		PSCore::setConfig();
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			$output['status']  = wfMessage( 'wsps-api-error-no-config-title' )->text();
 			$output['message'] = wfMessage( 'wsps-api-error-no-config-body' )->text();
 			$this->getResult()->addValue( null,
