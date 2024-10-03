@@ -263,7 +263,7 @@ class importPagesIntoWiki extends Maintenance {
 			echo str_pad( "** PageSync version \e[36m$versionCurrent\e[0m", 75 ) . "**\n";
 			echo "** /WSps/maintenance/WSps.maintenance.php                         **\n";
 			echo "********************************************************************\n";
-			echo "** Import pages that have been synced by the PageSync extension **\n";
+			echo "** Maintenance functions. Check manual for info                   **\n";
 			echo "********************************************************************\n";
 		}
 		if ( $this->hasOption( 'autodelete' ) && strtolower( $this->getOption( 'autodelete' ) ) === 'true' ) {
