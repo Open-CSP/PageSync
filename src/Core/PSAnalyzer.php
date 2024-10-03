@@ -418,7 +418,7 @@ class PSAnalyzer {
 		if ( $this->totalErrors === 0 ) {
 			echo "\n\n"
 				. Colors::cEcho(
-					"PageSync seems to be in top shape! No Admins have been messing around, great job!" .
+					"PageSync seems to be in top shape! No Admins have been messing around!" .
 					" Give them a tap on the back for a good job!",
 					"green+bold" );
 			echo "\n\n";
