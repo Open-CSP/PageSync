@@ -302,27 +302,49 @@ class PSAnalyzer {
 			}
 			$infoContents = $this->getInfoFile( $fileBaseNameInfo );
 			$pageContentFromWiki = PSSlots::getSlotsContentForPage( $pageId );
-			if ( in_array( $k, $this->serverFileList ) ) {
-				echo $this->progressBar( $i, $this->indexListCount,
-					Colors::cEcho( $k,
+			if ( isset( $infoContents['slots'] ) ) {
+				$infoSlots = explode( ',', $infoContents['slots'] );
+			}
+			$pageSlots = PSSlots::getSlotNamesForPageAndRevision( $pageId );
+			foreach ( $pageSlots['slots'] as $slotToCheck ) {
+				$slotFile = PSCore::getFileContent( $k, $slotToCheck );
+				if ( $slotFile === false ) {
+					$indexErrors++;
+					$this->addError( "server2wiki", "Slot '$slotToCheck' is missing on server/", $k );
+					echo Colors::cEcho(
+						str_pad( $number . $k, 100, "." ),
 						"yellow",
 						false,
-						"OK",
+						"FAIL",
 						"",
-						false
-					) );
-				// sleep( 1 );
-			} else {
-				$indexErrors++;
-				$this->addError( "server2wiki", self::FILE_IN_INDEX_NOT_ON_SERVER, $k );
-				echo Colors::cEcho(
-					str_pad( $number . $k, 100, "." ),
-					"yellow",
-					false,
-					"FAIL",
-					"",
-					true
-				);
+						true
+					);
+					continue;
+				}
+				// var_dump( $slotFile );
+				if ( $pageContentFromWiki[$slotToCheck]['content'] === $slotFile ) {
+					echo $this->progressBar( $i, $this->indexListCount,
+						Colors::cEcho( $k . " Slot : $slotToCheck",
+							"yellow",
+							false,
+							"OK",
+							"",
+							false
+						) );
+				} else {
+					$indexErrors++;
+					$this->addError( "server2wiki",
+						"Slot '$slotToCheck' content in Wiki and on Server are not identical",
+						$k );
+					echo Colors::cEcho(
+						str_pad( $number . $k, 100, "." ),
+						"yellow",
+						false,
+						"FAIL",
+						"",
+						true
+					);
+				}
 			}
 			$i++;
 		}
@@ -375,9 +397,6 @@ class PSAnalyzer {
 			return;
 		}
 
-		//var_dump( count( $fileStored ) );
-		//var_dump( count( $index ) );
-		//var_dump( $fileStored, $index );
 		$this->indexListCount = count( $this->indexList );
 		$this->serverFileCount = count( $this->serverFullList );
 		$indexColorCount = Colors::cEcho( $this->indexListCount, "bold+yellow", false, "", "", false );
@@ -387,6 +406,7 @@ class PSAnalyzer {
 		$this->totalErrors += $this->checkIndex();
 		$this->totalErrors += $this->checkServerFiles();
 		$this->totalErrors += $this->checkInfoFiles();
+		$this->totalErrors += $this->checkSync();
 		echo "\n\n";
 		echo Colors::cEcho( "--------------------", "white", false, "", "", true );
 		echo Colors::cEcho( "Analyzing...",
@@ -396,10 +416,14 @@ class PSAnalyzer {
 			"END",
 			true );
 		if ( $this->totalErrors === 0 ) {
-			echo "\n\n" . Colors::cEcho( "PageSync seems to be in top shape!", "green+bold" );
+			echo "\n\n"
+				. Colors::cEcho(
+					"PageSync seems to be in top shape! No Admins have been messing around, great job!" .
+					" Give them a tap on the back for a good job!",
+					"green+bold" );
 			echo "\n\n";
 		} else {
-			$i = 0;
+			$i = 1;
 			echo "\n\n" . Colors::cEcho( "PageSync has found some inconsistencies! ($this->totalErrors)", "red+bold" );
 			foreach ( $this->errorList as $error ) {
 				echo Colors::cEcho( '"' . $error["message"] . '"',
