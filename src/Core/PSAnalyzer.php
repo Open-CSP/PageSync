@@ -277,6 +277,65 @@ class PSAnalyzer {
 		return $indexErrors;
 	}
 
+	/**
+	 * @return int
+	 */
+	private function checkSync(): int {
+		echo Colors::cEcho( "Checking if files on server are in sync with Wiki (server2wiki)",
+			"blue+bold",
+			true,
+			"",
+			"START",
+			true );
+		$i = 1;
+		$indexErrors = 0;
+		foreach ( $this->indexList as $k => $indexEntry ) {
+			$number = str_pad( $i, 5 ) . ": ";
+			$ns = PSNameSpaceUtils::getNSFromTitleString( $indexEntry );
+			$pageTitle = PSNameSpaceUtils::titleForDisplay( $ns, $indexEntry );
+			$pageId = PSCore::getPageIdFromTitle( $pageTitle );
+			$fileBaseNameInfo = PSCore::getInfoFileFromPageID( $pageId );
+			if ( $fileBaseNameInfo['status'] === false ) {
+				echo $fileBaseNameInfo['info'];
+			} else {
+				$fileBaseNameInfo = $fileBaseNameInfo['info'];
+			}
+			$infoContents = $this->getInfoFile( $fileBaseNameInfo );
+			$pageContentFromWiki = PSSlots::getSlotsContentForPage( $pageId );
+			if ( in_array( $k, $this->serverFileList ) ) {
+				echo $this->progressBar( $i, $this->indexListCount,
+					Colors::cEcho( $k,
+						"yellow",
+						false,
+						"OK",
+						"",
+						false
+					) );
+				// sleep( 1 );
+			} else {
+				$indexErrors++;
+				$this->addError( "index2server", self::FILE_IN_INDEX_NOT_ON_SERVER, $k );
+				echo Colors::cEcho(
+					str_pad( $number . $k, 100, "." ),
+					"yellow",
+					false,
+					"FAIL",
+					"",
+					true
+				);
+			}
+			$i++;
+		}
+		echo "\033[K";
+		echo Colors::cEcho( "Checking if Index entry exists on server (index2server)",
+			"blue+bold",
+			true,
+			$indexErrors . " error(s) found",
+			"END",
+			true );
+		return $indexErrors;
+	}
+
 	public function analyze() {
 		$this->serverFullList = PSCore::getFilesFromServer();
 		if ( !empty( $this->serverFullList ) ) {
