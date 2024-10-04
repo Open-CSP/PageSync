@@ -90,9 +90,12 @@ class PSAnalyzer {
 	/**
 	 * @param string $infoFile
 	 *
-	 * @return array
+	 * @return ?array
 	 */
-	private function getInfoFile( string $infoFile ): array {
+	private function getInfoFile( string $infoFile ): ?array {
+		if ( !file_exists( $infoFile ) ) {
+			return null;
+		}
 		return json_decode( file_get_contents( $infoFile ), true );
 	}
 
@@ -252,7 +255,7 @@ class PSAnalyzer {
 						"",
 						false
 					) );
-				// sleep( 1 );
+				  // sleep( 1 );
 			} else {
 				$indexErrors++;
 				$this->addError( "index2server", self::FILE_IN_INDEX_NOT_ON_SERVER, $k );
@@ -300,7 +303,21 @@ class PSAnalyzer {
 			} else {
 				$fileBaseNameInfo = $fileBaseNameInfo['info'];
 			}
+			// todo: Catch if file does not exist!
 			$infoContents = $this->getInfoFile( $fileBaseNameInfo );
+			if ( $infoContents === null ) {
+				$indexErrors++;
+				$this->addError( "server2wiki", "Info file missing on server", $k );
+				echo Colors::cEcho(
+					str_pad( $number . $k, 100, "." ),
+					"yellow",
+					false,
+					"FAIL",
+					"",
+					true
+				);
+				continue;
+			}
 			$pageContentFromWiki = PSSlots::getSlotsContentForPage( $pageId );
 			if ( isset( $infoContents['slots'] ) ) {
 				$infoSlots = explode( ',', $infoContents['slots'] );
