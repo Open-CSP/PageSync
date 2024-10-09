@@ -65,6 +65,10 @@ class PSAnalyzer {
 		$perc = round( ( $done * 100 ) / $total );
 		$bar = round( ( $width * $perc ) / 100 );
 
+		if ( $bar > $width ) {
+			$bar = $width;
+		}
+
 		return sprintf(
 			"\033[K%s%%[%s>%s] %s/%s %s\r",
 			$perc,
