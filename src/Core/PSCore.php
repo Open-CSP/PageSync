@@ -101,16 +101,23 @@ class PSCore {
 		if ( empty( $content ) ) {
 			return [];
 		}
-		return json_decode(
+
+		$json = json_decode(
 			file_get_contents( $indexFile ),
 			true
 		);
+
+		if ( $json === null ) {
+			return [];
+		}
+		return $json;
 	}
 
 	/**
 	 * @param int $id
+	 * @param bool $fullTitle
 	 *
-	 * @return false|string Either Title as string or false
+	 * @return false|string|null
 	 */
 	public static function getPageTitle( int $id, bool $fullTitle = false ) {
 		$article = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id );

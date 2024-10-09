@@ -100,6 +100,7 @@ class PSAnalyzer {
 		if ( !file_exists( $infoFile ) ) {
 			return null;
 		}
+		$json = json_decode( file_get_contents( $infoFile ), true );
 		return json_decode( file_get_contents( $infoFile ), true );
 	}
 
@@ -131,6 +132,11 @@ class PSAnalyzer {
 			$info = $this->getInfoFile( $infoFile );
 			$pathInfo = pathinfo( $infoFile );
 			$infoFileName = $pathInfo['filename'];
+			if ( $info === null ) {
+				$this->addError( "info-structure", "Missing .info file or not a JSON", $infoFileName );
+				$indexErrors++;
+				continue;
+			}
 			$number = str_pad( $i, 5 ) . ": ";
 			foreach ( $keys as $k ) {
 				if ( !array_key_exists( $k, $info ) ) {
@@ -311,7 +317,7 @@ class PSAnalyzer {
 			$infoContents = $this->getInfoFile( $fileBaseNameInfo );
 			if ( $infoContents === null ) {
 				$indexErrors++;
-				$this->addError( "server2wiki", "Info file missing on server", $k );
+				$this->addError( "server2wiki", "Info file missing on server or not a valid JSON", $k );
 				echo Colors::cEcho(
 					str_pad( $number . $k, 100, "." ),
 					"yellow",

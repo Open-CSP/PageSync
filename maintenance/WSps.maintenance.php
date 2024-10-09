@@ -273,6 +273,11 @@ class importPagesIntoWiki extends Maintenance {
 			}
 		}
 
+		if ( $this->hasOption( 'analyze' ) ) {
+			$analyzer = new PSAnalyzer();
+			$analyzer->analyze();
+			return;
+		}
 
 		if ( PSConverter::checkFileConsistency() === false ) {
 			if ( !$silent ) {
@@ -290,12 +295,6 @@ class importPagesIntoWiki extends Maintenance {
 			$skipped = $result['skipped'];
 			echo "\nWorked with $cnt file(s), skipped $skipped files and index Rebuild.\nDone!\n";
 			die();
-		}
-
-		if ( $this->hasOption( 'analyze' ) ) {
-			$analyzer = new PSAnalyzer();
-			$analyzer->analyze();
-			return;
 		}
 
 		if ( PSConverter::checkFileConsistency2() === false ) {
