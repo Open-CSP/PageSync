@@ -100,7 +100,6 @@ class PSAnalyzer {
 		if ( !file_exists( $infoFile ) ) {
 			return null;
 		}
-		$json = json_decode( file_get_contents( $infoFile ), true );
 		return json_decode( file_get_contents( $infoFile ), true );
 	}
 
@@ -120,11 +119,12 @@ class PSAnalyzer {
 	private function checkInfoFiles(): int {
 		$keys = [ 'filename','pagetitle', 'ns', 'username', 'changed', 'pageid', 'slots', 'models',
 			'isFile', 'description', 'tags' ];
-		echo Colors::cEcho( "Checking .info File structure (info-structure)",
+		echo Colors::cEcho(
+			wfMessage( "wsps-maintenance-analyze-info-structure-heading" ),
 			"blue+bold",
 			true,
 			"",
-			"START",
+			wfMessage( "wsps-maintenance-analyze-start" ),
 			true );
 		$i = 1;
 		$indexErrors = 0;
@@ -134,12 +134,13 @@ class PSAnalyzer {
 			$infoFileName = $pathInfo['filename'];
 			$number = str_pad( $i, 5 ) . ": ";
 			if ( $info === null ) {
-				$this->addError( "info-structure", "Missing .info file or not a JSON", $infoFileName );
+				$this->addError( wfMessage( "wsps-maintenance-analyze-info-structure" ),
+					wfMessage( "wsps-maintenance-analyze-missing-file-or-invalid-json" ), $infoFileName );
 				echo Colors::cEcho(
 					str_pad( $number . $infoFileName, 100, "." ),
 					"yellow",
 					false,
-					"FAIL",
+					wfMessage( "wsps-maintenance-analyze-fail" ),
 					"",
 					true
 				);
@@ -149,12 +150,13 @@ class PSAnalyzer {
 			foreach ( $keys as $k ) {
 				if ( !array_key_exists( $k, $info ) ) {
 					$indexErrors++;
-					$this->addError( "info-structure", "Missing variable in .info file: " . $k, $infoFileName );
+					$this->addError( wfMessage( "wsps-maintenance-analyze-info-structure" ),
+						wfMessage( "wsps-maintenance-analyze-info-structure-missing-variable", $k ), $infoFileName );
 					echo Colors::cEcho(
 						str_pad( $number . $infoFileName, 100, "." ),
 						"yellow",
 						false,
-						"FAIL",
+						wfMessage( "wsps-maintenance-analyze-fail" ),
 						"",
 						true
 					);
@@ -167,13 +169,14 @@ class PSAnalyzer {
 					$slotFileName = $this->getFileNameForSlot( $infoFileName, $slotName );
 					if ( !file_exists( PSConfig::$config['exportPath'] . $slotFileName ) ) {
 						$indexErrors++;
-						$this->addError( "info-structure", "Missing .wiki file on server: "
-							. $slotFileName, $infoFileName );
+						$this->addError( wfMessage( "wsps-maintenance-analyze-info-structure" ),
+							wfMessage( "wsps-maintenance-analyze-info-structure-missing-wiki", $slotFileName ),
+							$infoFileName );
 						echo Colors::cEcho(
 							str_pad( $number . $infoFileName, 100, "." ),
 							"yellow",
 							false,
-							"FAIL",
+							wfMessage( "wsps-maintenance-analyze-fail" ),
 							"",
 							true
 						);
@@ -193,11 +196,11 @@ class PSAnalyzer {
 		}
 
 		echo "\033[K";
-		echo Colors::cEcho( "Checking .info File structure (info-structure)",
+		echo Colors::cEcho( wfMessage( "wsps-maintenance-analyze-info-structure-heading" ),
 			"blue+bold",
 			true,
-			$indexErrors . " error(s) found",
-			"END",
+			wfMessage( "wsps-maintenance-analyze-errors-found", $indexErrors ),
+			wfMessage( "wsps-maintenance-analyze-end" ),
 			true );
 		return $indexErrors;
 	}
@@ -206,11 +209,11 @@ class PSAnalyzer {
 	 * @return int
 	 */
 	private function checkServerFiles(): int {
-		echo Colors::cEcho( "Checking if .info File exists in index (server2index)",
+		echo Colors::cEcho( wfMessage( "wsps-maintenance-analyze-server-index-heading" ),
 			"blue+bold",
 			true,
 			"",
-			"START",
+			wfMessage( "wsps-maintenance-analyze-start" ),
 			true );
 		$i = 1;
 		$indexErrors = 0;
@@ -221,25 +224,28 @@ class PSAnalyzer {
 					Colors::cEcho( $infoFile,
 						"yellow",
 						false,
-						"OK",
+						wfMessage( "wsps-maintenance-analyze-ok" ),
 						"",
 						false
 					) );
 				// sleep( 1 );
 			} else {
 				$indexErrors++;
-				$this->addError( "server2index", self::FILE_ON_SERVER_NOT_IN_INDEX, $infoFile );
+				$this->addError( wfMessage( "wsps-maintenance-analyze-server-index" ),
+					self::FILE_ON_SERVER_NOT_IN_INDEX, $infoFile );
 				echo Colors::cEcho(
 					str_pad( $number . $infoFile, 100, "." ),
 					"yellow",
 					false,
-					"FAIL",
+					wfMessage( "wsps-maintenance-analyze-fail" ),
 					"",
 					true
 				);
 			}
 			$i++;
 		}
+
+		// TODO: Ended here with i18n
 		echo "\033[K";
 		echo Colors::cEcho( "Checking if .info File exists in index (server2index)",
 			"blue+bold",
