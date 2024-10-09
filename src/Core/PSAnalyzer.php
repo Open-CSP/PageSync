@@ -132,12 +132,20 @@ class PSAnalyzer {
 			$info = $this->getInfoFile( $infoFile );
 			$pathInfo = pathinfo( $infoFile );
 			$infoFileName = $pathInfo['filename'];
+			$number = str_pad( $i, 5 ) . ": ";
 			if ( $info === null ) {
 				$this->addError( "info-structure", "Missing .info file or not a JSON", $infoFileName );
+				echo Colors::cEcho(
+					str_pad( $number . $infoFileName, 100, "." ),
+					"yellow",
+					false,
+					"FAIL",
+					"",
+					true
+				);
 				$indexErrors++;
 				continue;
 			}
-			$number = str_pad( $i, 5 ) . ": ";
 			foreach ( $keys as $k ) {
 				if ( !array_key_exists( $k, $info ) ) {
 					$indexErrors++;
