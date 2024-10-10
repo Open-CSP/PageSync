@@ -329,6 +329,7 @@ class PSAnalyzer {
 			$infoContents = $this->getInfoFile( $fileBaseNameInfo );
 			if ( $infoContents === null ) {
 				$indexErrors++;
+				echo "\033[K";
 				$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' )->plain(),
 					wfMessage( 'wsps-maintenance-analyze-missing-file-or-invalid-json' )->plain(), $k );
 				echo Colors::cEcho(
@@ -350,6 +351,7 @@ class PSAnalyzer {
 				$slotFile = PSCore::getFileContent( $k, $slotToCheck );
 				if ( $slotFile === false ) {
 					$indexErrors++;
+					echo "\033[K";
 					$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' )->plain(),
 						wfMessage( 'wsps-maintenance-analyze-server-wiki-error-slot-missing',
 							$slotToCheck )->plain(), $k );
@@ -376,6 +378,7 @@ class PSAnalyzer {
 						) );
 				} else {
 					$indexErrors++;
+					echo "\033[K";
 					$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' )->plain(),
 						wfMessage( 'wsps-maintenance-analyze-server-wiki-error-slot-unsynced', $slotToCheck )->plain(),
 						$k );
