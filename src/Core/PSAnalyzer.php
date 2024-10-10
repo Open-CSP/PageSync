@@ -245,13 +245,12 @@ class PSAnalyzer {
 			$i++;
 		}
 
-		// TODO: Ended here with i18n
 		echo "\033[K";
-		echo Colors::cEcho( "Checking if .info File exists in index (server2index)",
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-server-index-heading' ),
 			"blue+bold",
 			true,
-			$indexErrors . " error(s) found",
-			"END",
+			wfMessage( 'wsps-maintenance-analyze-errors-found', $indexErrors ),
+			wfMEssage( "wsps-maintenance-analyze-end" ),
 			true );
 		return $indexErrors;
 	}
@@ -260,11 +259,11 @@ class PSAnalyzer {
 	 * @return int
 	 */
 	private function checkIndex(): int {
-		echo Colors::cEcho( "Checking if Index entry exists on server (index2server)",
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-index-server-heading' ),
 			"blue+bold",
 			true,
 			"",
-			"START",
+			wfMessage( "wsps-maintenance-analyze-start" ),
 			true );
 		$i = 1;
 		$indexErrors = 0;
@@ -275,19 +274,20 @@ class PSAnalyzer {
 					Colors::cEcho( $k,
 						"yellow",
 						false,
-						"OK",
+						wfMessage( "wsps-maintenance-analyze-ok" ),
 						"",
 						false
 					) );
 				  // sleep( 1 );
 			} else {
 				$indexErrors++;
-				$this->addError( "index2server", self::FILE_IN_INDEX_NOT_ON_SERVER, $k );
+				$this->addError( wfMessage( 'wsps-maintenance-analyze-index-server' ),
+					wfMessage( 'wsps-maintenance-analyze-file-in-index-not-server' ), $k );
 				echo Colors::cEcho(
 					str_pad( $number . $k, 100, "." ),
 					"yellow",
 					false,
-					"FAIL",
+					wfMessage( "wsps-maintenance-analyze-fail" ),
 					"",
 					true
 				);
@@ -295,11 +295,11 @@ class PSAnalyzer {
 			$i++;
 		}
 		echo "\033[K";
-		echo Colors::cEcho( "Checking if Index entry exists on server (index2server)",
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-index-server-heading' ),
 			"blue+bold",
 			true,
-			$indexErrors . " error(s) found",
-			"END",
+			wfMessage( 'wsps-maintenance-analyze-errors-found', $indexErrors ),
+			wfMessage( "wsps-maintenance-analyze-end" ),
 			true );
 		return $indexErrors;
 	}
@@ -308,11 +308,11 @@ class PSAnalyzer {
 	 * @return int
 	 */
 	private function checkSync(): int {
-		echo Colors::cEcho( "Checking if files on server are in sync with Wiki (server2wiki)",
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-server-wiki-heading' ),
 			"blue+bold",
 			true,
 			"",
-			"START",
+			wfMessage( "wsps-maintenance-analyze-start" ),
 			true );
 		$i = 1;
 		$indexErrors = 0;
@@ -331,12 +331,13 @@ class PSAnalyzer {
 			$infoContents = $this->getInfoFile( $fileBaseNameInfo );
 			if ( $infoContents === null ) {
 				$indexErrors++;
-				$this->addError( "server2wiki", "Info file missing on server or not a valid JSON", $k );
+				$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' ),
+					wfMessage( 'wsps-maintenance-analyze-missing-file-or-invalid-json' ), $k );
 				echo Colors::cEcho(
 					str_pad( $number . $k, 100, "." ),
 					"yellow",
 					false,
-					"FAIL",
+					wfMessage( "wsps-maintenance-analyze-fail" ),
 					"",
 					true
 				);
@@ -351,12 +352,13 @@ class PSAnalyzer {
 				$slotFile = PSCore::getFileContent( $k, $slotToCheck );
 				if ( $slotFile === false ) {
 					$indexErrors++;
-					$this->addError( "server2wiki", "Slot '$slotToCheck' is missing on server/", $k );
+					$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' ),
+						wfMessage( 'wsps-maintenance-analyze-server-wiki-error-slot-missing', $slotToCheck ), $k );
 					echo Colors::cEcho(
 						str_pad( $number . $k, 100, "." ),
 						"yellow",
 						false,
-						"FAIL",
+						wfMessage( "wsps-maintenance-analyze-fail" ),
 						"",
 						true
 					);
@@ -365,23 +367,24 @@ class PSAnalyzer {
 				// var_dump( $slotFile );
 				if ( $pageContentFromWiki[$slotToCheck]['content'] === $slotFile ) {
 					echo $this->progressBar( $i, $this->indexListCount,
-						Colors::cEcho( $k . " Slot : $slotToCheck",
+						Colors::cEcho( $k . wfMessage( 'wsps-maintenance-analyze-server-wiki-slot' )
+							. $slotToCheck,
 							"yellow",
 							false,
-							"OK",
+							wfMessage( "wsps-maintenance-analyze-ok" ),
 							"",
 							false
 						) );
 				} else {
 					$indexErrors++;
-					$this->addError( "server2wiki",
-						"Slot '$slotToCheck' content in Wiki and on Server are not identical",
+					$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' ),
+						wfMessage( 'wsps-maintenance-analyze-server-wiki-error-slot-unsynced', $slotToCheck ),
 						$k );
 					echo Colors::cEcho(
 						str_pad( $number . $k, 100, "." ),
 						"yellow",
 						false,
-						"FAIL",
+						wfMessage( "wsps-maintenance-analyze-fail" ),
 						"",
 						true
 					);
@@ -390,11 +393,11 @@ class PSAnalyzer {
 			$i++;
 		}
 		echo "\033[K";
-		echo Colors::cEcho( "Checking if files on server are in sync with Wiki (server2wiki)",
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-server-wiki-heading' ),
 			"blue+bold",
 			true,
-			$indexErrors . " error(s) found",
-			"END",
+			wfMessage( 'wsps-maintenance-analyze-errors-found', $indexErrors ),
+			wfMessage( "wsps-maintenance-analyze-end" ),
 			true );
 		return $indexErrors;
 	}
@@ -417,14 +420,19 @@ class PSAnalyzer {
 		} else {
 			$this->indexList = $indexList;
 		}
-		echo Colors::cEcho( "Analyzing...", "blue+bold", true, "", "START", true );
-		echo Colors::cEcho( "--------------------", "white", false, "", "", true );
-		echo Colors::cEcho( "PageSync index path  : " . $psIndexPathColor, "white" );
-		echo Colors::cEcho( "PageSync export path : " . $psExportPathColor, "white" );
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing"' ),
+			"blue+bold", true, "", wfMessage( 'wsps-maintenance-analyze-start' ), true );
+		echo Colors::cEcho( "--------------------",
+			"white", false, "", "", true );
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-index-path' ) . $psIndexPathColor,
+			"white" );
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-export-path' ) . $psExportPathColor,
+			"white" );
 		echo "\n";
 		if ( empty( $this->indexList ) === false && empty( $this->serverFullList ) ) {
-			echo Colors::cEcho( "Index and server files are empty. Nothing to work on", "white", false, "", "", true );
-			echo Colors::cEcho( "Analyzing...", "blue+bold", true, "", "END", true );
+			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-nothing' ), "white", false, "", "", true );
+			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' ),
+				"blue+bold", true, "", "END", true );
 			return;
 		}
 		if ( empty( $this->indexList ) && !empty( $this->serverFullList ) ) {
@@ -434,7 +442,8 @@ class PSAnalyzer {
 				$i++;
 				echo Colors::cEcho( str_pad( $i, 3 ) . " : " . $file, "yellow", false, "", "", true );
 			}
-			echo Colors::cEcho( "Analyzing...", "blue+bold", true, "", "END", true );
+			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' ),
+				"blue+bold", true, "", wfMessage( 'wsps-maintenance-analyze-end' ), true );
 			return;
 		}
 
@@ -442,30 +451,29 @@ class PSAnalyzer {
 		$this->serverFileCount = count( $this->serverFullList );
 		$indexColorCount = Colors::cEcho( $this->indexListCount, "bold+yellow", false, "", "", false );
 		$filesColorCount = Colors::cEcho( $this->serverFileCount, "bold+yellow", false, "", "", false );
-		echo Colors::cEcho( "Index  File entries : " . $indexColorCount, "white" );
-		echo Colors::cEcho( "Server File entries : " . $filesColorCount, "white" );
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-index-file-entries' ) . $indexColorCount, "white" );
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-server-file-entries' ) . $filesColorCount, "white" );
 		$this->totalErrors += $this->checkIndex();
 		$this->totalErrors += $this->checkServerFiles();
 		$this->totalErrors += $this->checkInfoFiles();
 		$this->totalErrors += $this->checkSync();
 		echo "\n\n";
 		echo Colors::cEcho( "--------------------", "white", false, "", "", true );
-		echo Colors::cEcho( "Analyzing...",
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' ),
 			"blue+bold",
 			true,
-			$this->totalErrors . " error(s) found",
-			"END",
+			wfMessage( 'wsps-maintenance-analyze-errors-found', $this->totalErrors ),
+			wfMessage( 'wsps-maintenance-analyze-end' ),
 			true );
 		if ( $this->totalErrors === 0 ) {
 			echo "\n\n"
-				. Colors::cEcho(
-					"PageSync seems to be in top shape! No Admins have been messing around!" .
-					" Give them a tap on the back for a good job!",
+				. Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-nothing-found' ),
 					"green+bold" );
 			echo "\n\n";
 		} else {
 			$i = 1;
-			echo "\n\n" . Colors::cEcho( "PageSync has found some inconsistencies! ($this->totalErrors)", "red+bold" );
+			echo "\n\n" . Colors::cEcho(
+				wfMessage( 'wsps-maintenance-analyze-errors-found-total', $this->totalErrors ), "red+bold" );
 			foreach ( $this->errorList as $error ) {
 				echo Colors::cEcho( '"' . $error["message"] . '"',
 					"yellow",
