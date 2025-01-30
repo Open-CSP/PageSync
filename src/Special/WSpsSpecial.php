@@ -12,6 +12,7 @@ use ApiMain;
 use DerivativeRequest;
 use ExtensionRegistry;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserGroupManager;
 use PageSync\Core\PSConfig;
 use PageSync\Core\PSConverter;
 use PageSync\Core\PSCore;
@@ -172,10 +173,10 @@ class WSpsSpecial extends SpecialPage {
 	 */
 	public function execute( $sub ) {
 		$user = $this->getUser();
+		$groups = MediaWikiServices::getInstance()->getUserGroupManager()->getUserGroups( $user );
 		global $IP, $wgScript;
 		$out            = $this->getOutput();
 		$usr            = $user->getName();
-		$groups         = $user->getGroups();
 		$showAnyMessage = false;
 		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();

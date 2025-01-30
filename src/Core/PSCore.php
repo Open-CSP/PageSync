@@ -138,7 +138,7 @@ class PSCore {
 	 * @return false|string Either Title as string or false
 	 */
 	public static function getPageTitleForFileName( int $id ) {
-		$article = WikiPage::newFromId( $id );
+		$article = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id );
 		if ( $article instanceof WikiPage ) {
 			$title = $article->getTitle()->getText();
 			$ns = $article->getTitle()->getNamespace();

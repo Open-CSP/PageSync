@@ -28,7 +28,7 @@ class PSSlots {
 	 * @return array|false
 	 */
 	public static function getSlotNamesForPageAndRevision( int $id ) {
-		$page = WikiPage::newFromId( $id );
+		$page = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id );
 		if ( $page === false || $page === null ) {
 			return false;
 		}
