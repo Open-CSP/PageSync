@@ -192,6 +192,7 @@
   "wsps-maintenance-analyze-export-path": "PageSync export path : ",
   "wsps-maintenance-analyze-index-file-entries": "Index  File entries : ",
   "wsps-maintenance-analyze-server-file-entries": "Server File entries : ",
+  "wsps-maintenance-analyze-error-no-slot-content": "Could not retrieve slot content",
   "wsps-maintenance-analyze-nothing": "Index and server files are empty. Nothing to work on",
   "wsps-maintenance-analyze-missing-file-or-invalid-json": "Missing .info file or not a JSON",
   "wsps-maintenance-analyze-file-in-index-not-server": "Entry in Index File, but not on server as .info File",

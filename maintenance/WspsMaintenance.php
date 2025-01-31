@@ -1,5 +1,6 @@
 <?php
 
+use MediaWiki\Page\PageAssertionException;
 use PageSync\Core\PSAnalyzer;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
@@ -11,6 +12,7 @@ use PageSync\Core\PSNameSpaceUtils;
 use PageSync\Core\PSSlots;
 use PageSync\Helpers\PSShare;
 
+
 $IP = getenv( 'MW_INSTALL_PATH' );
 if ( $IP === false ) {
 	$IP = __DIR__ . '/../../..';
@@ -20,7 +22,7 @@ require_once "$IP/maintenance/Maintenance.php";
 /**
  * Maintenance class to import PageSync pages
  */
-class importPagesIntoWiki extends Maintenance {
+#[AllowDynamicProperties] class WspsMaintenance extends Maintenance {
 
 	/**
 	 * @var string
@@ -29,7 +31,8 @@ class importPagesIntoWiki extends Maintenance {
 
 	public function __construct() {
 		parent::__construct();
-		$this->mDescription = "Import pages into Wiki that have been set to sync by the PageSync extension.\n";
+		$this->addDescription = "Import pages into Wiki that have been set to sync by the PageSync extension.\n";
+		$this->requireExtension( 'PageSync' );
 		$this->addOption(
 			'summary',
 			'Additional text that will be added to the files imported History. [optional]',
@@ -258,10 +261,10 @@ class importPagesIntoWiki extends Maintenance {
 			$IP = __DIR__ . '/../..';
 		}
 		if ( !$silent ) {
-			echo "\n\n\n";
+			echo "\n\n";
 			echo "********************************************************************\n";
 			echo str_pad( "** PageSync version \e[36m$versionCurrent\e[0m", 75 ) . "**\n";
-			echo "** /WSps/maintenance/WSps.maintenance.php                         **\n";
+			echo "** /PageSync/maintenance/WspsMaintenance.php                      **\n";
 			echo "********************************************************************\n";
 			echo "** Maintenance functions. Check manual for info                   **\n";
 			echo "********************************************************************\n";
@@ -620,7 +623,7 @@ class importPagesIntoWiki extends Maintenance {
 			}
 			try {
 				$wikiPageObject = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $title );
-			} catch ( MWException $e ) {
+			} catch ( PageAssertionException $e ) {
 				if ( !$silent ) {
 					echo "Could not create a WikiPage Object from title " . $title->getText(
 						) . '. Message ' . $e->getMessage();
@@ -767,5 +770,5 @@ class importPagesIntoWiki extends Maintenance {
 	}
 }
 
-$maintClass = importPagesIntoWiki::class;
+$maintClass = WspsMaintenance::class;
 require_once RUN_MAINTENANCE_IF_MAIN;

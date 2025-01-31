@@ -11,6 +11,7 @@
 namespace PageSync\Core;
 
 
+use Exception;
 use PageSync\Helpers\Colors;
 
 class PSAnalyzer {
@@ -58,7 +59,7 @@ class PSAnalyzer {
 	 *
 	 * @return string
 	 */
-	private function progressBar( $done, $total, $info = "", $width = 50 ) {
+	private function progressBar( int $done, int $total, string $info = "", int $width = 50 ): string {
 		$perc = round( ( $done * 100 ) / $total );
 		$bar = round( ( $width * $perc ) / 100 );
 
@@ -84,7 +85,7 @@ class PSAnalyzer {
 	 *
 	 * @return void
 	 */
-	private function addError( string $type, string $message, string $entry ) {
+	private function addError( string $type, string $message, string $entry ): void {
 		$this->errorList[] = [ "type" => $type, "message" => $message, "entry" => $entry ];
 	}
 
@@ -121,8 +122,7 @@ class PSAnalyzer {
 			"blue+bold",
 			true,
 			"",
-			wfMessage( "wsps-maintenance-analyze-start" )->plain(),
-			true );
+			wfMessage( "wsps-maintenance-analyze-start" )->plain() );
 		$i = 1;
 		$indexErrors = 0;
 		foreach ( $this->serverFullList as $infoFile ) {
@@ -137,9 +137,7 @@ class PSAnalyzer {
 					str_pad( $number . $infoFileName, 100, "." ),
 					"yellow",
 					false,
-					wfMessage( "wsps-maintenance-analyze-fail" )->plain(),
-					"",
-					true
+					wfMessage( "wsps-maintenance-analyze-fail" )->plain()
 				);
 				$indexErrors++;
 				continue;
@@ -154,10 +152,7 @@ class PSAnalyzer {
 						str_pad( $number . $infoFileName, 100, "." ),
 						"yellow",
 						false,
-						wfMessage( "wsps-maintenance-analyze-fail" )->plain(),
-						"",
-						true
-					);
+						wfMessage( "wsps-maintenance-analyze-fail" )->plain() );
 				}
 			}
 			if ( array_key_exists( 'slots', $info ) ) {
@@ -174,10 +169,7 @@ class PSAnalyzer {
 							str_pad( $number . $infoFileName, 100, "." ),
 							"yellow",
 							false,
-							wfMessage( "wsps-maintenance-analyze-fail" )->plain(),
-							"",
-							true
-						);
+							wfMessage( "wsps-maintenance-analyze-fail" )->plain() );
 					}
 				}
 			}
@@ -198,8 +190,7 @@ class PSAnalyzer {
 			"blue+bold",
 			true,
 			wfMessage( "wsps-maintenance-analyze-errors-found", $indexErrors )->plain(),
-			wfMessage( "wsps-maintenance-analyze-end" )->plain(),
-			true );
+			wfMessage( "wsps-maintenance-analyze-end" )->plain() );
 		return $indexErrors;
 	}
 
@@ -211,8 +202,7 @@ class PSAnalyzer {
 			"blue+bold",
 			true,
 			"",
-			wfMessage( "wsps-maintenance-analyze-start" )->plain(),
-			true );
+			wfMessage( "wsps-maintenance-analyze-start" )->plain() );
 		$i = 1;
 		$indexErrors = 0;
 		foreach ( $this->serverFileList as $infoFile ) {
@@ -235,10 +225,7 @@ class PSAnalyzer {
 					str_pad( $number . $infoFile, 100, "." ),
 					"yellow",
 					false,
-					wfMessage( "wsps-maintenance-analyze-fail" )->plain(),
-					"",
-					true
-				);
+					wfMessage( "wsps-maintenance-analyze-fail" )->plain() );
 			}
 			$i++;
 		}
@@ -248,8 +235,7 @@ class PSAnalyzer {
 			"blue+bold",
 			true,
 			wfMessage( 'wsps-maintenance-analyze-errors-found', $indexErrors )->plain(),
-			wfMEssage( "wsps-maintenance-analyze-end" )->plain(),
-			true );
+			wfMEssage( "wsps-maintenance-analyze-end" )->plain() );
 		return $indexErrors;
 	}
 
@@ -261,8 +247,7 @@ class PSAnalyzer {
 			"blue+bold",
 			true,
 			"",
-			wfMessage( "wsps-maintenance-analyze-start" )->plain(),
-			true );
+			wfMessage( "wsps-maintenance-analyze-start" )->plain() );
 		$i = 1;
 		$indexErrors = 0;
 		foreach ( $this->indexList as $k => $indexEntry ) {
@@ -285,10 +270,7 @@ class PSAnalyzer {
 					str_pad( $number . $k, 100, "." ),
 					"yellow",
 					false,
-					wfMessage( "wsps-maintenance-analyze-fail" )->plain(),
-					"",
-					true
-				);
+					wfMessage( "wsps-maintenance-analyze-fail" )->plain() );
 			}
 			$i++;
 		}
@@ -297,8 +279,7 @@ class PSAnalyzer {
 			"blue+bold",
 			true,
 			wfMessage( 'wsps-maintenance-analyze-errors-found', $indexErrors )->plain(),
-			wfMessage( "wsps-maintenance-analyze-end" )->plain(),
-			true );
+			wfMessage( "wsps-maintenance-analyze-end" )->plain() );
 		return $indexErrors;
 	}
 
@@ -310,8 +291,7 @@ class PSAnalyzer {
 			"blue+bold",
 			true,
 			"",
-			wfMessage( "wsps-maintenance-analyze-start" )->plain(),
-			true );
+			wfMessage( "wsps-maintenance-analyze-start" )->plain() );
 		$i = 1;
 		$indexErrors = 0;
 		foreach ( $this->indexList as $k => $indexEntry ) {
@@ -336,13 +316,23 @@ class PSAnalyzer {
 					str_pad( $number . $k, 100, "." ),
 					"yellow",
 					false,
-					wfMessage( "wsps-maintenance-analyze-fail" )->plain(),
-					"",
-					true
-				);
+					wfMessage( "wsps-maintenance-analyze-fail" )->plain() );
 				continue;
 			}
-			$pageContentFromWiki = PSSlots::getSlotsContentForPage( $pageId );
+			try {
+				$pageContentFromWiki = PSSlots::getSlotsContentForPage( $pageId );
+			} catch ( Exception $e ) {
+				$indexErrors++;
+				echo "\033[K";
+				$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' )->plain(),
+					wfMessage( 'wsps-maintenance-analyze-error-no-slot-content: ' )->plain(), $e->getMessage() );
+				echo Colors::cEcho(
+					str_pad( $number . $k, 100, "." ),
+					"yellow",
+					false,
+					wfMessage( "wsps-maintenance-analyze-fail" )->plain() );
+				continue;
+			}
 			if ( isset( $infoContents['slots'] ) ) {
 				$infoSlots = explode( ',', $infoContents['slots'] );
 			}
@@ -359,10 +349,7 @@ class PSAnalyzer {
 						str_pad( $number . $k, 100, "." ),
 						"yellow",
 						false,
-						wfMessage( "wsps-maintenance-analyze-fail" )->plain(),
-						"",
-						true
-					);
+						wfMessage( "wsps-maintenance-analyze-fail" )->plain() );
 					continue;
 				}
 				// var_dump( $slotFile );
@@ -386,10 +373,7 @@ class PSAnalyzer {
 						str_pad( $number . $k, 100, "." ),
 						"yellow",
 						false,
-						wfMessage( "wsps-maintenance-analyze-fail" )->plain(),
-						"",
-						true
-					);
+						wfMessage( "wsps-maintenance-analyze-fail" )->plain() );
 				}
 			}
 			$i++;
@@ -399,12 +383,14 @@ class PSAnalyzer {
 			"blue+bold",
 			true,
 			wfMessage( 'wsps-maintenance-analyze-errors-found', $indexErrors )->plain(),
-			wfMessage( "wsps-maintenance-analyze-end" )->plain(),
-			true );
+			wfMessage( "wsps-maintenance-analyze-end" )->plain() );
 		return $indexErrors;
 	}
 
-	public function analyze() {
+	/**
+	 * @return void
+	 */
+	public function analyze(): void {
 		$this->serverFullList = PSCore::getFilesFromServer();
 		if ( !empty( $this->serverFullList ) ) {
 			foreach ( $this->serverFullList as $file ) {
@@ -423,31 +409,26 @@ class PSAnalyzer {
 			$this->indexList = $indexList;
 		}
 		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' )->plain(),
-			"blue+bold", true, "", wfMessage( 'wsps-maintenance-analyze-start' )->plain(), true );
-		echo Colors::cEcho( "--------------------",
-			"white", false, "", "", true );
-		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-index-path' )->plain() . $psIndexPathColor,
-			"white" );
-		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-export-path' )->plain() . $psExportPathColor,
-			"white" );
+			"blue+bold", true, "", wfMessage( 'wsps-maintenance-analyze-start' )->plain() );
+		echo Colors::cEcho( "--------------------" );
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-index-path' )->plain() . $psIndexPathColor );
+		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-export-path' )->plain() . $psExportPathColor );
 		echo "\n";
 		if ( empty( $this->indexList ) === false && empty( $this->serverFullList ) ) {
-			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-nothing' )->plain(),
-				"white", false, "", "", true );
+			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-nothing' )->plain() );
 			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' )->plain(),
-				"blue+bold", true, "", "END", true );
+				"blue+bold", true, "", "END" );
 			return;
 		}
 		if ( empty( $this->indexList ) && !empty( $this->serverFullList ) ) {
-			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-empty-index-but-files' )->plain(),
-				"white", false, "", "", true );
+			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-empty-index-but-files' )->plain() );
 			$i = 0;
 			foreach ( $this->serverFileList as $file ) {
 				$i++;
-				echo Colors::cEcho( str_pad( $i, 3 ) . " : " . $file, "yellow", false, "", "", true );
+				echo Colors::cEcho( str_pad( $i, 3 ) . " : " . $file, "yellow" );
 			}
 			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' )->plain(),
-				"blue+bold", true, "", wfMessage( 'wsps-maintenance-analyze-end' )->plain(), true );
+				"blue+bold", true, "", wfMessage( 'wsps-maintenance-analyze-end' )->plain() );
 			return;
 		}
 
@@ -456,21 +437,20 @@ class PSAnalyzer {
 		$indexColorCount = Colors::cEcho( $this->indexListCount, "bold+yellow", false, "", "", false );
 		$filesColorCount = Colors::cEcho( $this->serverFileCount, "bold+yellow", false, "", "", false );
 		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-index-file-entries' )->plain()
-			. $indexColorCount, "white" );
+			. $indexColorCount );
 		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-server-file-entries' )->plain()
-			. $filesColorCount, "white" );
+			. $filesColorCount );
 		$this->totalErrors += $this->checkIndex();
 		$this->totalErrors += $this->checkServerFiles();
 		$this->totalErrors += $this->checkInfoFiles();
 		$this->totalErrors += $this->checkSync();
 		echo "\n\n";
-		echo Colors::cEcho( "--------------------", "white", false, "", "", true );
+		echo Colors::cEcho( "--------------------" );
 		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' )->plain(),
 			"blue+bold",
 			true,
 			wfMessage( 'wsps-maintenance-analyze-errors-found', $this->totalErrors )->plain(),
-			wfMessage( 'wsps-maintenance-analyze-end' )->plain(),
-			true );
+			wfMessage( 'wsps-maintenance-analyze-end' )->plain() );
 		if ( $this->totalErrors === 0 ) {
 			echo "\n\n"
 				. Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-nothing-found' )->plain(),

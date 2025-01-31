@@ -11,6 +11,7 @@
 namespace PageSync\Core;
 
 use DateTime;
+use Exception;
 use File;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
@@ -532,8 +533,8 @@ class PSCore {
 		$t = Title::newFromText( $title );
 		if ( $t !== null ) {
 			try {
-				$wikiObject = WikiPage::factory( $t );
-			} catch ( MWException $e ) {
+				$wikiObject = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromTitle( $t );
+			} catch ( Exception $e ) {
 				return false;
 			}
 			if ( $wikiObject instanceof WikiPage ) {

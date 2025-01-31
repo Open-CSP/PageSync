@@ -1,4 +1,4 @@
-PageSync for MediaWiki 1.39.x
+PageSync for MediaWiki 1.43.x
 
 <img alt="PageSync" width="300" src="assets/images/pagesync.png">
 
