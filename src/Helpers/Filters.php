@@ -441,12 +441,11 @@ class Filters {
 	public function renderIndexOptions( PSRender $render ) : string {
 		$smwInstalled = '';
 		$specialSMW = new PSSpecialSMWQeury();
+		$formHeader = $this->getFormHeader();
 		if ( !$specialSMW->isExtensionInstalled( 'SemanticMediaWiki' ) ) {
 			$smwInstalled = WSpsSpecial::makeAlert( wfMessage( 'wsps-special_custom_query_we_need_smw' )->text() );
-			$formHeader = '';
 		} else {
 			$smwInstalled = $this->renderSMWQeuryForm();
-			$formHeader = $this->getFormHeader();
 		}
 		$search  = [
 			'%%form-header%%',

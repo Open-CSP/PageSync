@@ -8,7 +8,7 @@ function setSelect2() {
 }
 
 /**
- * Holds further JavaScript execution intull jQuery is loaded
+ * Holds further JavaScript execution until jQuery is loaded
  * @param method string Name of the method to call once jQuery is ready
  * @param both bool if true it will also wait until MW is loaded.
  */
@@ -37,7 +37,7 @@ function wachtff (method, both = false) {
 		}
 	} else {
 		setTimeout(function () {
-			wachtff(method)
+			wachtff(method, both)
 		}, 50)
 	}
 }
