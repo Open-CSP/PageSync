@@ -4,6 +4,7 @@ namespace PageSync\API;
 
 use ApiBase;
 use ApiUsageException;
+use Exception;
 use MediaWiki\MediaWikiServices;
 use PageSync\Core\PSConfig;
 use PageSync\Core\PSCore;
@@ -22,12 +23,13 @@ class ApiWSps extends ApiBase {
 	 * @throws Exception
 	 */
 	public function execute() : bool {
+		$output = [];
 		$user   = $this->getUser();
 		$params = $this->extractRequestParams();
 		$action = $params['what'];
 
 		// If the "what" param isn't present, we don't know what to do!
-		if ( !$action || $action === null ) {
+		if (  $action === null || $action === false ) {
 			$this->dieWithError( 'missingparam' );
 		}
 
@@ -42,11 +44,7 @@ class ApiWSps extends ApiBase {
 		}
 
 		$pageId = $params['pageId'];
-		if ( isset( $params['tags'] ) ) {
-			$tags = $params['tags'];
-		} else {
-			$tags = false;
-		}
+		$tags   = $params['tags'] ?? false;
 		$userName = $user->getName();
 		PSCore::setConfig();
 		if ( empty( PSConfig::$config ) ) {
@@ -110,10 +108,11 @@ class ApiWSps extends ApiBase {
 
 	/**
 	 * @param array $result
+	 * @param bool $tags
 	 *
 	 * @return array
 	 */
-	private function setOutput( array $result, $tags = false ) : array {
+	private function setOutput( array $result, bool $tags = false ) : array {
 		$output = [];
 		if ( $result['status'] === true ) {
 			$output['status'] = "ok";

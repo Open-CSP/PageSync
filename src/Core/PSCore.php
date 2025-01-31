@@ -17,7 +17,6 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Storage\EditResult;
 use MediaWiki\User\UserIdentity;
-use MWException;
 use Title;
 use WikiPage;
 
@@ -25,8 +24,9 @@ class PSCore {
 
 	/**
 	 * Read config and set appropriately
+	 * @return void
 	 */
-	public static function setConfig() {
+	public static function setConfig():void {
 		$config = MediaWikiServices::getInstance()->getMainConfig();
 		$wsConfig = new PSConfig();
 		$wsConfig->setVersionNr();
@@ -41,11 +41,11 @@ class PSCore {
 	/**
 	 * @param mixed &$arr
 	 * @param mixed $col
-	 * @param mixed $dir
+	 * @param int $dir
 	 *
 	 * @return void
 	 */
-	public static function arraySortByColumn( &$arr, $col, $dir = SORT_ASC ) {
+	public static function arraySortByColumn( mixed &$arr, mixed $col, int $dir = SORT_ASC ): void {
 		$sort_col = [];
 		foreach ( $arr as $key => $row ) {
 			$sort_col[$key] = $row[$col];
@@ -83,7 +83,7 @@ class PSCore {
 	 *
 	 * @return array|false|mixed
 	 */
-	public static function getFileIndex() {
+	public static function getFileIndex(): mixed {
 		if ( empty( PSConfig::$config ) ) {
 			self::setConfig();
 		}
@@ -118,9 +118,9 @@ class PSCore {
 	 * @param int $id
 	 * @param bool $fullTitle
 	 *
-	 * @return false|string|null
+	 * @return string|false|null
 	 */
-	public static function getPageTitle( int $id, bool $fullTitle = false ) {
+	public static function getPageTitle( int $id, bool $fullTitle = false ): string|null|false {
 		$article = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id );
 		if ( $article instanceof WikiPage ) {
 			if ( $fullTitle ) {
@@ -138,7 +138,7 @@ class PSCore {
 	 *
 	 * @return false|string Either Title as string or false
 	 */
-	public static function getPageTitleForFileName( int $id ) {
+	public static function getPageTitleForFileName( int $id ): false|string {
 		$article = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id );
 		if ( $article instanceof WikiPage ) {
 			$title = $article->getTitle()->getText();
@@ -158,7 +158,7 @@ class PSCore {
 	 * @param array $slots
 	 * @param array $models
 	 * @param bool|array $isFile
-	 * @param false|string $changed
+	 * @param bool|string $changed
 	 * @param string $description
 	 * @param string $tags
 	 *
@@ -172,8 +172,8 @@ class PSCore {
 		int $id,
 		array $slots,
 		array $models,
-		$isFile,
-		$changed = false,
+		array|bool $isFile,
+		string|bool $changed = false,
 		string $description = "",
 		string $tags = ""
 	) : array {
@@ -233,7 +233,7 @@ class PSCore {
 	 * @return array
 	 * @throws Exception
 	 */
-	public static function addFileForExport( $id, string $uname, $tags = false ) : array {
+	public static function addFileForExport( mixed $id, string $uname, $tags = false ): array {
 		$isFile = false;
 		if ( $id === null || $id === 0 ) {
 			return PSMessageMaker::makeMessage(
@@ -961,10 +961,10 @@ class PSCore {
 	 *
 	 * @return false|string Either Title as string or false
 	 */
-	public static function getPageTitleForFileNameFromText( string $txt ) {
+	public static function getPageTitleForFileNameFromText( string $txt ): string|false {
 		$title = Title::newFromText( $txt );
 		$id = $title->getArticleID();
-		$article = WikiPage::newFromID( $id );
+		$article = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id );
 
 		if ( $article instanceof WikiPage ) {
 			$title = $article->getTitle()->getText();

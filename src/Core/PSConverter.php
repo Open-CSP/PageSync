@@ -10,7 +10,7 @@
 
 namespace PageSync\Core;
 
-use MWException;
+use Exception;
 use Title;
 
 class PSConverter {
@@ -116,7 +116,7 @@ class PSConverter {
 
 	/**
 	 * @return array
-	 * @throws MWException
+	 * @throws Exception
 	 */
 	public static function convertToVersion2() : array {
 		if ( PSConfig::$config !== false ) {

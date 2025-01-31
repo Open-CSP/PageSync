@@ -11,7 +11,6 @@
 namespace PageSync\Core;
 
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Revision\SlotRecord;
 use WikiPage;
 
 class PSNameSpaceUtils {
@@ -33,8 +32,8 @@ class PSNameSpaceUtils {
 	 *
 	 * @return false|int Either Title as string or false
 	 */
-	public static function getPageNS( int $id ) {
-		$article = WikiPage::newFromId( $id );
+	public static function getPageNS( int $id ): false|int {
+		$article = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromId( $id );
 		if ( $article instanceof WikiPage ) {
 			return $article->getTitle()->getNamespace();
 		} else {

@@ -5,7 +5,6 @@ namespace PageSync\Helpers;
 use DateTime;
 use PageSync\Core\PSConfig;
 use PageSync\Core\PSCore;
-use WSpsHooks;
 
 use ZipArchive;
 

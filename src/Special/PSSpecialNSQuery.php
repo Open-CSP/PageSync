@@ -2,10 +2,12 @@
 
 namespace PageSync\Special;
 
+use AllowDynamicProperties;
+use Exception;
 use PageSync\Core\PSCore;
 use WebRequest;
 
-class PSSpecialNSQuery {
+#[AllowDynamicProperties] class PSSpecialNSQuery {
 
 	/**
 	 * @param WebRequest $request
@@ -38,6 +40,7 @@ class PSSpecialNSQuery {
 	 * @param $usr
 	 *
 	 * @return string|void
+	 * @throws Exception
 	 */
 	public function importQuery( WebRequest $request, $usr ) {
 		$query = WSpsSpecial::getPost( 'wsps-query' );

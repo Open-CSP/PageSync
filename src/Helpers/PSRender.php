@@ -10,7 +10,6 @@
 
 namespace PageSync\Helpers;
 
-use MediaWiki\MediaWikiServices;
 use PageSync\Core\PSCore;
 use PageSync\Core\PSNameSpaceUtils;
 

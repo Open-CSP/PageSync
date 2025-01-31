@@ -106,5 +106,6 @@ class Colors {
 		} else {
 			return $result;
 		}
+		return "";
 	}
 }

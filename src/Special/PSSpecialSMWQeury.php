@@ -4,8 +4,8 @@ namespace PageSync\Special;
 
 use ApiMain;
 use DerivativeRequest;
+use Exception;
 use ExtensionRegistry;
-use MediaWiki\MediaWikiServices;
 use PageSync\Core\PSCore;
 use WebRequest;
 
@@ -93,6 +93,7 @@ class PSSpecialSMWQeury {
 	 * @param $usr
 	 *
 	 * @return string|void
+	 * @throws Exception
 	 */
 	public function importQuery( WebRequest $request, $usr ) {
 		$query = WSpsSpecial::getPost( 'wsps-query' );

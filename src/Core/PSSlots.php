@@ -14,7 +14,7 @@ use CommentStoreComment;
 use ContentHandler;
 use MediaWiki\MediaWikiServices;
 use MWContentSerializationException;
-use MWException;
+use Exception;
 use MWUnknownContentModelException;
 use User;
 use WikiPage;
@@ -27,7 +27,7 @@ class PSSlots {
 	 *
 	 * @return array|false
 	 */
-	public static function getSlotNamesForPageAndRevision( int $id ) {
+	public static function getSlotNamesForPageAndRevision( int $id ): array|false {
 		$page = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id );
 		if ( $page === false || $page === null ) {
 			return false;
@@ -47,10 +47,10 @@ class PSSlots {
 	 * @param int $id
 	 *
 	 * @return array|false
-	 * @throws MWException
+	 * @throws Exception
 	 * @throws MWUnknownContentModelException
 	 */
-	public static function getSlotsContentForPage( int $id ) {
+	public static function getSlotsContentForPage( int $id ): false|array {
 		$slot_result = self::getSlotNamesForPageAndRevision( $id );
 		if ( $slot_result === false ) {
 			return false;
@@ -107,7 +107,7 @@ class PSSlots {
 	 *
 	 * @return array
 	 * @throws MWContentSerializationException
-	 * @throws MWException
+	 * @throws Exception
 	 */
 	public static function editSlots(
 		User $user,
@@ -206,7 +206,7 @@ class PSSlots {
 		if ( $status === true ) {
 			return [
 				"result"  => true,
-				"changed" => $page_updater->isUnchanged()
+				"changed" => $page_updater->wasRevisionCreated()
 			];
 		} else {
 			return [
@@ -225,7 +225,7 @@ class PSSlots {
 	 *
 	 * @return array
 	 * @throws MWContentSerializationException
-	 * @throws MWException
+	 * @throws Exception
 	 */
 	public static function editSlot(
 		User $user,
@@ -297,7 +297,7 @@ class PSSlots {
 
 		return [
 			"result"  => true,
-			"changed" => $page_updater->isUnchanged()
+			"changed" => $page_updater->wasRevisionCreated()
 		];
 	}
 }
