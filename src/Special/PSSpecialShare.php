@@ -1,7 +1,7 @@
 <?php
 /**
- * Created by  : Designburo.nl
- * Project     : MWWSForm
+ * Created by  : Open CSP
+ * Project     : PageSync
  * Filename    : PSSpecialShare.php
  * Description :
  * Date        : 4-10-2022

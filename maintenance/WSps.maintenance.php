@@ -1,5 +1,6 @@
 <?php
 
+use PageSync\Core\PSAnalyzer;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\User\UserRigorOptions;
@@ -88,6 +89,8 @@ class importPagesIntoWiki extends Maintenance {
 			'special',
 			'Used for the Special page. Same as silent option, but result is in the following format. success : "ok|description", error: "error|error message".'
 		);
+
+		$this->addOption( 'analyze', 'Show the internal status of PageSync and its files' );
 
 		$this->addOption(
 			'skip-if-page-is-changed-in-wiki',
@@ -228,7 +231,7 @@ class importPagesIntoWiki extends Maintenance {
 			$this->fatalError( "Wiki is in read-only mode; you'll need to disable it for import to work." );
 		}
 
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$versionCurrent = PSConfig::$config['version'];
@@ -260,7 +263,7 @@ class importPagesIntoWiki extends Maintenance {
 			echo str_pad( "** PageSync version \e[36m$versionCurrent\e[0m", 75 ) . "**\n";
 			echo "** /WSps/maintenance/WSps.maintenance.php                         **\n";
 			echo "********************************************************************\n";
-			echo "** Import pages that have been synced by the PageSync extension **\n";
+			echo "** Maintenance functions. Check manual for info                   **\n";
 			echo "********************************************************************\n";
 		}
 		if ( $this->hasOption( 'autodelete' ) && strtolower( $this->getOption( 'autodelete' ) ) === 'true' ) {
@@ -270,6 +273,11 @@ class importPagesIntoWiki extends Maintenance {
 			}
 		}
 
+		if ( $this->hasOption( 'analyze' ) ) {
+			$analyzer = new PSAnalyzer();
+			$analyzer->analyze();
+			return;
+		}
 
 		if ( PSConverter::checkFileConsistency() === false ) {
 			if ( !$silent ) {
@@ -308,7 +316,7 @@ class importPagesIntoWiki extends Maintenance {
 				}
 			}
 			echo "\n[Rebuilding files from index --RUN--]\n";
-			if ( PSConfig::$config === false ) {
+			if ( empty( PSConfig::$config ) ) {
 				PSCore::setConfig();
 			}
 			$indexFile = PSCore::getFileIndex();
@@ -373,7 +381,7 @@ class importPagesIntoWiki extends Maintenance {
 				}
 			}
 			echo "\n[Rebuilding index file from file structure --RUN--]\n";
-			if ( PSConfig::$config === false ) {
+			if ( empty( PSConfig::$config ) ) {
 				PSCore::setConfig();
 			}
 			$path          = PSConfig::$config['exportPath'];
@@ -456,7 +464,7 @@ class importPagesIntoWiki extends Maintenance {
 		$skipCount    = 0;
 
 		PSCore::setConfig();
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			if ( !$silent ) {
 				$this->fatalError( wfMessage( 'wsps-api-error-no-config-body' )->text() . "\n" );
 			} else {

@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by  : Wikibase Solution
- * Project     : i
+ * Project     : PageSync
  * Filename    : render.class.php
  * Description :
  * Date        : 25/01/2019
@@ -99,8 +99,6 @@ class PSRender {
 	public function renderEditEntry( array $pageInfo, bool $renderBottom = false ): string {
 		global $wgScript, $IP;
 
-		// https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=share
-		//https://nw-wsform.wikibase.nl/index.php/Special:WSps?action=edit
 		if ( !$renderBottom ) {
 			$html       = '<form method="post" action="' . $wgScript . '/Special:WSps?action=pedit">';
 			$html       .= '<input type="hidden" name="wsps-action" value="wsps-edit-information">';
