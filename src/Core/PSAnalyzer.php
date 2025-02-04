@@ -414,7 +414,7 @@ class PSAnalyzer {
 		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-index-path' )->plain() . $psIndexPathColor );
 		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-export-path' )->plain() . $psExportPathColor );
 		echo "\n";
-		if ( empty( $this->indexList ) === false && empty( $this->serverFullList ) ) {
+		if ( !empty( $this->indexList ) && empty( $this->serverFullList ) ) {
 			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-nothing' )->plain() );
 			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' )->plain(),
 				"blue+bold", true, "", "END" );
