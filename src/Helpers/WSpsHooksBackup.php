@@ -13,8 +13,8 @@ use function count;
 use function wfMessage;
 
 /**
- * Created by  : Wikibase Solution
- * Project     : csp
+ * Created by  : Open CSP
+ * Project     : PageSync
  * Filename    : WSpsHooksBackup.class.php
  * Description :
  * Date        : 15-10-2021
@@ -30,7 +30,7 @@ class WSpsHooksBackup {
 	 * @return bool
 	 */
 	public function deleteBackupFile( string $backupFile ) : bool {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$path = PSConfig::$config['exportPath'];
@@ -125,7 +125,7 @@ class WSpsHooksBackup {
 	 * @return array
 	 */
 	public function restoreBackupFile( string $backupFile ) : array {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 
@@ -173,7 +173,7 @@ class WSpsHooksBackup {
 	 * Create a backup file
 	 */
 	public static function createZipFileBackup() {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$path            = PSConfig::$config['exportPath'];
@@ -235,7 +235,7 @@ class WSpsHooksBackup {
 	 */
 	public function getBackupList() : array {
 		$data = [];
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$path       = PSConfig::$config['exportPath'];

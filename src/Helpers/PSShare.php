@@ -19,7 +19,7 @@ class PSShare {
 	public function downloadZipFile( string $url ) : array {
 		$fName   = basename( $url );
 		$tmpPath = PSConfig::$config['tempFilePath'];
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$zipResource = fopen(
@@ -178,7 +178,7 @@ class PSShare {
 	 * @return bool
 	 */
 	public function deleteBackupFile( string $shareFile ) : bool {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$path = PSConfig::$config['filePath'];
@@ -293,7 +293,7 @@ class PSShare {
 	 */
 	public function getShareList() : array {
 		$data = [];
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$path      = PSConfig::$config['filePath'];
@@ -364,7 +364,7 @@ class PSShare {
 	 * @return bool|string
 	 */
 	public function createShareFile( array $pages, array $nfoContent ) {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			PSCore::setConfig();
 		}
 		$path                  = PSConfig::$config['exportPath']; //filePath :: tempFilePath

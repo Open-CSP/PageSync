@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by  : Wikibase Solutions
+ * Created by  : Open CSP
  * Project     : PageSync
  * Filename    : PSCore.php
  * Description :
@@ -66,16 +66,27 @@ class PSCore {
 	}
 
 	/**
+	 * @return array
+	 */
+	public static function getFilesFromServer(): array {
+		if ( empty( PSConfig::$config ) ) {
+			self::setConfig();
+		}
+		$path = PSConfig::$config['exportPath'];
+		return glob( $path . "*.info" );
+	}
+
+	/**
 	 * Read the list of files that need to be synced
 	 *
 	 *
 	 * @return array|false|mixed
 	 */
 	public static function getFileIndex() {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			self::setConfig();
 		}
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			return false;
 		}
 
@@ -90,16 +101,23 @@ class PSCore {
 		if ( empty( $content ) ) {
 			return [];
 		}
-		return json_decode(
+
+		$json = json_decode(
 			file_get_contents( $indexFile ),
 			true
 		);
+
+		if ( $json === null ) {
+			return [];
+		}
+		return $json;
 	}
 
 	/**
 	 * @param int $id
+	 * @param bool $fullTitle
 	 *
-	 * @return false|string Either Title as string or false
+	 * @return false|string|null
 	 */
 	public static function getPageTitle( int $id, bool $fullTitle = false ) {
 		$article = MediaWikiServices::getInstance()->getWikiPageFactory()->newFromID( $id );
@@ -435,10 +453,10 @@ class PSCore {
 	 * @return array|false all pages and their detailed info
 	 */
 	public static function getAllPageInfo( $customPath = false ) {
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			self::setConfig();
 		}
-		if ( PSConfig::$config === false ) {
+		if ( empty( PSConfig::$config ) ) {
 			return false;
 		}
 		$filesPath = PSConfig::$config['exportPath'];

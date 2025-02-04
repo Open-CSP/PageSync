@@ -8,7 +8,7 @@ use PageSync\Special\PSSpecialSMWQeury;
 use function wfMessage;
 
 /**
- * Created by  : Wikibase Solutions
+ * Created by  : Open CSP
  * Project     : PageSync
  * Filename    : PSGitHub.class.php
  * Description :

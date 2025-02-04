@@ -7,7 +7,7 @@ class PSConfig {
 	/**
 	 * @var bool|array
 	 */
-	public static $config = false;
+	public static $config = [];
 
 	/**
 	 * @return void
