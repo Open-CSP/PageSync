@@ -349,7 +349,7 @@ class PSAnalyzer {
 			$pageSlots = PSSlots::getSlotNamesForPageAndRevision( $pageId );
 			foreach ( $pageSlots['slots'] as $slotToCheck ) {
 				$slotFile = PSCore::getFileContent( $k, $slotToCheck );
-				if ( $slotFile === false ) {
+				if ( !$slotFile ) {
 					$indexErrors++;
 					echo "\033[K";
 					$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' )->plain(),
@@ -417,7 +417,7 @@ class PSAnalyzer {
 		$psIndexPathColor = Colors::cEcho( $psIndexPath, "bold+yellow", false, "", "", false );
 		$psExportPathColor = Colors::cEcho( $psExportPath, "bold+yellow", false, "", "", false );
 		$indexList = PSCore::getFileIndex();
-		if ( $indexList === false ) {
+		if ( !$indexList ) {
 			$this->indexList = [];
 		} else {
 			$this->indexList = $indexList;
@@ -431,7 +431,7 @@ class PSAnalyzer {
 		echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-export-path' )->plain() . $psExportPathColor,
 			"white" );
 		echo "\n";
-		if ( empty( $this->indexList ) === false && empty( $this->serverFullList ) ) {
+		if ( !empty( $this->indexList ) && empty( $this->serverFullList ) ) {
 			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-nothing' )->plain(),
 				"white", false, "", "", true );
 			echo Colors::cEcho( wfMessage( 'wsps-maintenance-analyze-analyzing' )->plain(),
