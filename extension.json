@@ -9,9 +9,9 @@
   "license-name": "GPL v2",
   "type": "other",
   "requires": {
-    "MediaWiki": ">= 1.39.1",
+    "MediaWiki": ">= 1.43.0",
     "platform": {
-      "php": ">= 7.4",
+      "php": ">= 8.1",
       "ext-zip": "*"
     }
   },
