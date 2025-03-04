@@ -19,6 +19,9 @@ use PageSync\Helpers\PSShare;
 
 class PSSpecialShare {
 
+	public const MAINTENANCE_START = '**WPSMAINTENANCE_START**';
+	public const MAINTENANCE_END = '**WPSMAINTENANCE_END**';
+
 
 	/**
 	 * @param string $userName
@@ -50,6 +53,7 @@ class PSSpecialShare {
 		$cmd .= ' --summary="Installed via PageSync Special page"';
 		$cmd .= ' --special';
 		$result = shell_exec( $cmd );
+		$result = self::getStringBetween( $result, self::MAINTENANCE_START, self::MAINTENANCE_END );
 		$res = explode( '|', $result );
 		if ( $res[0] === 'ok' ) {
 			return WSpsSpecial::makeAlert( $res[1], 'success' );
@@ -291,5 +295,35 @@ class PSSpecialShare {
 			return $ret;
 		}
 		return false;
+	}
+
+	/**
+	 * @param string $string
+	 * @param string $start
+	 * @param string $end
+	 *
+	 * @return false|string
+	 */
+	private static function getStringBetween( string $string, string $start, string $end ) {
+		$string = " " . $string;
+		$ini    = strpos(
+			$string,
+			$start
+		);
+		if ( $ini == 0 ) {
+			return "";
+		}
+		$ini += strlen( $start );
+		$len = strrpos(
+				   $string,
+				   $end,
+				   $ini
+			   ) - $ini;
+
+		return substr(
+			$string,
+			$ini,
+			$len
+		);
 	}
 }
