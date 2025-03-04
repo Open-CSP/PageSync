@@ -64,7 +64,7 @@
   "wsps-special_share_delete_file_error": "<div class=\"uk-alert-danger\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Share File <strong>$1</strong> could not be deleted. Please contact the website administrator.</p>\n</div>",
   "wsps-special_backup_delete_file_error": "<div class=\"uk-alert-danger\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> could not be deleted. Please contact the website administrator.</p>\n</div>",
   "wsps-special_backup_delete_file_success": "<div class=\"uk-alert-success\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> successfully deleted.</p>\n</div>",
-  "wsps-special_backup_restore_file_success": "<div class=\"uk-alert-success\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> successfully restored.</p>\n</div>",
+  "wsps-special_backup_restore_file_success": "<div class=\"uk-alert-success\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> successfully restored. Now make sure to run the Maintenance script to update all pages to the wiki!</p>\n</div>",
   "wsps-special_backup_restore_file_failure": "<div class=\"uk-alert-danger\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> could not be restored.</p>\n</div>",
   "wsps-special_backup_restore_file_failure_old": "<div class=\"uk-alert-danger\" uk-alert>\n<a class=\"uk-alert-close\" uk-close></a>\n<p>Backup File <strong>$1</strong> could not be restored. Version is to old.</p>\n</div>",
   "wsps-special_version": "<p>Version $1</p>",

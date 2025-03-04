@@ -11,6 +11,7 @@ use PageSync\Core\PSCore;
 use PageSync\Core\PSNameSpaceUtils;
 use PageSync\Core\PSSlots;
 use PageSync\Helpers\PSShare;
+use PageSync\Special\PSSpecialShare;
 
 
 $IP = getenv( 'MW_INSTALL_PATH' );
@@ -217,7 +218,7 @@ require_once "$IP/maintenance/Maintenance.php";
 				}
 			}
 			$message .= '</ul></p>';
-			echo $status . '|' . $message;
+			echo PSSpecialShare::MAINTENANCE_START . $status . '|' . $message . PSSpecialShare::MAINTENANCE_END;
 		} else {
 			echo $message;
 		}
