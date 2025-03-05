@@ -167,7 +167,7 @@
   "wsps-special_clean_tag_submit": "Use Tags",
   "wsps-special_clean_page_h3": "Remove all page in the above list",
   "wsps-special_clean_tags_h3": "Perform actions on the above list",
-  "wsps-special_clean_tags_tag_intro": "Choose one more tags to be deleted. This will keep the pages within PageSync and will only remove the tag(s) and therefor remove that(those) tag(s) from the (PageSync-)system. This cannot be undone.",
+  "wsps-special_clean_tags_tag_intro": "Choose one or more tags to be deleted. This will keep the pages within PageSync and will only remove the tag(s) and therefor remove that(those) tag(s) from the (PageSync-)system. This cannot be undone.",
   "wsps-special_clean_tags_tag_submit": "Remove/Delete chosen tag(s)",
   "wsps-special_clean_tags_page_submit": "Remove/Delete pages from chosen tag(s)",
   "wsps-special_clean_smw_page_submit": "Remove pages from PageSync",
