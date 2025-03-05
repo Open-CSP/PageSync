@@ -202,6 +202,9 @@ class PSSpecialShare {
 		if ( empty( $pages ) ) {
 			return false;
 		}
+		if ( $tags === false ) {
+			$tags = [];
+		}
 		$body = $render->renderListOfPages( $pages );
 		$data = [ 'tags' => implode( ',', $tags ), 'type' => $type ];
 		$body .= $share->getFormHeader( false ) . $share->agreeSelectionShareFooter( 'body', $data );
