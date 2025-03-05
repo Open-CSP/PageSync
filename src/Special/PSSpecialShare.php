@@ -48,7 +48,7 @@ class PSSpecialShare {
 			$zipFile = $found->getLocalRefPath();
 			$cmd .= ' --install-shared-file="' . $zipFile . '"';
 		} else {
-			$cmd .= ' --install-shared-file-from-temp="' . $zipFile . '"';
+			$cmd .= ' --install-shared-file-from-temp="' . escapeshellarg( $zipFile ) . '"';
 		}
 		$cmd .= ' --summary="Installed via PageSync Special page"';
 		$cmd .= ' --special';
