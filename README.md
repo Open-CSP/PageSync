@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.6.7 Some minor fixed ( language edits and maintenance script output )
 * 2.6.6 Added --analyze function to Maintenance script to check file status and consistency
 * 2.6.5 Maintenance script rebuild-index now by default is verbose. Added function to add pages NS and title search. i18n changes
 * 2.6.3 Fixed a 1.39 only adding file issue
