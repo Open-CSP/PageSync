@@ -162,7 +162,8 @@ class PSSpecialShare {
 	 * @return false|string
 	 */
 	public function selecTags( PSShare $share, PSRender $render ) {
-		$tags = WSpsSpecial::getPost( "tags", false );
+		$tags = WSpsSpecial::getPost( "tags" );
+		// What to do with the tags? (all) tags; at least (one); or (ignore)
 		$type = WSpsSpecial::getPost( "wsps-select-type", true );
 		$query = WSpsSpecial::getPost( 'wsps-query' );
 		/* REMOVED FEATURE
@@ -198,6 +199,9 @@ class PSSpecialShare {
 		}
 		if ( empty( $pages ) ) {
 			return false;
+		}
+		if ( $tags === false ) {
+			$tags = [];
 		}
 		$body = $render->renderListOfPages( $pages );
 		$data = [ 'tags' => implode( ',', $tags ), 'type' => $type ];
