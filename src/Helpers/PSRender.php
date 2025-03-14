@@ -347,29 +347,40 @@ class PSRender {
 	}
 
 	/**
+	 * @param string $disabled
+	 *
 	 * @return string
 	 */
-	public function renderCustomQuery() : string {
-		$body = '<form method="POST" class="uk-form-horizontal">';
-		$body .= '<input type="hidden" name="wsps-action" value="doQuery">';
-		$body .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
-		$body .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
-		$body .= '</label>';
-		$body .= '<div class="uk-form-controls">';
-		$body .= '<input class="uk-input" name="wsps-query" type="text" placeholder="';
-		$body .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
-		$body .= '">';
-		$body .= '</div>';
-		$footer = '<input type="submit" class="uk-width-1-2 uk-align-center uk-margin-remove-bottom uk-button uk-button-primary" value="';
-		$footer .= wfMessage( 'wsps-special_custom_query_card_submit' )->text() . '">';
-		$footer .= '</form>';
-		return $this->renderCard2(
-			wfMessage( 'wsps-special_custom_query_card_header' )->text(),
-			wfMessage( 'wsps-special_custom_query_card_subheader' )->text(),
-			$body,
-			$footer,
-			true
-		);
+	public function renderCustomQuery( string $disabled = '' ): string {
+		if ( empty( $disabled ) ) {
+			$body = '<form method="POST" class="uk-form-horizontal">';
+			$body .= '<input type="hidden" name="wsps-action" value="doQuery">';
+			$body .= '<label class="uk-form-label uk-text-medium" for="wsps-query">';
+			$body .= wfMessage( 'wsps-special_custom_query_card_label' )->text();
+			$body .= '</label>';
+			$body .= '<div class="uk-form-controls">';
+			$body .= '<input class="uk-input" name="wsps-query" type="text" placeholder="';
+			$body .= wfMessage( 'wsps-special_custom_query_card_placeholder' )->text();
+			$body .= '">';
+			$body .= '</div>';
+			$footer = '<input type="submit" class="uk-width-1-2 uk-align-center uk-margin-remove-bottom uk-button uk-button-primary" value="';
+			$footer .= wfMessage( 'wsps-special_custom_query_card_submit' )->text() . '">';
+			$footer .= '</form>';
+
+			return $this->renderCard2( wfMessage( 'wsps-special_custom_query_card_header' )->text(),
+				wfMessage( 'wsps-special_custom_query_card_subheader' )->text(),
+				$body,
+				$footer,
+				true );
+		} else {
+			return $this->renderCard2(
+				wfMessage( 'wsps-special_custom_query_card_header' )->text(),
+				wfMessage( 'wsps-special_custom_query_card_subheader' )->text(),
+				$disabled,
+				'',
+				true
+			);
+		}
 	}
 
 	/**
