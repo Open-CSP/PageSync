@@ -19,6 +19,9 @@ use PageSync\Helpers\PSShare;
 
 class PSSpecialShare {
 
+	public const MAINTENANCE_START = '**WPSMAINTENANCE_START**';
+	public const MAINTENANCE_END = '**WPSMAINTENANCE_END**';
+
 
 	/**
 	 * @param string $userName
@@ -45,11 +48,12 @@ class PSSpecialShare {
 			$zipFile = $found->getLocalRefPath();
 			$cmd .= ' --install-shared-file="' . $zipFile . '"';
 		} else {
-			$cmd .= ' --install-shared-file-from-temp="' . $zipFile . '"';
+			$cmd .= ' --install-shared-file-from-temp=' . escapeshellarg( $zipFile );
 		}
 		$cmd .= ' --summary="Installed via PageSync Special page"';
 		$cmd .= ' --special';
 		$result = shell_exec( $cmd );
+		$result = self::getStringBetween( $result, self::MAINTENANCE_START, self::MAINTENANCE_END );
 		$res = explode( '|', $result );
 		if ( $res[0] === 'ok' ) {
 			return WSpsSpecial::makeAlert( $res[1], 'success' );
@@ -158,7 +162,8 @@ class PSSpecialShare {
 	 * @return false|string
 	 */
 	public function selecTags( PSShare $share, PSRender $render ) {
-		$tags = WSpsSpecial::getPost( "tags", false );
+		$tags = WSpsSpecial::getPost( "tags" );
+		// What to do with the tags? (all) tags; at least (one); or (ignore)
 		$type = WSpsSpecial::getPost( "wsps-select-type", true );
 		$query = WSpsSpecial::getPost( 'wsps-query' );
 		/* REMOVED FEATURE
@@ -194,6 +199,9 @@ class PSSpecialShare {
 		}
 		if ( empty( $pages ) ) {
 			return false;
+		}
+		if ( $tags === false ) {
+			$tags = [];
 		}
 		$body = $render->renderListOfPages( $pages );
 		$data = [ 'tags' => implode( ',', $tags ), 'type' => $type ];
@@ -291,5 +299,23 @@ class PSSpecialShare {
 			return $ret;
 		}
 		return false;
+	}
+
+	/**
+	 * @param string $string
+	 * @param string $start
+	 * @param string $end
+	 *
+	 * @return string
+	 */
+	private static function getStringBetween( string $string, string $start, string $end ): string {
+		$startPositionInString = strpos( $string, $start );
+		if ( $startPositionInString === false ) {
+			return "";
+		}
+		$startPositionInString += strlen( $start );
+		$stringLength = strrpos( $string, $end, $startPositionInString ) - $startPositionInString;
+
+		return substr( $string, $startPositionInString, $stringLength );
 	}
 }

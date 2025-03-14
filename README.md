@@ -1,4 +1,4 @@
-PageSync
+PageSync for MediaWiki 1.35.x
 
 <img alt="PageSync" width="300" src="assets/images/pagesync.png">
 
@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.6.5.1 Some minor fixed ( language edits and maintenance script output ). Fixed bug where Special page was not shown if SMW was not installed.
 * 2.6.5 Maintenance script rebuild-index now by default is verbose. Added function to add pages NS and title search. i18n changes
 * 2.6.3 version bump only due to change in 1.39 branch
 * 2.6.2 Composer reflecting to Open CSP

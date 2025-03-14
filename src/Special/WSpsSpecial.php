@@ -533,11 +533,11 @@ class WSpsSpecial extends SpecialPage {
 				);
 				// First check if we have SMW
 				$specialSMW = new PSSpecialSMWQeury();
+				$SMWQueryDisabledText = '';
 				if ( !$specialSMW->isExtensionInstalled( 'SemanticMediaWiki' ) ) {
-					$out->addHTML( self::makeAlert( wfMessage( 'wsps-special_custom_query_we_need_smw' )->text() ) );
-					$out->addHTML( $style );
-
-					return true;
+					$SMWQueryDisabledText = self::makeAlert(
+						$this->msg( 'wsps-special_custom_query_we_need_smw' )->text()
+					);
 				}
 
 				$pAction = self::getPost( 'wsps-action' );
@@ -640,7 +640,7 @@ class WSpsSpecial extends SpecialPage {
 					$out->addHTML( $error );
 				}
 				$out->addHTML( '<div class="uk-child-width-1-2@m uk-grid-divider uk-grid-medium uk-grid-match" uk-grid>' );
-				$out->addHTML( $render->renderCustomQuery() );
+				$out->addHTML( $render->renderCustomQuery( $SMWQueryDisabledText ) );
 				$ns = MediaWikiServices::getInstance()->getContentLanguage()->getNamespaces();
 				unset( $ns[-2] );
 				unset( $ns[-1] );
