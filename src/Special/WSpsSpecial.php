@@ -538,7 +538,6 @@ class WSpsSpecial extends SpecialPage {
 					$SMWQueryDisabledText = self::makeAlert(
 						$this->msg( 'wsps-special_custom_query_we_need_smw' )->text()
 					);
-					return true;
 				}
 
 				$pAction = self::getPost( 'wsps-action' );
