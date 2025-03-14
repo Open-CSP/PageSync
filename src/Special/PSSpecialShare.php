@@ -308,28 +308,16 @@ class PSSpecialShare {
 	 * @param string $start
 	 * @param string $end
 	 *
-	 * @return false|string
+	 * @return string
 	 */
-	private static function getStringBetween( string $string, string $start, string $end ) {
-		$string = " " . $string;
-		$ini    = strpos(
-			$string,
-			$start
-		);
-		if ( $ini == 0 ) {
+	private static function getStringBetween( string $string, string $start, string $end ): string {
+		$startPositionInString = strpos( $string, $start );
+		if ( $startPositionInString === false ) {
 			return "";
 		}
-		$ini += strlen( $start );
-		$len = strrpos(
-				   $string,
-				   $end,
-				   $ini
-			   ) - $ini;
+		$startPositionInString += strlen( $start );
+		$stringLength = strrpos( $string, $end, $startPositionInString ) - $startPositionInString;
 
-		return substr(
-			$string,
-			$ini,
-			$len
-		);
+		return substr( $string, $startPositionInString, $stringLength );
 	}
 }
