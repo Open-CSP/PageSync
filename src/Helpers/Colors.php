@@ -82,7 +82,7 @@ class Colors {
 		string $before = '',
 		bool $endInNewLine = true,
 		bool $echo = false
-	): mixed {
+	) {
 		$result = '';
 		$nLine = "";
 		if ( $endInNewLine === true ) {

@@ -500,7 +500,7 @@ class PSCore {
 	 *
 	 * @return false|string
 	 */
-	public static function getFileContent( string $fname, string $slotName, string|bool $path = false ) {
+	public static function getFileContent( string $fname, string $slotName, $path = false ) {
 		if ( !$path ) {
 			$fileAndPath = PSConfig::$config['exportPath'] . self::getFileSlotNameWiki(
 					$fname,

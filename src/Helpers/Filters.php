@@ -183,7 +183,7 @@ class Filters {
 	 *
 	 * @return string
 	 */
-	public function javaScriptMainPageFilter( string|bool $nsQuery = false ): string {
+	public function javaScriptMainPageFilter( $nsQuery = false ): string {
 		$tableID = 'PSindexTable';
 		$function = 'filterTable';
 		$float = "right";
