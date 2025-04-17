@@ -15,6 +15,7 @@ use Parser;
 use RequestContext;
 use Skin;
 use SkinTemplate;
+use SpecialPage;
 use User;
 use WikiPage;
 
@@ -69,7 +70,7 @@ class HookHandler {
 		}
 		$extensionsRow->addItem(
 			ALItem::newFromExternalLink(
-				$wgServer . '/index.php/Special:WSps',
+				SpecialPage::getTitleFor( 'WSps' )->getLocalURL(),
 				'PageSync'
 			)
 		);
