@@ -227,6 +227,8 @@ require_once "$IP/maintenance/Maintenance.php";
 	/**
 	 * @throws MWContentSerializationException
 	 * @throws MWException
+	 * @throws \MediaWiki\Maintenance\MaintenanceFatalError
+	 * @throws Exception
 	 */
 	public function execute() {
 		$collectedMessages = [];
@@ -353,12 +355,9 @@ require_once "$IP/maintenance/Maintenance.php";
 				$user->addToDatabase();
 			}
 			foreach ( $indexFile as $indexFileEntry ) {
-				//echo "\nWorking on $indexFileEntry";
 				$ns = PSNameSpaceUtils::getNSFromTitleString( $indexFileEntry );
 				$pageTitle = PSNameSpaceUtils::titleForDisplay( $ns, $indexFileEntry );
-				//echo "\nTitle: $pageTitle";
 				$pageId = PSCore::getPageIdFromTitle( $pageTitle );
-				//echo "\nPage ID : $pageId\n";
 
 				$result = PSCore::addFileForExport(
 					$pageId,
@@ -695,12 +694,22 @@ require_once "$IP/maintenance/Maintenance.php";
 					unset( $content[$slot]);
 				}
 			}
-			$result = PSSlots::editSlots(
-				$user,
-				$wikiPageObject,
-				$content,
-				$summary
-			);
+			try {
+				$result = PSSlots::editSlots(
+					$user,
+					$wikiPageObject,
+					$content,
+					$summary
+				);
+			} catch ( Exception $e ) {
+				if ( !$silent ) {
+					$this->output(
+						"\n\e[41mFailed " . $page['pagetitle'] . " with. Message:" . $e->getMessage() . "\e[0m\n"
+					);
+				} else {
+					$collectedMessages[] = "Failed " . $page['pagetitle'] . ":" . $e->getMessage();
+				}
+			}
 			if ( false === $result['result'] ) {
 				list( $result, $errors ) = $result;
 				$failCount++;
