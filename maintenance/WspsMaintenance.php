@@ -352,6 +352,8 @@ require_once "$IP/maintenance/Maintenance.php";
 			if ( $user->isAnon() ) {
 				$user->addToDatabase();
 			}
+
+			$errors = [];
 			foreach ( $indexFile as $indexFileEntry ) {
 				//echo "\nWorking on $indexFileEntry";
 				$ns = PSNameSpaceUtils::getNSFromTitleString( $indexFileEntry );
@@ -360,18 +362,25 @@ require_once "$IP/maintenance/Maintenance.php";
 				$pageId = PSCore::getPageIdFromTitle( $pageTitle );
 				//echo "\nPage ID : $pageId\n";
 
+				echo "Working on page id $pageId with user $userName on title $pageTitle\n";
 				$result = PSCore::addFileForExport(
 					$pageId,
 					$userName
 				);
 				if ( $result['status'] === false ) {
-					die( "ERROR: " . $result['info'] );
+					$errors[] = $result['info'];
 				}
 
-				echo "Working on page id $pageId with user $userName on title $pageTitle\n";
 				$cnt++;
 			}
-			echo "\n$cnt files Rebuild from Index.\nDone!\n";
+			echo "\n$cnt files rebuilt from index.\nDone!\n";
+
+			$errCnt = count( $errors );
+			if ( $errCnt > 0 ) {
+                echo "WARNING: $errCnt error(s) occurred:\n";
+				echo implode( "\n", $errors ) . "\n";
+			}
+
 			die();
 		}
 
