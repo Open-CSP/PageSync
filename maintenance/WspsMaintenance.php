@@ -103,7 +103,7 @@ require_once "$IP/maintenance/Maintenance.php";
 
 		$this->addOption(
 			'continue-on-error',
-			'When rebuilding index, do not stop on error, but continue and show a list of errors when finished.'
+			'When rebuilding files, do not stop on error, but continue and show a list of errors when finished.'
 		);
 	}
 
@@ -232,7 +232,6 @@ require_once "$IP/maintenance/Maintenance.php";
 	/**
 	 * @throws MWContentSerializationException
 	 * @throws MWException
-	 * @throws \MediaWiki\Maintenance\MaintenanceFatalError
 	 * @throws Exception
 	 */
 	public function execute() {
