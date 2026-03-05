@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.6.8 Added fail catcher for broken pages. Added continue-on-error argument for maintenance script
 * 2.6.7 Fixed bug where Special page was not shown if SMW was not installed.
 * 2.6.6 Added --analyze function to Maintenance script to check file status and consistency. Should detect any inconsistencies between pages in the Wiki and stored versions
 * 2.6.5 Maintenance script rebuild-index now by default is verbose. Added function to add pages NS and title search. i18n changes

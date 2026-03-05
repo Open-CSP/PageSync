@@ -100,6 +100,11 @@ require_once "$IP/maintenance/Maintenance.php";
 			'skip-if-page-is-changed-in-wiki',
 			'For Shared Files only : Tell PageSync to not overwrite a page, when the maintenance user differs from the last user who edited the page in the wiki.'
 		);
+
+		$this->addOption(
+			'continue-on-error',
+			'When rebuilding files, do not stop on error, but continue and show a list of errors when finished.'
+		);
 	}
 
 	/**
@@ -227,6 +232,7 @@ require_once "$IP/maintenance/Maintenance.php";
 	/**
 	 * @throws MWContentSerializationException
 	 * @throws MWException
+	 * @throws Exception
 	 */
 	public function execute() {
 		$collectedMessages = [];
@@ -312,6 +318,10 @@ require_once "$IP/maintenance/Maintenance.php";
 
 		if ( $this->hasOption( 'rebuild-files' ) ) {
 			// We need to rebuild the index file here.
+			$continueOnError = $this->hasOption( 'continue-on-error' );
+			if ( $continueOnError ) {
+				$errorList = [];
+			}
 			if ( $this->hasOption( 'force-rebuild-files' ) === false ) {
 				echo "\n[Rebuilding files from index]\n";
 				$answer = strtolower( readline( "Are you sure (y/n)" ) );
@@ -353,25 +363,31 @@ require_once "$IP/maintenance/Maintenance.php";
 				$user->addToDatabase();
 			}
 			foreach ( $indexFile as $indexFileEntry ) {
-				//echo "\nWorking on $indexFileEntry";
 				$ns = PSNameSpaceUtils::getNSFromTitleString( $indexFileEntry );
 				$pageTitle = PSNameSpaceUtils::titleForDisplay( $ns, $indexFileEntry );
-				//echo "\nTitle: $pageTitle";
 				$pageId = PSCore::getPageIdFromTitle( $pageTitle );
-				//echo "\nPage ID : $pageId\n";
 
 				$result = PSCore::addFileForExport(
 					$pageId,
 					$userName
 				);
-				if ( $result['status'] === false ) {
-					die( "ERROR: " . $result['info'] );
-				}
-
 				echo "Working on page id $pageId with user $userName on title $pageTitle\n";
+				if ( $result['status'] === false ) {
+					if ( !$continueOnError) {
+						die( "ERROR: " . $result['info'] );
+					}
+					$errorList[] = $result['message']['info'];
+				}
 				$cnt++;
 			}
 			echo "\n$cnt files Rebuild from Index.\nDone!\n";
+			if ( $continueOnError) {
+				$errCnt = count( $errorList );
+				if ( $errCnt > 0 ) {
+					echo "WARNING: $errCnt error(s) occurred:\n";
+					echo implode( "\n", $errorList ) . "\n";
+				}
+			}
 			die();
 		}
 
@@ -695,12 +711,22 @@ require_once "$IP/maintenance/Maintenance.php";
 					unset( $content[$slot]);
 				}
 			}
-			$result = PSSlots::editSlots(
-				$user,
-				$wikiPageObject,
-				$content,
-				$summary
-			);
+			try {
+				$result = PSSlots::editSlots(
+					$user,
+					$wikiPageObject,
+					$content,
+					$summary
+				);
+			} catch ( Exception $e ) {
+				if ( !$silent ) {
+					$this->output(
+						"\n\e[41mFailed " . $page['pagetitle'] . " with. Message:" . $e->getMessage() . "\e[0m\n"
+					);
+				} else {
+					$collectedMessages[] = "Failed " . $page['pagetitle'] . ":" . $e->getMessage();
+				}
+			}
 			if ( false === $result['result'] ) {
 				list( $result, $errors ) = $result;
 				$failCount++;
