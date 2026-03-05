@@ -100,6 +100,11 @@ require_once "$IP/maintenance/Maintenance.php";
 			'skip-if-page-is-changed-in-wiki',
 			'For Shared Files only : Tell PageSync to not overwrite a page, when the maintenance user differs from the last user who edited the page in the wiki.'
 		);
+
+		$this->addOption(
+			'continue-on-error',
+			'When rebuilding index, do not stop on error, but continue and show a list of errors when finished.'
+		);
 	}
 
 	/**
@@ -314,6 +319,10 @@ require_once "$IP/maintenance/Maintenance.php";
 
 		if ( $this->hasOption( 'rebuild-files' ) ) {
 			// We need to rebuild the index file here.
+			$continueOnError = $this->hasOption( 'continue-on-error' );
+			if ( $continueOnError ) {
+				$errorList = [];
+			}
 			if ( $this->hasOption( 'force-rebuild-files' ) === false ) {
 				echo "\n[Rebuilding files from index]\n";
 				$answer = strtolower( readline( "Are you sure (y/n)" ) );
@@ -363,14 +372,23 @@ require_once "$IP/maintenance/Maintenance.php";
 					$pageId,
 					$userName
 				);
-				if ( $result['status'] === false ) {
-					die( "ERROR: " . $result['info'] );
-				}
-
 				echo "Working on page id $pageId with user $userName on title $pageTitle\n";
+				if ( $result['status'] === false ) {
+					if ( !$continueOnError) {
+						die( "ERROR: " . $result['info'] );
+					}
+					$errorList[] = $result['message']['info'];
+				}
 				$cnt++;
 			}
 			echo "\n$cnt files Rebuild from Index.\nDone!\n";
+			if ( $continueOnError) {
+				$errCnt = count( $errorList );
+				if ( $errCnt > 0 ) {
+					echo "WARNING: $errCnt error(s) occurred:\n";
+					echo implode( "\n", $errorList ) . "\n";
+				}
+			}
 			die();
 		}
 

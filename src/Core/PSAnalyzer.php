@@ -301,12 +301,15 @@ class PSAnalyzer {
 			$pageId = PSCore::getPageIdFromTitle( $pageTitle );
 			$fileBaseNameInfo = PSCore::getInfoFileFromPageID( $pageId );
 			if ( $fileBaseNameInfo['status'] === false ) {
-				echo $fileBaseNameInfo['info'];
+				$this->addError( wfMessage( 'wsps-maintenance-analyze-server-wiki' )->plain(),
+					$fileBaseNameInfo['info'],
+					$k
+				);
+				$infoContents = null;
 			} else {
 				$fileBaseNameInfo = $fileBaseNameInfo['info'];
+				$infoContents = $this->getInfoFile( $fileBaseNameInfo );
 			}
-			// todo: Catch if file does not exist!
-			$infoContents = $this->getInfoFile( $fileBaseNameInfo );
 			if ( $infoContents === null ) {
 				$indexErrors++;
 				echo "\033[K";
