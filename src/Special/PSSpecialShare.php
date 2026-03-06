@@ -39,7 +39,7 @@ class PSSpecialShare {
 		}
 		$zipFile = $zipFile . '.zip';
 		global $IP;
-		$cmd = 'php ' . $IP . '/extensions/PageSync/maintenance/WSps.maintenance.php';
+		$cmd = 'php ' . $IP . '/extensions/PageSync/maintenance/WspsMaintenance.php';
 		$cmd .= ' --user="' . $userName . '"';
 		if ( substr( $zipFile, 0, 5 ) === 'WIKI:' ) {
 			$zipFile = str_replace( 'WIKI:', '', $zipFile );
