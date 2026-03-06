@@ -17,9 +17,9 @@ use function wfMessage;
  */
 class PSGitHub {
 
-	private const string PAGESYNC_SHARED_FILES_REPO = 'https://api.github.com/repos/Open-CSP/PageSync-SharedFiles/contents/';
-	private const string PAGESYNC_SHARED_FILES_INDEX = 'https://raw.githubusercontent.com/Open-CSP/PageSync-SharedFiles/main/index.json';
-	private const string PAGESYNC_SHARED_FILES_URL = 'https://raw.githubusercontent.com/Open-CSP/PageSync-SharedFiles/main/';
+	private const PAGESYNC_SHARED_FILES_REPO = 'https://api.github.com/repos/Open-CSP/PageSync-SharedFiles/contents/';
+	private const PAGESYNC_SHARED_FILES_INDEX = 'https://raw.githubusercontent.com/Open-CSP/PageSync-SharedFiles/main/index.json';
+	private const PAGESYNC_SHARED_FILES_URL = 'https://raw.githubusercontent.com/Open-CSP/PageSync-SharedFiles/main/';
 
 	public string $error = '';
 	private array $index = [];
