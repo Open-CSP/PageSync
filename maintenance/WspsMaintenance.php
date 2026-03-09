@@ -740,7 +740,7 @@ require_once "$IP/maintenance/Maintenance.php";
 					}
 				}
 			} else {
-				if ( $result['changed'] === false ) {
+				if ( $result['changed'] === true ) {
 					$successCount++;
 					if ( !$silent ) {
 						$this->output(
