@@ -23,27 +23,20 @@ class PSClean {
 
 	public function __construct() {
 		$serverFullList = PSCore::getFilesFromServer( true );
-		if ( !empty( $serverFullList ) ) {
-			foreach ( $serverFullList as $file ) {
-				$pathInfo = pathinfo( $file );
-				$fileName = $pathInfo['filename'];
-				if ( $pathInfo['extension'] === 'info' || $pathInfo['extension'] === 'data' ) {
-					$this->serverList[] = $fileName;
-					continue;
-				}
-				$explodedFileName = explode( '_', $fileName );
-				$cnt = count( $explodedFileName ) - 2;
-				$mergedFileName = '';
-				if ( $cnt >= 1 ) {
-					for ( $i = 0; $i < $cnt; $i++ ) {
-						if ( $i === 0 ) {
-							$mergedFileName .= $explodedFileName[$i];
-						} else {
-							$mergedFileName .= '_' . $explodedFileName[$i];
-						}
-					}
-					$this->serverList[] = $mergedFileName;
-				}
+
+		foreach ( $serverFullList as $file ) {
+			$pathInfo = pathinfo( $file );
+			$fileName = $pathInfo['filename'];
+			if ( $pathInfo['extension'] === 'info' || $pathInfo['extension'] === 'data' ) {
+				$this->serverList[] = $fileName;
+				continue;
+			}
+			$explodedFileName = explode( '_', $fileName );
+			$cnt = count( $explodedFileName ) - 2;
+			if ( $cnt > 2 ) {
+				unset( $explodedFileName[ $cnt - 1 ] );
+				unset( $explodedFileName[ $cnt - 2 ] );
+				$this->serverList[] = implode( '_', $explodedFileName );
 			}
 		}
 		$this->exportPath = PSConfig::$config['exportPath'];

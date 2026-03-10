@@ -67,6 +67,8 @@ class PSCore {
 	}
 
 	/**
+	 * @param bool $allFiles
+	 *
 	 * @return array
 	 */
 	public static function getFilesFromServer( bool $allFiles = false ): array {
