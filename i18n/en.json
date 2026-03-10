@@ -211,6 +211,7 @@
   "wsps-maintenance-analyze-server-wiki-error-slot-missing": "Slot $1 is missing on server.",
   "wsps-maintenance-analyze-server-wiki-error-slot-unsynced": "Slot $1 content in Wiki and on Server are not identical",
   "wsps-maintenance-analyze-server-wiki-slot": " Slot : ",
+  "wsps-maintenance-clean-header": "Delete files from server not in index",
   "apihelp-wsps-description": "PageSync API module",
   "apihelp-wsps-summary": "PageSync API module",
   "apihelp-wsps-param-what": "Action to take; valid values are 'add', 'remove', 'gettags' and 'updatetags'",

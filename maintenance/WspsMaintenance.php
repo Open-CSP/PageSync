@@ -53,6 +53,10 @@ require_once "$IP/maintenance/Maintenance.php";
 			'Will take the index file and re-create all files from the database'
 		);
 		$this->addOption(
+			'rebuild-files-clean',
+			'Same as rebuild-files, but will also physically remove all files not in the PageSync from the server'
+		);
+		$this->addOption(
 			'rebuild-index',
 			'Will recreate the index file from existing file structure'
 		);
@@ -67,7 +71,7 @@ require_once "$IP/maintenance/Maintenance.php";
 		);
 		$this->addOption(
 			'force-rebuild-files',
-			'Used with rebuild-files. This forces rebuild-files without prompting for user interaction'
+			'Used with rebuild-files and rebuild-files-clean. This forces rebuild-files without prompting for user interaction'
 		);
 
 		$this->addOption(
@@ -259,6 +263,11 @@ require_once "$IP/maintenance/Maintenance.php";
 			$silent = true;
 		}
 
+		if ( $this->hasOption( 'special' ) ) {
+			$special = true;
+			$silent = true;
+		}
+
 		$skipDifferentUser = false;
 		if ( $this->hasOption( 'skip-if-page-is-changed-in-wiki' ) ) {
 			$skipDifferentUser = true;
@@ -315,15 +324,18 @@ require_once "$IP/maintenance/Maintenance.php";
 			}
 			return;
 		}
-
-		if ( $this->hasOption( 'rebuild-files' ) ) {
+		if ( $this->hasOption( 'rebuild-files' ) || $this->hasOption( 'rebuild-files-clean' ) ) {
 			// We need to rebuild the index file here.
 			$continueOnError = $this->hasOption( 'continue-on-error' );
 			if ( $continueOnError ) {
 				$errorList = [];
 			}
 			if ( $this->hasOption( 'force-rebuild-files' ) === false ) {
-				echo "\n[Rebuilding files from index]\n";
+				if ( $this->hasOption( 'rebuild-files-clean' ) ) {
+					echo "\n[Rebuilding files from index and remove unused files from server. This cannot be undone!]\n";
+				} else {
+					echo "\n[Rebuilding files from index]\n";
+				}
 				$answer = strtolower( readline( "Are you sure (y/n)" ) );
 				if ( $answer !== "y" ) {
 					die( "no action\n\n" );
@@ -387,6 +399,10 @@ require_once "$IP/maintenance/Maintenance.php";
 					echo "WARNING: $errCnt error(s) occurred:\n";
 					echo implode( "\n", $errorList ) . "\n";
 				}
+			}
+			if ( $this->hasOption( 'rebuild-files-clean' ) ) {
+				$cleaner = new \PageSync\Core\PSClean();
+				$cleaner->cleanServerFiles();
 			}
 			die();
 		}
