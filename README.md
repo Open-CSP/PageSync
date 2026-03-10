@@ -9,6 +9,7 @@ Detailed documentation can be found here : https://www.open-csp.org/DevOps:Doc/P
 
 #### Development
 
+* 2.7.0 rebuild-files-clean. Same as rebuild-files, but will now also physically unused files from the server
 * 2.6.10 fix for maintenance script when installing a shared file. Changed pages were counted as unchanged
 * 2.6.9 fix for maintenance script rename and removed specific PHP 8.3 usage
 * 2.6.8 Added fail catcher for broken pages. Added continue-on-error argument for maintenance script
