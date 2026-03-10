@@ -21,8 +21,6 @@ class PSClean {
 	 */
 	private string $exportPath;
 
-
-
 	public function __construct() {
 		$serverFullList = PSCore::getFilesFromServer( true );
 		if ( !empty( $serverFullList ) ) {
@@ -59,21 +57,27 @@ class PSClean {
 	 * @return void
 	 */
 	public function cleanServerFiles(): void {
-		echo Colors::cEcho( wfMessage( "wsps-maintenance-clean-header" )->plain(),
+		echo Colors::cEcho(
+			wfMessage( "wsps-maintenance-clean-header" )->plain(),
 			"blue+bold",
 			true,
 			"",
-			wfMessage( "wsps-maintenance-analyze-start" )->plain() );
+			wfMessage( "wsps-maintenance-analyze-start" )->plain()
+		);
 		if ( empty( $this->serverList ) ) {
-			echo Colors::cEcho('No files on server',
+			echo Colors::cEcho(
+				'No files on server',
 				"yellow+bold",
 				true
 			);
-			echo Colors::cEcho( wfMessage( "wsps-maintenance-clean-header" )->plain(),
+			echo Colors::cEcho(
+				wfMessage( "wsps-maintenance-clean-header" )->plain(),
 				"blue+bold",
 				true,
 				"",
-				wfMessage( "wsps-maintenance-analyze-end" )->plain() );
+				wfMessage( "wsps-maintenance-analyze-end" )->plain()
+			);
+
 			return;
 		}
 		$this->serverList = array_unique( $this->serverList );
@@ -110,30 +114,40 @@ class PSClean {
 			$this->notDeletedInfo( $notDeleted );
 		}
 
-		echo Colors::cEcho( $cntErrors -1 . ' could not be deleted',
+		echo Colors::cEcho(
+			$cntErrors - 1 . ' could not be deleted',
 			"red+bold",
 			true
 		);
-		echo Colors::cEcho( $cntDeleted -1 . ' files deleted',
+		echo Colors::cEcho(
+			$cntDeleted - 1 . ' files deleted',
 			"yellow+bold",
 			true
 		);
-		echo Colors::cEcho( $cntNotDeleted . ' info files not deleted',
+		echo Colors::cEcho(
+			$cntNotDeleted . ' info files not deleted',
 			"green+bold",
 			true
 		);
 
-		echo Colors::cEcho( wfMessage( "wsps-maintenance-clean-header" )->plain(),
+		echo Colors::cEcho(
+			wfMessage( "wsps-maintenance-clean-header" )->plain(),
 			"blue+bold",
 			true,
 			"",
-			wfMessage( "wsps-maintenance-analyze-end" )->plain() );
-
+			wfMessage( "wsps-maintenance-analyze-end" )->plain()
+		);
 	}
 
+	/**
+	 * @param array $notDeleted
+	 *
+	 * @return void
+	 */
 	private function notDeletedInfo( array $notDeleted ): void {
-		foreach ( $notDeleted as $file=>$tmp ) {
-			echo Colors::cEcho( $this->exportPath . $file ,
+		foreach ( $notDeleted as $file => $tmp ) {
+			echo Colors::cEcho(
+				$this->exportPath . $file,
 				"red+bold",
 				true,
 				'NOT DELETED',
@@ -143,42 +157,41 @@ class PSClean {
 	}
 
 	/**
-	 * @param $file
+	 * @param string $file
 	 *
 	 * @return void
 	 */
-	private function echoDeleted( $file ): void {
-		echo Colors::cEcho( $file,
+	private function echoDeleted( string $file ): void {
+		echo Colors::cEcho(
+			$file,
 			"yellow",
 			false,
 			'',
-			"deleted",
-			true
+			"deleted"
 		);
 	}
 
 	/**
-	 * @param $file
+	 * @param string $file
 	 *
 	 * @return void
 	 */
-	private function echoNotDeleted( $file ): void {
-		echo Colors::cEcho( $file,
+	private function echoNotDeleted( string $file ): void {
+		echo Colors::cEcho(
+			$file,
 			"red",
 			false,
 			'Could not be deleted',
-			"ERROR",
-			true
+			"ERROR"
 		);
 	}
 
-
 	/**
-	 * @param $file
+	 * @param string $file
 	 *
 	 * @return bool
 	 */
-	private function deleteInfoFile( $file ): bool {
+	private function deleteInfoFile( string $file ): bool {
 		$infoFile = $file . '.info';
 		if ( file_exists( $this->exportPath . $infoFile ) ) {
 			if ( unlink( $this->exportPath . $infoFile ) ) {
@@ -196,30 +209,32 @@ class PSClean {
 	}
 
 	/**
-	 * @param $file
+	 * @param string $file
 	 *
 	 * @return bool
 	 */
-	private function deleteSlotFiles( $file ): bool {
+	private function deleteSlotFiles( string $file ): bool {
 		$slotFiles = $file . '_slot*.wiki';
 		$filesList = glob( $this->exportPath . $slotFiles );
 		foreach ( $filesList as $singleFile ) {
-			if ( unlink( $singleFile) ) {
+			if ( unlink( $singleFile ) ) {
 				$this->echoDeleted( $singleFile );
 			} else {
 				$this->echoNotDeleted( $singleFile );
+
 				return false;
 			}
 		}
+
 		return true;
 	}
 
 	/**
-	 * @param $file
+	 * @param string $file
 	 *
 	 * @return bool
 	 */
-	private function deleteDatFiles( $file ): bool {
+	private function deleteDatFiles( string $file ): bool {
 		$dataFiles = $file . '.data';
 		if ( file_exists( $this->exportPath . $dataFiles ) ) {
 			if ( unlink( $this->exportPath . $dataFiles ) ) {
