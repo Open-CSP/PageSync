@@ -32,7 +32,7 @@ class PSClean {
 				continue;
 			}
 			$explodedFileName = explode( '_', $fileName );
-			$cnt = count( $explodedFileName ) - 2;
+			$cnt = count( $explodedFileName );
 			if ( $cnt > 2 ) {
 				unset( $explodedFileName[ $cnt - 1 ] );
 				unset( $explodedFileName[ $cnt - 2 ] );
@@ -74,54 +74,16 @@ class PSClean {
 			return;
 		}
 		$this->serverList = array_unique( $this->serverList );
-		$cntDeleted = 0;
 		$cntNotDeleted = 0;
-		$cntErrors = 0;
-		$notDeleted = [];
 		foreach ( $this->serverList as $infoFile ) {
 			if ( !array_key_exists( $infoFile, $this->indexList ) ) {
-				if ( $this->deleteInfoFile( $infoFile ) ) {
-					$cntDeleted++;
-				} else {
-					$cntErrors++;
-					$notDeleted[$infoFile] = false;
-				}
-				if ( $this->deleteSlotFiles( $infoFile ) ) {
-					$cntDeleted++;
-				} else {
-					$cntErrors++;
-					$notDeleted[$infoFile] = false;
-				}
-				if ( $this->deleteDatFiles( $infoFile ) ) {
-					$cntDeleted++;
-				} else {
-					$cntErrors++;
-					$notDeleted[$infoFile] = false;
-				}
+				$this->deleteInfoFile( $infoFile );
+				$this->deleteSlotFiles( $infoFile );
+				$this->deleteDatFiles( $infoFile );
 			} else {
 				$cntNotDeleted++;
 			}
 		}
-
-		if ( !empty( $notDeleted ) ) {
-			$this->notDeletedInfo( $notDeleted );
-		}
-
-		echo Colors::cEcho(
-			$cntErrors - 1 . ' could not be deleted',
-			"red+bold",
-			true
-		);
-		echo Colors::cEcho(
-			$cntDeleted - 1 . ' files deleted',
-			"yellow+bold",
-			true
-		);
-		echo Colors::cEcho(
-			$cntNotDeleted . ' info files not deleted',
-			"green+bold",
-			true
-		);
 
 		echo Colors::cEcho(
 			wfMessage( "wsps-maintenance-clean-header" )->plain(),
@@ -133,114 +95,84 @@ class PSClean {
 	}
 
 	/**
-	 * @param array $notDeleted
-	 *
-	 * @return void
-	 */
-	private function notDeletedInfo( array $notDeleted ): void {
-		foreach ( $notDeleted as $file => $tmp ) {
-			echo Colors::cEcho(
-				$this->exportPath . $file,
-				"red+bold",
-				true,
-				'NOT DELETED',
-				'ERROR'
-			);
-		}
-	}
-
-	/**
 	 * @param string $file
+	 * @param string $function
 	 *
 	 * @return void
 	 */
-	private function echoDeleted( string $file ): void {
+	private function echoDeleted( string $file, string $function ): void {
 		echo Colors::cEcho(
 			$file,
 			"yellow",
 			false,
-			'',
+			$function,
 			"deleted"
 		);
 	}
 
 	/**
 	 * @param string $file
+	 * @param string $function
 	 *
 	 * @return void
 	 */
-	private function echoNotDeleted( string $file ): void {
+	private function echoNotDeleted( string $file, string $function ): void {
 		echo Colors::cEcho(
 			$file,
 			"red",
 			false,
 			'Could not be deleted',
-			"ERROR"
+			$function
 		);
 	}
 
 	/**
 	 * @param string $file
 	 *
-	 * @return bool
+	 * @return void
 	 */
-	private function deleteInfoFile( string $file ): bool {
-		$infoFile = $file . '.info';
-		if ( file_exists( $this->exportPath . $infoFile ) ) {
-			if ( unlink( $this->exportPath . $infoFile ) ) {
-				$this->echoDeleted( $infoFile );
-
-				return true;
+	private function deleteInfoFile( string $file ): void {
+		$infoFile = $this->exportPath . $file . '.info';
+		if ( file_exists( $infoFile ) ) {
+			if ( unlink( $infoFile ) ) {
+				$this->echoDeleted( $infoFile, __function__ );
 			} else {
-				$this->echoNotDeleted( $infoFile );
-
-				return false;
+				$this->echoNotDeleted( $infoFile, __function__ );
 			}
-		} else {
-			return false;
 		}
 	}
 
 	/**
 	 * @param string $file
 	 *
-	 * @return bool
+	 * @return void
 	 */
-	private function deleteSlotFiles( string $file ): bool {
-		$slotFiles = $file . '_slot*.wiki';
-		$filesList = glob( $this->exportPath . $slotFiles );
+	private function deleteSlotFiles( string $file ): void {
+		$slotFiles = $this->exportPath . $file . '_slot*.wiki';
+		$filesList = glob( $slotFiles );
 		foreach ( $filesList as $singleFile ) {
 			if ( unlink( $singleFile ) ) {
-				$this->echoDeleted( $singleFile );
+				$this->echoDeleted( $singleFile, __function__ );
 			} else {
-				$this->echoNotDeleted( $singleFile );
-
-				return false;
+				$this->echoNotDeleted( $singleFile, __function__ );
 			}
 		}
-
-		return true;
 	}
 
 	/**
 	 * @param string $file
 	 *
-	 * @return bool
+	 * @return void
 	 */
-	private function deleteDatFiles( string $file ): bool {
-		$dataFiles = $file . '.data';
-		if ( file_exists( $this->exportPath . $dataFiles ) ) {
-			if ( unlink( $this->exportPath . $dataFiles ) ) {
-				$this->echoDeleted( $dataFiles );
-
-				return true;
+	private function deleteDatFiles( string $file ): void {
+		$dataFiles = $this->exportPath . $file . '.data';
+		if ( file_exists( $dataFiles ) ) {
+			if ( unlink( $dataFiles ) ) {
+				$this->echoDeleted( $dataFiles, __function__ );
 			} else {
-				$this->echoNotDeleted( $dataFiles );
+				$this->echoNotDeleted( $dataFiles, __function__ );
 
-				return false;
 			}
-		} else {
-			return false;
 		}
 	}
 }
