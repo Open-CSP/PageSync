@@ -622,7 +622,7 @@ class PSShare {
 	 *
 	 * @return bool|string
 	 */
-	public function getExternalZipAndStoreIntemp( string $fileUrl ) {
+	public function getExternalZipAndStoreIntemp( string $fileUrl ): bool|string {
 		$tempPath = PSConfig::$config['tempFilePath'];
 		// First remove any ZIP file in the temp folder
 		array_map(
@@ -637,7 +637,7 @@ class PSShare {
 			$tempPath . basename( $fileUrl ),
 			$zipFile
 		) ) {
-			return 'Could not save Share File to Temp folder';
+			return 'Could not save Share File to Temp folder: ' . $tempPath;
 		}
 
 		return true;
