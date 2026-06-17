@@ -67,13 +67,18 @@ class PSCore {
 	}
 
 	/**
+	 * @param bool $allFiles
+	 *
 	 * @return array
 	 */
-	public static function getFilesFromServer(): array {
+	public static function getFilesFromServer( bool $allFiles = false ): array {
 		if ( empty( PSConfig::$config ) ) {
 			self::setConfig();
 		}
 		$path = PSConfig::$config['exportPath'];
+		if ( $allFiles ) {
+			return glob( $path . '*.*' );
+		}
 		return glob( $path . "*.info" );
 	}
 
