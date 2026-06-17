@@ -118,7 +118,7 @@ class PSConfig {
 			'/'
 		);
 		$path   .= '/';
-		if ( ! file_exists( $path ) ) {
+		if ( !file_exists( $path ) ) {
 			mkdir(
 				$path
 			);
@@ -136,9 +136,7 @@ class PSConfig {
 	 * @return void
 	 */
 	public function checkConfigFromMW( array $PageSync ): void {
-		if ( !isset( $PageSync['allowedGroups'] )
-			 || !is_array( $PageSync['allowedGroups'] )
-			 || empty( $PageSync['allowedGroups'] ) ) {
+		if ( !is_array( $PageSync['allowedGroups'] ) || empty( $PageSync['allowedGroups'] ) ) {
 			$this->setDefaultAllowedGroups();
 		} else {
 			self::$config[ 'allowedGroups' ] = $PageSync['allowedGroups'];
@@ -161,15 +159,15 @@ class PSConfig {
 			self::$config['contentSlotsToBeSynced'] = $PageSync['contentSlotsToBeSynced'];
 		}
 
-		if ( isset( $PageSync['filePath'] ) && !empty( $PageSync['filePath'] ) ) {
+		if ( !empty( $PageSync['filePath'] ) ) {
 			self::$config['filePath'] = $this->createIfNeededPath( $PageSync['filePath'] );
 			self::$config['exportPath'] = $this->createIfNeededPath( $this->getDefaultExportPath() );
 		} else {
 			$this->setDefaultcontentFilePath();
 		}
 
-		if ( isset( $PageSync['tempFilePath'] ) && !empty( $PageSync['tempFilePath'] ) ) {
-			$this->createIfNeededPath( $PageSync['tempFilePath'] );
+		if ( !empty( $PageSync['tempFilePath'] ) ) {
+			self::$config['tempFilePath'] = $this->createIfNeededPath( $PageSync['tempFilePath'] );
 		} else {
 			$this->setDefaultTempFilePath();
 		}
